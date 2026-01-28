@@ -7,7 +7,7 @@ requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
     "typer>=0.9.0",
-    "rich>=13.0.0",
+    "rich>=13.9.4",
     "platformdirs>=4.0.0",
 ]
 
@@ -17,8 +17,8 @@ dict = [
     "jamdict-data>=1.5",
 ]
 dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
+    "pytest>=7.4.4",
+    "pytest-cov>=4.1.0",
     "ruff>=0.14.0",
     "basedpyright>=1.37.0",
     "pre-commit>=4.0.0",

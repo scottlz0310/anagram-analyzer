@@ -32,9 +32,9 @@ requires-dist = [
     { name = "jamdict-data", marker = "extra == 'dict'", specifier = ">=1.5" },
     { name = "platformdirs", specifier = ">=4.0.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
-    { name = "rich", specifier = ">=13.0.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.4" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
+    { name = "rich", specifier = ">=13.9.4" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.0" },
     { name = "typer", specifier = ">=0.9.0" },
 ]
