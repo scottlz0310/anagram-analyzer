@@ -1,0 +1,62 @@
+[project]
+name = "anagram-analyzer"
+version = "0.1.0"
+description = "ひらがなアナグラム解析CLI - 辞書索引方式で高速に候補を検索"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "platformdirs>=4.0.0",
+]
+
+[project.optional-dependencies]
+dict = [
+    "jamdict>=0.1a11",
+    "jamdict-data>=1.5",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.14.0",
+    "basedpyright>=1.37.0",
+    "pre-commit>=4.0.0",
+]
+
+[project.scripts]
+anagram = "anagram_cli.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/anagram_cli"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+]
+
+[tool.basedpyright]
+pythonVersion = "3.10"
+typeCheckingMode = "all"
+include = ["src"]
+# 外部ライブラリ（jamdict, sqlite3）の型スタブ不足に起因する問題は無視
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportAny = false
