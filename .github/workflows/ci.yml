@@ -59,7 +59,7 @@ jobs:
         run: uv run pytest --cov=anagram_cli --cov-report=xml -q
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: matrix.python-version == '3.13'
         with:
           files: coverage.xml
