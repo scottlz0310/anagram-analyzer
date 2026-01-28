@@ -27,16 +27,16 @@ dict = [
 
 [package.metadata]
 requires-dist = [
-    { name = "basedpyright", marker = "extra == 'dev'", specifier = ">=1.37.0" },
-    { name = "jamdict", marker = "extra == 'dict'", specifier = ">=0.1a11" },
+    { name = "basedpyright", marker = "extra == 'dev'", specifier = ">=1.37.2" },
+    { name = "jamdict", marker = "extra == 'dict'", specifier = ">=0.1a11.post2" },
     { name = "jamdict-data", marker = "extra == 'dict'", specifier = ">=1.5" },
-    { name = "platformdirs", specifier = ">=4.0.0" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.4" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
-    { name = "rich", specifier = ">=13.9.4" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.0" },
-    { name = "typer", specifier = ">=0.9.0" },
+    { name = "platformdirs", specifier = ">=4.5.1" },
+    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0.1" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.2" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
+    { name = "rich", specifier = ">=14.3.1" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.14" },
+    { name = "typer", specifier = ">=0.9.4" },
 ]
 provides-extras = ["dict", "dev"]
 
