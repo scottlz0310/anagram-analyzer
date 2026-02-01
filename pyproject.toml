@@ -7,7 +7,7 @@ requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
     "typer>=0.21.1",
-    "rich>=14.3.1",
+    "rich>=14.3.2",
     "platformdirs>=4.5.1",
 ]
 
@@ -20,7 +20,7 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.14",
-    "basedpyright>=1.37.2",
+    "basedpyright>=1.37.3",
     "pre-commit>=4.5.1",
 ]
 
