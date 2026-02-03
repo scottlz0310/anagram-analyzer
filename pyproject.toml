@@ -19,7 +19,7 @@ dict = [
 dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
-    "ruff>=0.14.14",
+    "ruff>=0.15.0",
     "basedpyright>=1.37.3",
     "pre-commit>=4.5.1",
 ]
