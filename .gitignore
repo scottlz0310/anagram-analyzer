@@ -44,3 +44,16 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# Android / Kotlin / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/captures/
+android/*.iml
+android/app/*.iml
+*.apk
+*.aab
+*.hprof

@@ -147,9 +147,32 @@ MIT License — 詳細は [LICENSE](LICENSE) を参照してください。
 本ツールは辞書データを**同梱していません**。ユーザーが別途インストールする辞書パッケージには、それぞれ固有のライセンスが適用されます。
 
 - **jamdict-data**: JMdict 等の辞書データを含みます
-- **JMdict**: Electronic Dictionary Research and Development Group により [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) 等でライセンスされています
+- **JMdict**: Electronic Dictionary Research and Development Group により [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 等でライセンスされています
 
 辞書データを利用・再配布する際は、各パッケージおよび元データのライセンス条件に従ってください。詳細は以下を参照：
 
 - [JMdict Project](https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project)
 - [jamdict-data PyPI](https://pypi.org/project/jamdict-data/)
+
+---
+
+## Androidアプリ版（計画中）
+
+本プロジェクトでは、CLI版のコアロジックを移植した **Androidネイティブアプリ** を計画しています。
+
+### 技術スタック
+
+- **言語**: Kotlin
+- **UI**: Jetpack Compose
+- **データ**: Room (SQLite) + DataStore
+- **辞書**: JMdict フルデータ（Asset同梱）
+
+### 想定機能
+
+- テキストボックスによるひらがな入力・アナグラム候補の即時検索
+- 候補リストの見やすいUI表示（漢字表記・意味付き）
+- 入力履歴・お気に入り管理
+- オフライン対応（辞書・インデックスをローカルキャッシュ）
+- 設定（文字数範囲、UIテーマ切替等）
+
+詳細は [Issue #14](https://github.com/scottlz0310/anagram-analyzer/issues/14) を参照してください。

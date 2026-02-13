@@ -126,3 +126,100 @@ config.py         # cache dir
 * ネタバレ配慮として `--spoiler` を用意
 * ライセンス注意（JMdict系はCC BY-SA等の条件があるため、データ再配布しない方針）
 * 現段階はローカル開発でgithub公開は未定（要望あれば検討）
+
+---
+
+## Androidアプリ化 仕様（Issue #14）
+
+### 基本方針
+
+- 既存Python CLI版はプロトタイプ扱い。ロジック部のみ移植対象。
+- ネイティブ技術優先（Kotlin + Jetpack Compose）。
+- 責務分離・堅牢設計を徹底。ゴッドクラス禁止、単一責任原則厳守。
+
+### 移植対象ロジック
+
+Python版から以下のコアロジックをKotlinに移植する：
+
+1. **ひらがな正規化** (`normalize.py`)
+   - NFKC正規化、空白除去、カタカナ→ひらがな変換
+   - ひらがな判定（U+3041〜U+3096 + 長音記号）
+   - 入力バリデーション（ひらがな以外を拒否）
+
+2. **アナグラムキー生成** (`normalize.py`)
+   - `key = sorted(normalized_input).joinToString("")`
+   - Python版と同一のキー生成ロジックを保証すること
+
+3. **インデックス検索** (`index.py`)
+   - SQLiteベース → Room DAOに置換
+   - キーによる完全一致検索
+   - バッチ登録（初回辞書インポート時）
+
+### 辞書データ運用（Android版）
+
+- **JMdictフルデータをAssetにバンドル**（品質最優先）
+  - サイズ：XML解凍後110〜120MB、Room DB化後200〜300MB見込み
+  - 初回起動時にAssetからRoom DBへインポート
+- **ライセンス：CC BY-SA 4.0**（クレジット表記必須）
+  - About画面に以下を表示：
+    > このアプリはElectronic Dictionary Research and Development GroupのJMdictデータを使用しています。ライセンス: CC BY-SA 4.0
+- 将来的にサーバ配信との併用も検討
+
+### AnagramEntry スキーマ設計（Room Entity）
+
+```kotlin
+@Entity(indices = [Index("sorted_key"), Index("length")])
+data class AnagramEntry(
+    @PrimaryKey val sortedKey: String,
+    val readings: String,       // 複数読みを"|"区切り
+    val kanji: String?,         // 代表表記
+    val glossSummary: String?,  // 短い英語訳まとめ
+    val entryId: Long,          // JMdict元ID
+    val length: Int,
+    val isCommon: Boolean = false
+)
+```
+
+### Android版 想定機能一覧
+
+| 機能 | 優先度 | 説明 |
+|------|--------|------|
+| ひらがな入力 | 必須 | テキストボックスによる入力 |
+| アナグラム検索 | 必須 | キー生成→DB lookup→候補表示 |
+| 候補リスト表示 | 必須 | 見やすいUI（漢字表記・意味付き） |
+| オフライン対応 | 必須 | 辞書・インデックスをローカルキャッシュ |
+| 入力履歴 | 推奨 | 過去の検索履歴を保持 |
+| お気に入り | 推奨 | 候補のブックマーク |
+| 設定 | 推奨 | 最小/最大文字数、UIテーマ切替 |
+| 頻度順ソート | 将来 | 一般的な単語を上位に表示 |
+
+### Android版 アーキテクチャ
+
+```
+UI層 (Jetpack Compose)
+  ↓ StateFlow
+ViewModel層
+  ↓
+UseCase層 (domain)
+  ↓
+Repository層 (data)
+  ↓
+Room DB / DataStore
+```
+
+- **UI層**: Compose画面、UIステート管理
+- **ViewModel層**: UIロジック、StateFlow発行
+- **UseCase層**: ビジネスロジック（正規化・キー生成・検索）
+- **Repository層**: データアクセス抽象化
+- **データ層**: Room DB（アナグラムインデックス）、DataStore（設定）
+
+### 開発ステップ
+
+1. Python版からロジック層を抽出・仕様明確化
+2. Kotlinでのロジック再実装とテスト
+3. Jetpack ComposeによるUIプロトタイピング
+4. アプリ基盤設計・責務ごとのクラス分割
+5. JMdict資源のAndroid対応（Asset同梱・Room変換）
+6. 入力・表示部の実装、オフライン辞書処理
+7. デプロイ・CI/CD・QA体制整備
+8. iOS対応は要望/実績に応じて別途計画
