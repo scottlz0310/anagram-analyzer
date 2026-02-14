@@ -8,13 +8,14 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anagram.analyzer.data.datastore.ThemePreferenceStore
 import com.anagram.analyzer.ui.screen.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -24,9 +25,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val isDarkTheme by themePreferenceStore.isDarkTheme.collectAsStateWithLifecycle(
-                initialValue = false,
-            )
+            val isDarkThemeState by produceState<Boolean?>(initialValue = null, themePreferenceStore) {
+                themePreferenceStore.isDarkTheme.collect { value = it }
+            }
+            val isDarkTheme = isDarkThemeState ?: return@setContent
             val scope = rememberCoroutineScope()
             MaterialTheme(
                 colorScheme = if (isDarkTheme) darkColorScheme() else lightColorScheme(),

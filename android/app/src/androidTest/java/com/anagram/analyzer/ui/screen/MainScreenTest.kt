@@ -88,12 +88,18 @@ class MainScreenTest {
 
         val lightLabel = "テーマ: ライト"
         val darkLabel = "テーマ: ダーク"
-        val startedWithLight = composeRule.onAllNodesWithText(lightLabel).fetchSemanticsNodes().isNotEmpty()
-        val expectedAfterToggle = if (startedWithLight) darkLabel else lightLabel
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(lightLabel).fetchSemanticsNodes().isNotEmpty() ||
+                composeRule.onAllNodesWithText(darkLabel).fetchSemanticsNodes().isNotEmpty()
+        }
+        val beforeToggle = if (composeRule.onAllNodesWithText(lightLabel).fetchSemanticsNodes().isNotEmpty()) {
+            lightLabel
+        } else {
+            darkLabel
+        }
+        assertTrue(beforeToggle == lightLabel || beforeToggle == darkLabel)
+        val expectedAfterToggle = if (beforeToggle == lightLabel) darkLabel else lightLabel
 
-        assertTrue(
-            startedWithLight || composeRule.onAllNodesWithText(darkLabel).fetchSemanticsNodes().isNotEmpty(),
-        )
         composeRule.onNodeWithTag("theme_toggle_button").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(expectedAfterToggle).fetchSemanticsNodes().isNotEmpty()
