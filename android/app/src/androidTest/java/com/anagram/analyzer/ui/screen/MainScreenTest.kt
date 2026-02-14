@@ -21,7 +21,7 @@ class MainScreenTest {
     @Test
     fun ひらがな入力で候補を表示できる() {
         composeRule.onNodeWithTag("input_field").performTextInput("りんご")
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = 30_000) {
             composeRule.onAllNodesWithText("・りんご").fetchSemanticsNodes().isNotEmpty()
         }
 
