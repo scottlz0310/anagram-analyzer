@@ -32,7 +32,10 @@ abstract class AnagramDatabase : RoomDatabase() {
                         """.trimIndent(),
                     )
                     db.execSQL(
-                        "CREATE UNIQUE INDEX IF NOT EXISTS `index_anagram_entries_sorted_key_word` ON `anagram_entries` (`sorted_key`, `word`)",
+                        "DROP INDEX IF EXISTS `index_anagram_entries_sorted_key_word`",
+                    )
+                    db.execSQL(
+                        "CREATE UNIQUE INDEX `index_anagram_entries_sorted_key_word` ON `anagram_entries` (`sorted_key`, `word`)",
                     )
                 }
             }
