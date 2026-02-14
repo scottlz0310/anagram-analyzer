@@ -65,6 +65,7 @@
 - `MainScreenTest` に候補詳細ダイアログ表示のUIテストを追加
 - `MainActivity` / `MainScreen` にライト/ダークテーマ切替ボタンを追加し、Material 3 の `colorScheme` を切り替え可能に更新
 - `MainScreenTest` にテーマ切替UIテストを追加
+- `ThemePreferenceStore`（DataStore Preferences）を追加し、テーマ切替状態を再起動後も維持するよう更新
 
 ## [0.1.0] - 2026-02-07
 

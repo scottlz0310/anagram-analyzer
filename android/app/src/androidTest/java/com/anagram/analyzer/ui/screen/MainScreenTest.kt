@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.anagram.analyzer.MainActivity
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -84,10 +85,31 @@ class MainScreenTest {
     @Test
     fun テーマ切替ボタンで表示を変更できる() {
         composeRule.onNodeWithTag("theme_toggle_button").assertIsDisplayed()
-        composeRule.onNodeWithText("テーマ: ライト").assertIsDisplayed()
+
+        val lightLabel = "テーマ: ライト"
+        val darkLabel = "テーマ: ダーク"
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(lightLabel).fetchSemanticsNodes().isNotEmpty() ||
+                composeRule.onAllNodesWithText(darkLabel).fetchSemanticsNodes().isNotEmpty()
+        }
+        val beforeToggle = if (composeRule.onAllNodesWithText(lightLabel).fetchSemanticsNodes().isNotEmpty()) {
+            lightLabel
+        } else {
+            darkLabel
+        }
+        assertTrue(beforeToggle == lightLabel || beforeToggle == darkLabel)
+        val expectedAfterToggle = if (beforeToggle == lightLabel) darkLabel else lightLabel
 
         composeRule.onNodeWithTag("theme_toggle_button").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(expectedAfterToggle).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText(expectedAfterToggle).assertIsDisplayed()
 
-        composeRule.onNodeWithText("テーマ: ダーク").assertIsDisplayed()
+        composeRule.activityRule.scenario.recreate()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(expectedAfterToggle).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText(expectedAfterToggle).assertIsDisplayed()
     }
 }
