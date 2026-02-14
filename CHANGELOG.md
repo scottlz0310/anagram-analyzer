@@ -16,6 +16,12 @@
   - Room最小構成を追加（`AnagramEntry` Entity, `AnagramDao`, `AnagramDatabase`）
   - `MainViewModel` からRoom検索を実行し、`MainScreen` で候補リスト表示を追加
   - READMEにAndroid手動テスト手順（`assembleDebug` / `adb install` / 起動コマンド）を追加
+- AndroidのDI基盤としてHiltを追加
+  - `AnagramApplication`（`@HiltAndroidApp`）を追加
+  - `di/AppModule.kt` で `AnagramDatabase` / `AnagramDao` / `CoroutineDispatcher` の提供を追加
+  - `MainViewModel` を `@HiltViewModel` + `@Inject` コンストラクタへ移行
+  - `MainActivity` を `@AndroidEntryPoint` 化し、`MainScreen` を `hiltViewModel()` 利用へ変更
+  - GradleにHiltプラグイン・依存関係を追加
 - Androidアプリ化に向けたドキュメント整備（Issue #14）
   - AGENTS.md: Android版の技術スタック、ディレクトリ構造案、コーディング規約、ビルドコマンド、AnagramEntryスキーマ設計
   - prompt.md: Android版の移植対象ロジック、辞書運用方針、アーキテクチャ設計、想定機能一覧

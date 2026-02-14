@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
+        android:name=".AnagramApplication"
         android:allowBackup="true"
         android:label="Anagram Analyzer"
         android:supportsRtl="true"
