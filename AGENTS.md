@@ -190,6 +190,8 @@ android/
 
 **候補詳細表示**: 候補タップで詳細ダイアログを表示（読みを表示、漢字/意味は現状プレースホルダ）
 
+**テーマ切替**: `MainActivity` / `MainScreen` で Material 3 のライト/ダークテーマを切替可能
+
 **初回投入計測**: `MainViewModel` が seed preload 完了時に `source / total / inserted / elapsedMs` 形式の計測ログを生成し、UI状態に保持
 
 ### `android/app/src/main/java/com/anagram/analyzer/data/db/` - Android DBモジュール

@@ -26,10 +26,16 @@ import com.anagram.analyzer.ui.viewmodel.MainUiState
 import com.anagram.analyzer.ui.viewmodel.MainViewModel
 
 @Composable
-fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(
+    isDarkTheme: Boolean,
+    onToggleTheme: () -> Unit,
+    viewModel: MainViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     MainScreenContent(
         state = state,
+        isDarkTheme = isDarkTheme,
+        onToggleTheme = onToggleTheme,
         onInputChanged = viewModel::onInputChanged,
     )
 }
@@ -37,6 +43,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
 @Composable
 fun MainScreenContent(
     state: MainUiState,
+    isDarkTheme: Boolean,
+    onToggleTheme: () -> Unit,
     onInputChanged: (String) -> Unit,
 ) {
     var showAboutDialog by rememberSaveable { mutableStateOf(false) }
@@ -86,6 +94,13 @@ fun MainScreenContent(
             modifier = Modifier.testTag("about_button"),
         ) {
             Text("辞書クレジット")
+        }
+
+        TextButton(
+            onClick = onToggleTheme,
+            modifier = Modifier.testTag("theme_toggle_button"),
+        ) {
+            Text(if (isDarkTheme) "テーマ: ダーク" else "テーマ: ライト")
         }
     }
 
