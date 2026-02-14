@@ -197,7 +197,7 @@ cd android
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -n com.anagram.analyzer/.MainActivity
 # 初回投入ログ確認（任意）
-adb logcat -d | grep "preload source="
+adb logcat -d -s AnagramPreload
 ```
 
 確認例：

@@ -27,6 +27,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
             )
 
             viewModel.onInputChanged("りんご")
@@ -58,6 +59,7 @@ class MainViewModelTest {
                 ),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
             )
 
             viewModel.onInputChanged("りんご")
@@ -83,6 +85,7 @@ class MainViewModelTest {
                 ),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
             )
 
             advanceUntilIdle()
@@ -104,6 +107,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(loadFailure = IllegalArgumentException("bad seed")),
                 ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
             )
 
             advanceUntilIdle()
@@ -130,6 +134,7 @@ class MainViewModelTest {
                     ),
                 ),
                 ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
             )
 
             advanceUntilIdle()

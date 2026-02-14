@@ -1,10 +1,12 @@
 package com.anagram.analyzer.di
 
 import android.content.Context
+import android.util.Log
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramDatabase
 import com.anagram.analyzer.data.seed.AssetSeedEntryLoader
 import com.anagram.analyzer.data.seed.SeedEntryLoader
+import com.anagram.analyzer.ui.viewmodel.PreloadLogger
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,4 +36,10 @@ object AppModule {
 
     @Provides
     fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
+
+    @Provides
+    @Singleton
+    fun providePreloadLogger(): PreloadLogger = PreloadLogger { message ->
+        Log.i("AnagramPreload", message)
+    }
 }

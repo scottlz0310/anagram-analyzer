@@ -19,7 +19,11 @@ import kotlinx.coroutines.withContext
 import kotlin.time.TimeSource
 import javax.inject.Inject
 
-data class PreloadMetrics(
+fun interface PreloadLogger {
+    fun log(message: String)
+}
+
+private data class PreloadMetrics(
     val source: String,
     val totalEntries: Long,
     val insertedEntries: Long,
@@ -40,6 +44,7 @@ class MainViewModel @Inject constructor(
     private val anagramDao: AnagramDao,
     private val seedEntryLoader: SeedEntryLoader,
     private val ioDispatcher: CoroutineDispatcher,
+    private val preloadLogger: PreloadLogger,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState
@@ -51,7 +56,7 @@ class MainViewModel @Inject constructor(
             try {
                 val metrics = preloadSeedDataIfNeeded()
                 val preloadLog = metrics.toLogLine()
-                println(preloadLog)
+                preloadLogger.log(preloadLog)
                 _uiState.update { it.copy(preloadLog = preloadLog) }
             } catch (error: SQLiteException) {
                 _uiState.update {
@@ -73,14 +78,8 @@ class MainViewModel @Inject constructor(
         lookupJob?.cancel()
 
         if (value.isEmpty()) {
-            _uiState.update {
-                it.copy(
-                    input = "",
-                    normalized = "",
-                    anagramKey = "",
-                    candidates = emptyList(),
-                    errorMessage = null,
-                )
+            _uiState.update { state ->
+                MainUiState(preloadLog = state.preloadLog)
             }
             return
         }
