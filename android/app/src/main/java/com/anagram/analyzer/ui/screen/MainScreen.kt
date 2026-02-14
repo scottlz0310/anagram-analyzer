@@ -40,6 +40,7 @@ fun MainScreenContent(
     onInputChanged: (String) -> Unit,
 ) {
     var showAboutDialog by rememberSaveable { mutableStateOf(false) }
+    var selectedCandidate by rememberSaveable { mutableStateOf<String?>(null) }
     val errorMessage = state.errorMessage
     Column(
         modifier = Modifier
@@ -71,7 +72,9 @@ fun MainScreenContent(
             } else {
                 Text("候補:")
                 state.candidates.forEach { candidate ->
-                    Text("・$candidate")
+                    TextButton(onClick = { selectedCandidate = candidate }) {
+                        Text("・$candidate")
+                    }
                 }
             }
         } else {
@@ -97,6 +100,26 @@ fun MainScreenContent(
             },
             confirmButton = {
                 TextButton(onClick = { showAboutDialog = false }) {
+                    Text("閉じる")
+                }
+            },
+        )
+    }
+
+    val detailCandidate = selectedCandidate
+    if (detailCandidate != null) {
+        AlertDialog(
+            onDismissRequest = { selectedCandidate = null },
+            title = { Text("候補詳細", modifier = Modifier.testTag("candidate_detail_dialog_title")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("読み: $detailCandidate", modifier = Modifier.testTag("candidate_detail_reading"))
+                    Text("漢字表記: （未対応）")
+                    Text("意味: （未対応）")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { selectedCandidate = null }) {
                     Text("閉じる")
                 }
             },
