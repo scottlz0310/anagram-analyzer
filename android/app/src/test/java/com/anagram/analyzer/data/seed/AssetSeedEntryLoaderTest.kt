@@ -1,6 +1,7 @@
 package com.anagram.analyzer.data.seed
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AssetSeedEntryLoaderTest {
@@ -29,5 +30,17 @@ class AssetSeedEntryLoaderTest {
     @Test(expected = IllegalArgumentException::class)
     fun length不正は例外を送出する() {
         parseSeedEntries(sequenceOf("ごりん\tりんご\tnan"))
+    }
+
+    @Test
+    fun 末尾空列は空列エラーを送出する() {
+        val exception = try {
+            parseSeedEntries(sequenceOf("ごりん\tりんご\t"))
+            null
+        } catch (e: IllegalArgumentException) {
+            e
+        }
+        requireNotNull(exception)
+        assertTrue(exception.message?.contains("空列") == true)
     }
 }

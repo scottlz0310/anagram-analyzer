@@ -14,13 +14,13 @@ class AssetSeedEntryLoader @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : SeedEntryLoader {
     override suspend fun loadEntries(): List<AnagramEntry> {
-        val lines = try {
-            context.assets.open(ASSET_FILE_NAME).bufferedReader().use { it.readLines() }
+        return try {
+            context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
+                parseSeedEntries(reader.lineSequence())
+            }
         } catch (_: IOException) {
-            return emptyList()
+            emptyList()
         }
-
-        return parseSeedEntries(lines.asSequence())
     }
 
     private companion object {
@@ -31,24 +31,26 @@ class AssetSeedEntryLoader @Inject constructor(
 internal fun parseSeedEntries(lines: Sequence<String>): List<AnagramEntry> {
     val entries = mutableListOf<AnagramEntry>()
     lines.forEachIndexed { index, rawLine ->
-        val line = rawLine.trim()
+        val line = rawLine.trimEnd('\r', '\n')
         if (line.isEmpty() || line.startsWith("#")) {
             return@forEachIndexed
         }
 
-        val columns = line.split('\t')
+        val columns = line.split('\t', limit = 3)
         require(columns.size == 3) {
             "anagram_seed.tsv ${index + 1}行目の列数が不正です: '$line'"
         }
 
         val sortedKey = columns[0].trim()
         val word = columns[1].trim()
-        val length = columns[2].trim().toIntOrNull()
-            ?: throw IllegalArgumentException("anagram_seed.tsv ${index + 1}行目のlengthが不正です: '$line'")
+        val lengthText = columns[2].trim()
 
-        require(sortedKey.isNotEmpty() && word.isNotEmpty()) {
+        require(sortedKey.isNotEmpty() && word.isNotEmpty() && lengthText.isNotEmpty()) {
             "anagram_seed.tsv ${index + 1}行目に空列があります: '$line'"
         }
+
+        val length = lengthText.toIntOrNull()
+            ?: throw IllegalArgumentException("anagram_seed.tsv ${index + 1}行目のlengthが不正です: '$line'")
 
         entries.add(
             AnagramEntry(
