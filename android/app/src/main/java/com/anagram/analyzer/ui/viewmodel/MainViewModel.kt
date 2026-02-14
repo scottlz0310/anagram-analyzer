@@ -37,6 +37,7 @@ data class MainUiState(
     val normalized: String = "",
     val anagramKey: String = "",
     val candidates: List<String> = emptyList(),
+    val inputHistory: List<String> = emptyList(),
     val candidateDetails: Map<String, CandidateDetail> = emptyMap(),
     val errorMessage: String? = null,
     val preloadLog: String? = null,
@@ -91,6 +92,7 @@ class MainViewModel @Inject constructor(
             _uiState.update { state ->
                 MainUiState(
                     preloadLog = state.preloadLog,
+                    inputHistory = state.inputHistory,
                     candidateDetails = state.candidateDetails,
                 )
             }
@@ -119,7 +121,14 @@ class MainViewModel @Inject constructor(
                     if (state.input != value) {
                         state
                     } else {
-                        state.copy(candidates = words)
+                        state.copy(
+                            candidates = words,
+                            inputHistory = if (words.isNotEmpty()) {
+                                appendInputHistory(state.inputHistory, normalized)
+                            } else {
+                                state.inputHistory
+                            },
+                        )
                     }
                 }
             }
@@ -174,7 +183,15 @@ class MainViewModel @Inject constructor(
         return "preload source=$source total=$totalEntries inserted=$insertedEntries elapsedMs=$elapsedMillis"
     }
 
+    private fun appendInputHistory(history: List<String>, value: String): List<String> {
+        return buildList {
+            add(value)
+            addAll(history.filterNot { it == value })
+        }.take(MAX_INPUT_HISTORY)
+    }
+
     private companion object {
+        private const val MAX_INPUT_HISTORY = 10
         private val DEMO_ENTRIES = listOf(
             AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
             AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3),

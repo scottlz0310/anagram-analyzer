@@ -45,6 +45,54 @@ class MainViewModelTest {
     }
 
     @Test
+    fun 候補表示時に入力履歴へ追加する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            assertEquals(listOf("りんご"), viewModel.uiState.value.inputHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 入力履歴は重複を先頭へ寄せる() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+            viewModel.onInputChanged("さくら")
+            advanceUntilIdle()
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            assertEquals(listOf("りんご", "さくら"), viewModel.uiState.value.inputHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
     fun 連続入力時は最新入力の結果のみ反映する() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)

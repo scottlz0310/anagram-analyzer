@@ -89,6 +89,18 @@ fun MainScreenContent(
             Text("文字を入力すると正規化結果とキーを表示します。")
         }
 
+        if (state.inputHistory.isNotEmpty()) {
+            Text("入力履歴:", modifier = Modifier.testTag("input_history_title"))
+            state.inputHistory.forEachIndexed { index, history ->
+                TextButton(
+                    onClick = { onInputChanged(history) },
+                    modifier = Modifier.testTag("input_history_item_$index"),
+                ) {
+                    Text("・$history")
+                }
+            }
+        }
+
         TextButton(
             onClick = { showAboutDialog = true },
             modifier = Modifier.testTag("about_button"),

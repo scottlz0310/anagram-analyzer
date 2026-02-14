@@ -198,6 +198,8 @@ android/
 
 **テーマ永続化**: `ThemePreferenceStore` が DataStore Preferences にテーマ設定を保存し、再起動後も反映
 
+**入力履歴**: `MainViewModel` が候補表示時に最新10件の履歴を保持し、`MainScreen` で履歴タップによる再入力を提供
+
 **初回投入計測**: `MainViewModel` が seed preload 完了時に `source / total / inserted / elapsedMs` 形式の計測ログを生成し、UI状態に保持
 
 ### `android/app/src/main/java/com/anagram/analyzer/data/db/` - Android DBモジュール
@@ -238,6 +240,7 @@ android/
 | `AnagramDatabase` | アプリ全体で共有するRoom DBインスタンス |
 | `AnagramDao` | `MainViewModel` などから検索に使うDAO |
 | `SeedEntryLoader` | `anagram_seed.tsv` を初期投入するためのローダー |
+| `CandidateDetailLoader` | `candidate_detail_seed.tsv` を詳細表示に使うためのローダー |
 | `CoroutineDispatcher` | DBアクセス用のIOディスパッチャ |
 
 ### `index.py` - インデックスモジュール

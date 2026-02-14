@@ -35,6 +35,17 @@ class MainScreenTest {
     }
 
     @Test
+    fun 入力履歴を表示できる() {
+        composeRule.onNodeWithTag("input_field").performTextInput("りんご")
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            composeRule.onAllNodesWithTag("input_history_item_0").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithTag("input_history_title").assertIsDisplayed()
+        composeRule.onNodeWithTag("input_history_item_0").assertTextContains("りんご")
+    }
+
+    @Test
     fun 非ひらがな入力でエラーを表示できる() {
         composeRule.onNodeWithTag("input_field").performTextInput("abc")
         composeRule.waitUntil(timeoutMillis = 5_000) {
