@@ -48,7 +48,7 @@ class HiraganaNormalizerTest {
             "あ　い　う" to "あいう",
         )
         cases.forEach { (input, expected) ->
-            assertEquals(expected, HiraganaNormalizer.normalizeHiragana(input))
+            assertEquals("input: $input", expected, HiraganaNormalizer.normalizeHiragana(input))
         }
     }
 
@@ -69,7 +69,10 @@ class HiraganaNormalizerTest {
             val error = assertThrows(NormalizationException::class.java) {
                 HiraganaNormalizer.normalizeHiragana(input)
             }
-            assertTrue(error.message?.contains("ひらがな以外の文字が含まれています") == true)
+            assertTrue(
+                "input=$input, message=${error.message}",
+                error.message?.contains("ひらがな以外の文字が含まれています") ?: false,
+            )
         }
     }
 
