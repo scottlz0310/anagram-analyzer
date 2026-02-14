@@ -7,6 +7,15 @@
 
 ### Added
 
+- Androidプロジェクトの初期実装を追加
+  - `android/` に Gradle Kotlin DSL ベースの最小構成（root/app）を追加
+  - `gradlew` / `gradlew.bat` / `gradle/wrapper/*` を追加（Gradle Wrapper導入）
+  - `MainActivity` / `MainScreen` / `MainViewModel` の最小UI・状態管理を追加
+  - `HiraganaNormalizer.kt`（NFKC正規化・カタカナ→ひらがな・キー生成）を追加
+  - `HiraganaNormalizerTest.kt`（JUnit）を追加
+  - Room最小構成を追加（`AnagramEntry` Entity, `AnagramDao`, `AnagramDatabase`）
+  - `MainViewModel` からRoom検索を実行し、`MainScreen` で候補リスト表示を追加
+  - READMEにAndroid手動テスト手順（`assembleDebug` / `adb install` / 起動コマンド）を追加
 - Androidアプリ化に向けたドキュメント整備（Issue #14）
   - AGENTS.md: Android版の技術スタック、ディレクトリ構造案、コーディング規約、ビルドコマンド、AnagramEntryスキーマ設計
   - prompt.md: Android版の移植対象ロジック、辞書運用方針、アーキテクチャ設計、想定機能一覧
@@ -19,6 +28,9 @@
 ### Changed
 
 - JMdictライセンス表記を CC BY-SA 3.0 → CC BY-SA 4.0 に更新（最新版準拠）
+- `MainScreen` のエラーメッセージ表示でKotlinコンパイルエラーが出ないよう null 判定を調整
+- Androidビルドをグローバルgradle依存から Gradle Wrapper（`./gradlew`）中心に更新
+- デモデータ投入完了前の検索でも候補取得できるよう、`MainViewModel` の初期ロード待機を追加
 
 ## [0.1.0] - 2026-02-07
 
