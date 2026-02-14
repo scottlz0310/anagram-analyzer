@@ -59,6 +59,8 @@
 - seedサイズシミュレーション結果に基づき、文字数制限（`--max-len`）中心の運用方針を README / AGENTS に反映
 - GitHub Actions CI に Android UIテスト（`reactivecircus/android-emulator-runner` + `:app:connectedDebugAndroidTest`）ジョブを追加
 - `MainScreen` に「辞書クレジット」ダイアログを追加し、JMdictライセンス表示をアプリ内から確認可能に更新
+- `MainViewModel` の初回seed投入で計測ログを追加し、`source / total / inserted / elapsedMs` をUI状態に保持するよう更新
+- seed投入時間の比較計測（`max-len=8`: 約584ms / `max-len=10`: 約712ms、ローカルSQLite測定）を実施し、運用上限を `max-len=8` 継続に更新
 
 ## [0.1.0] - 2026-02-07
 

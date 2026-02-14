@@ -27,6 +27,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
             )
 
             viewModel.onInputChanged("りんご")
@@ -58,6 +59,7 @@ class MainViewModelTest {
                 ),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
             )
 
             viewModel.onInputChanged("りんご")
@@ -83,6 +85,7 @@ class MainViewModelTest {
                 ),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
             )
 
             advanceUntilIdle()
@@ -104,6 +107,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(loadFailure = IllegalArgumentException("bad seed")),
                 ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
             )
 
             advanceUntilIdle()
@@ -111,6 +115,35 @@ class MainViewModelTest {
             assertTrue(
                 viewModel.uiState.value.errorMessage?.contains("辞書データの読み込みに失敗しました") == true,
             )
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun preload完了時に計測ログを保持する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(
+                    entries = listOf(
+                        AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
+                        AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3),
+                    ),
+                ),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+
+            val preloadLog = viewModel.uiState.value.preloadLog.orEmpty()
+            assertTrue(preloadLog.contains("source=seed_asset"))
+            assertTrue(preloadLog.contains("total=2"))
+            assertTrue(preloadLog.contains("inserted=2"))
+            assertTrue(preloadLog.contains("elapsedMs="))
         } finally {
             Dispatchers.resetMain()
         }

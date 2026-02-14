@@ -187,6 +187,7 @@ uv run python scripts/export_android_seed.py \
 
 - 推奨運用値は `--max-len 8`（約154,387件 / 約5.6MB）です。
 - `max-len 10` 以上はサイズ増分に対する語彙増分が小さいため、まず `8` を基準に運用します。
+- ローカルSQLiteでの初回投入シミュレーションでは `max-len 8` が約584ms、`max-len 10` が約712ms でした（`8` を継続採用）。
 
 ### 手動テスト手順（Android）
 
@@ -195,6 +196,8 @@ cd android
 ./gradlew :app:assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -n com.anagram.analyzer/.MainActivity
+# 初回投入ログ確認（任意）
+adb logcat -d -s AnagramPreload
 ```
 
 確認例：
@@ -202,6 +205,7 @@ adb shell am start -n com.anagram.analyzer/.MainActivity
 - `リンゴ` を入力 → ひらがなに正規化され同様に候補表示
 - `abc` を入力 → エラーメッセージ表示
 - `辞書クレジット` ボタン → JMdict の CC BY-SA 4.0 表記ダイアログを表示
+- 起動直後の logcat に `preload source=... total=... inserted=... elapsedMs=...` が出力される
 
 ### 今後の機能
 
