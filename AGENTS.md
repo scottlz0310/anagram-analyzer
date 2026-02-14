@@ -85,6 +85,8 @@ android/
 │   └── src/
 │       ├── main/
 │       │   ├── AndroidManifest.xml
+│       │   ├── assets/
+│       │   │   └── anagram_seed.tsv
 │       │   └── java/com/anagram/analyzer/
 │       │       ├── AnagramApplication.kt
 │       │       ├── MainActivity.kt
@@ -92,6 +94,8 @@ android/
 │       │       │   ├── AnagramEntry.kt
 │       │       │   ├── AnagramDao.kt
 │       │       │   └── AnagramDatabase.kt
+│       │       ├── data/seed/
+│       │       │   └── AssetSeedEntryLoader.kt
 │       │       ├── di/AppModule.kt
 │       │       ├── domain/model/HiraganaNormalizer.kt
 │       │       └── ui/
@@ -102,6 +106,7 @@ android/
 │       │       └── ui/screen/MainScreenTest.kt
 │       └── test/
 │           └── java/com/anagram/analyzer/
+│               ├── data/seed/AssetSeedEntryLoaderTest.kt
 │               ├── domain/model/HiraganaNormalizerTest.kt
 │               └── ui/viewmodel/MainViewModelTest.kt
 ├── gradle/
@@ -191,14 +196,23 @@ android/
 | `AnagramDao.kt` | 索引投入（`insertAll`）とキー検索（`lookupWords`）を提供 |
 | `AnagramDatabase.kt` | RoomDatabase本体とシングルトン取得処理（version 2、`Migration(1,2)` で重複解消と一意インデックス追加） |
 
+### `android/app/src/main/java/com/anagram/analyzer/data/seed/` - Android seed辞書モジュール
+
+**責務**: Asset同梱された seed TSV を `AnagramEntry` として読み込み
+
+| ファイル | 説明 |
+|---------|------|
+| `AssetSeedEntryLoader.kt` | `anagram_seed.tsv` の読込/parse と `SeedEntryLoader` 提供 |
+
 ### `android/app/src/main/java/com/anagram/analyzer/di/AppModule.kt` - Android DIモジュール
 
-**責務**: Hiltでアプリ共通依存（DB/DAO/Dispatcher）を提供
+**責務**: Hiltでアプリ共通依存（DB/DAO/SeedLoader/Dispatcher）を提供
 
 | 提供対象 | 説明 |
 |---------|------|
 | `AnagramDatabase` | アプリ全体で共有するRoom DBインスタンス |
 | `AnagramDao` | `MainViewModel` などから検索に使うDAO |
+| `SeedEntryLoader` | `anagram_seed.tsv` を初期投入するためのローダー |
 | `CoroutineDispatcher` | DBアクセス用のIOディスパッチャ |
 
 ### `index.py` - インデックスモジュール
@@ -306,6 +320,9 @@ cd android && ./gradlew :app:testDebugUnitTest
 
 # UIテスト（エミュレータ/実機必要）
 cd android && ./gradlew :app:connectedDebugAndroidTest
+
+# Android seed TSV生成（jamdict / jamdict-data が必要）
+uv run python scripts/export_android_seed.py --output android/app/src/main/assets/anagram_seed.tsv --limit 20000
 
 # Lint
 cd android && ./gradlew :app:lintDebug

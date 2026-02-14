@@ -3,6 +3,8 @@ package com.anagram.analyzer.di
 import android.content.Context
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramDatabase
+import com.anagram.analyzer.data.seed.AssetSeedEntryLoader
+import com.anagram.analyzer.data.seed.SeedEntryLoader
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,6 +25,12 @@ object AppModule {
 
     @Provides
     fun provideAnagramDao(database: AnagramDatabase): AnagramDao = database.anagramDao()
+
+    @Provides
+    @Singleton
+    fun provideSeedEntryLoader(
+        @ApplicationContext context: Context,
+    ): SeedEntryLoader = AssetSeedEntryLoader(context)
 
     @Provides
     fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO

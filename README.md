@@ -165,13 +165,25 @@ MIT License — 詳細は [LICENSE](LICENSE) を参照してください。
 - **言語**: Kotlin
 - **UI**: Jetpack Compose
 - **データ**: Room (SQLite) + DataStore
-- **辞書**: JMdict フルデータ（Asset同梱）
+- **辞書**: seed TSV（JMdict由来データを段階導入）
 
 ### 現在できること（手動テスト可能）
 
 - ひらがな/カタカナ入力の正規化
 - アナグラムキー生成
-- Room（ローカルDB）での候補検索と候補表示（デモデータ）
+- Room（ローカルDB）での候補検索と候補表示（seed辞書データ）
+
+### 辞書seedの更新（開発者向け）
+
+`jamdict` / `jamdict-data` を利用して、Android用 seed TSV を生成できます。
+
+```bash
+uv run python scripts/export_android_seed.py \
+  --output android/app/src/main/assets/anagram_seed.tsv \
+  --min-len 2 \
+  --max-len 20 \
+  --limit 20000
+```
 
 ### 手動テスト手順（Android）
 
