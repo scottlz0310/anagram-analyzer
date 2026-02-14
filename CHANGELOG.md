@@ -57,6 +57,7 @@
 - `MainViewModel` の初期投入をデモ固定から seed asset 優先方式へ変更（seed未配置時のみデモ投入）
 - `scripts/export_android_seed.py` の `--max-len` デフォルトを 8 に変更し、`anagram_seed.tsv` を `max-len=8` で再生成（154,387件 / 約5.6MB）
 - seedサイズシミュレーション結果に基づき、文字数制限（`--max-len`）中心の運用方針を README / AGENTS に反映
+- GitHub Actions CI に Android UIテスト（`reactivecircus/android-emulator-runner` + `:app:connectedDebugAndroidTest`）ジョブを追加
 
 ## [0.1.0] - 2026-02-07
 
