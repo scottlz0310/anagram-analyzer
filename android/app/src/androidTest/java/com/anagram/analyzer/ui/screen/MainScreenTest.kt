@@ -80,4 +80,14 @@ class MainScreenTest {
         composeRule.onNodeWithText("漢字表記: （未対応）").assertIsDisplayed()
         composeRule.onNodeWithText("意味: （未対応）").assertIsDisplayed()
     }
+
+    @Test
+    fun テーマ切替ボタンで表示を変更できる() {
+        composeRule.onNodeWithTag("theme_toggle_button").assertIsDisplayed()
+        composeRule.onNodeWithText("テーマ: ライト").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("theme_toggle_button").performClick()
+
+        composeRule.onNodeWithText("テーマ: ダーク").assertIsDisplayed()
+    }
 }
