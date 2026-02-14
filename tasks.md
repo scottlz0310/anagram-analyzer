@@ -28,7 +28,7 @@
 - [x] パッケージ構成（data / domain / ui）のスケルトン作成
 - [x] Gradle Wrapper（`gradlew`）の導入
 - [x] Room DB セットアップ（AnagramEntry Entity + DAO）
-- [ ] Hilt DI 基盤設定
+- [x] Hilt DI 基盤設定
 - [ ] GitHub Actions にAndroidビルドジョブ追加
 
 ## フェーズ 3: コアロジック移植（Kotlin）
@@ -78,7 +78,7 @@
 |---------|------|------|
 | 0: 基盤整備 | ✅ 完了 | Python CLI版 + ドキュメント整備済み |
 | 1: ロジック抽出 | 🔲 未着手 | |
-| 2: Android初期構築 | 🟡 進行中 | Roomの最小DB構成まで完了 |
+| 2: Android初期構築 | 🟡 進行中 | Room最小DB構成 + Hilt DI基盤まで完了 |
 | 3: ロジック移植 | 🟡 進行中 | normalize移植 + Room検索接続 + ViewModel非同期テスト追加 |
 | 4: UI実装 | 🟡 進行中 | メイン画面実装、手動テスト可能な最小フローを確認 |
 | 5: 辞書データ | 🔲 未着手 | |

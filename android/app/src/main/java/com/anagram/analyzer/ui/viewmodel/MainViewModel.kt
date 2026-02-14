@@ -1,23 +1,21 @@
 package com.anagram.analyzer.ui.viewmodel
 
-import android.content.Context
 import android.database.sqlite.SQLiteException
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.anagram.analyzer.data.db.AnagramDao
-import com.anagram.analyzer.data.db.AnagramDatabase
 import com.anagram.analyzer.data.db.AnagramEntry
 import com.anagram.analyzer.domain.model.HiraganaNormalizer
 import com.anagram.analyzer.domain.model.NormalizationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 data class MainUiState(
     val input: String = "",
@@ -27,9 +25,10 @@ data class MainUiState(
     val errorMessage: String? = null,
 )
 
-class MainViewModel(
+@HiltViewModel
+class MainViewModel @Inject constructor(
     private val anagramDao: AnagramDao,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState
@@ -109,19 +108,5 @@ class MainViewModel(
                 AnagramEntry(sortedKey = "あいう", word = "あいう", length = 3),
             ),
         )
-    }
-}
-
-class MainViewModelFactory(
-    private val context: Context,
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return MainViewModel(
-                AnagramDatabase.getInstance(context).anagramDao(),
-            ) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

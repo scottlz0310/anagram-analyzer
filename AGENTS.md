@@ -42,6 +42,7 @@
 | 言語 | Kotlin |
 | UI | Jetpack Compose |
 | アーキテクチャ | MVVM + Clean Architecture |
+| DI | Hilt |
 | データストア | Room (SQLite) |
 | 設定管理 | DataStore |
 | 辞書ソース | JMdict (CC BY-SA 4.0) |
@@ -85,11 +86,13 @@ android/
 │       ├── main/
 │       │   ├── AndroidManifest.xml
 │       │   └── java/com/anagram/analyzer/
+│       │       ├── AnagramApplication.kt
 │       │       ├── MainActivity.kt
 │       │       ├── data/db/
 │       │       │   ├── AnagramEntry.kt
 │       │       │   ├── AnagramDao.kt
 │       │       │   └── AnagramDatabase.kt
+│       │       ├── di/AppModule.kt
 │       │       ├── domain/model/HiraganaNormalizer.kt
 │       │       └── ui/
 │       │           ├── screen/MainScreen.kt
@@ -180,6 +183,16 @@ android/
 | `AnagramEntry.kt` | アナグラム索引エントリのEntity（`sorted_key`/`word`/`length`、`sorted_key + word` 一意制約） |
 | `AnagramDao.kt` | 索引投入（`insertAll`）とキー検索（`lookupWords`）を提供 |
 | `AnagramDatabase.kt` | RoomDatabase本体とシングルトン取得処理 |
+
+### `android/app/src/main/java/com/anagram/analyzer/di/AppModule.kt` - Android DIモジュール
+
+**責務**: Hiltでアプリ共通依存（DB/DAO/Dispatcher）を提供
+
+| 提供対象 | 説明 |
+|---------|------|
+| `AnagramDatabase` | アプリ全体で共有するRoom DBインスタンス |
+| `AnagramDao` | `MainViewModel` などから検索に使うDAO |
+| `CoroutineDispatcher` | DBアクセス用のIOディスパッチャ |
 
 ### `index.py` - インデックスモジュール
 

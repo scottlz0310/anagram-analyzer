@@ -13,19 +13,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anagram.analyzer.ui.viewmodel.MainViewModel
-import com.anagram.analyzer.ui.viewmodel.MainViewModelFactory
 
 @Composable
 fun MainScreen() {
-    val context = LocalContext.current.applicationContext
-    val viewModel: MainViewModel = viewModel(
-        factory = MainViewModelFactory(context),
-    )
+    val viewModel: MainViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val errorMessage = state.errorMessage
 
