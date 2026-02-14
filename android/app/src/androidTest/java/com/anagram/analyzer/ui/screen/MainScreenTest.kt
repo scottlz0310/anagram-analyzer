@@ -106,7 +106,9 @@ class MainScreenTest {
         }
         composeRule.onNodeWithText(expectedAfterToggle).assertIsDisplayed()
 
-        composeRule.activityRule.scenario.recreate()
+        composeRule.runOnIdle {
+            composeRule.activityRule.scenario.recreate()
+        }
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(expectedAfterToggle).fetchSemanticsNodes().isNotEmpty()
         }
