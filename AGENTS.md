@@ -186,6 +186,8 @@ android/
 
 **UIテスト**: `MainScreenTest.kt` で入力→候補表示→エラー表示の最小E2Eを検証
 
+**ライセンス表示**: `MainScreen` の「辞書クレジット」ダイアログで JMdict の CC BY-SA 4.0 表記を表示
+
 ### `android/app/src/main/java/com/anagram/analyzer/data/db/` - Android DBモジュール
 
 **責務**: Room によるアナグラム索引データの最小永続化

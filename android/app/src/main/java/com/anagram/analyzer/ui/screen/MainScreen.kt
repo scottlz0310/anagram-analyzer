@@ -7,11 +7,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -34,6 +39,7 @@ fun MainScreenContent(
     state: MainUiState,
     onInputChanged: (String) -> Unit,
 ) {
+    var showAboutDialog by rememberSaveable { mutableStateOf(false) }
     val errorMessage = state.errorMessage
     Column(
         modifier = Modifier
@@ -71,5 +77,29 @@ fun MainScreenContent(
         } else {
             Text("文字を入力すると正規化結果とキーを表示します。")
         }
+
+        TextButton(
+            onClick = { showAboutDialog = true },
+            modifier = Modifier.testTag("about_button"),
+        ) {
+            Text("辞書クレジット")
+        }
+    }
+
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            title = { Text("辞書クレジット", modifier = Modifier.testTag("about_dialog_title")) },
+            text = {
+                Text(
+                    "このアプリはElectronic Dictionary Research and Development GroupのJMdictデータを使用しています。ライセンス: CC BY-SA 4.0",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showAboutDialog = false }) {
+                    Text("閉じる")
+                }
+            },
+        )
     }
 }

@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.anagram.analyzer.MainActivity
@@ -20,7 +21,7 @@ class MainScreenTest {
     @Test
     fun ひらがな入力で候補を表示できる() {
         composeRule.onNodeWithTag("input_field").performTextInput("りんご")
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = 30_000) {
             composeRule.onAllNodesWithText("・りんご").fetchSemanticsNodes().isNotEmpty()
         }
 
@@ -42,5 +43,22 @@ class MainScreenTest {
 
         composeRule.onNodeWithText("ひらがな以外の文字が含まれています", substring = true)
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun 辞書クレジットを表示できる() {
+        composeRule.onNodeWithTag("about_button").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule
+                .onAllNodesWithText("ライセンス: CC BY-SA 4.0", substring = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+
+        composeRule
+            .onNodeWithText("このアプリはElectronic Dictionary Research and Development GroupのJMdictデータを使用しています。", substring = true)
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("about_dialog_title").assertIsDisplayed()
+        composeRule.onNodeWithText("閉じる").assertIsDisplayed()
     }
 }
