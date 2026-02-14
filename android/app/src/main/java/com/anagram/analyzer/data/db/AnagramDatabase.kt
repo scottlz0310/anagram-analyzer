@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [AnagramEntry::class],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class AnagramDatabase : RoomDatabase() {
@@ -23,7 +23,9 @@ abstract class AnagramDatabase : RoomDatabase() {
                     context.applicationContext,
                     AnagramDatabase::class.java,
                     "anagram.db",
-                ).build().also { instance = it }
+                ).fallbackToDestructiveMigration()
+                    .build()
+                    .also { instance = it }
             }
         }
     }
