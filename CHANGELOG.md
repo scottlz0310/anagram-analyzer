@@ -45,6 +45,7 @@
 - `MainViewModel` のDB初期化失敗時にエラーメッセージをUIへ反映
 - 候補一覧が増えても閲覧できるよう `MainScreen` を縦スクロール対応
 - `MainViewModelTest` を追加し、preload待機・連続入力時の最新結果反映・preload失敗時の挙動を検証
+- `HiraganaNormalizerTest` を拡張し、Python版 `tests/test_normalize.py` 相当ケースでの一致検証を追加
 
 ## [0.1.0] - 2026-02-07
 
