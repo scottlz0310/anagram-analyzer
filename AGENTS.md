@@ -174,6 +174,8 @@ android/
 
 **例外**: `NormalizationException` - ひらがな以外の文字が含まれる場合
 
+**テスト**: `HiraganaNormalizerTest.kt` で Python版 `tests/test_normalize.py` の主要ケースとの一致を検証
+
 ### `android/app/src/main/java/com/anagram/analyzer/data/db/` - Android DBモジュール
 
 **責務**: Room によるアナグラム索引データの最小永続化
