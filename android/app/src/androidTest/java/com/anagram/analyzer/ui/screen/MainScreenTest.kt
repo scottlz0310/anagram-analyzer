@@ -58,7 +58,7 @@ class MainScreenTest {
         composeRule
             .onNodeWithText("このアプリはElectronic Dictionary Research and Development GroupのJMdictデータを使用しています。", substring = true)
             .assertIsDisplayed()
-        composeRule.onNodeWithText("辞書クレジット").assertIsDisplayed()
+        composeRule.onNodeWithTag("about_dialog_title").assertIsDisplayed()
         composeRule.onNodeWithText("閉じる").assertIsDisplayed()
     }
 }

@@ -89,7 +89,7 @@ fun MainScreenContent(
     if (showAboutDialog) {
         AlertDialog(
             onDismissRequest = { showAboutDialog = false },
-            title = { Text("辞書クレジット") },
+            title = { Text("辞書クレジット", modifier = Modifier.testTag("about_dialog_title")) },
             text = {
                 Text(
                     "このアプリはElectronic Dictionary Research and Development GroupのJMdictデータを使用しています。ライセンス: CC BY-SA 4.0",
