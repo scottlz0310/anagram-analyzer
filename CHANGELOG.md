@@ -55,6 +55,8 @@
 - `MainScreen` を `MainScreenContent` に分離し、Compose UIテストから状態注入できる構成へ更新
 - `MainScreenTest`（androidTest）を追加し、入力→候補表示→エラー表示の最小E2Eを検証
 - `MainViewModel` の初期投入をデモ固定から seed asset 優先方式へ変更（seed未配置時のみデモ投入）
+- `scripts/export_android_seed.py` の `--max-len` デフォルトを 8 に変更し、`anagram_seed.tsv` を `max-len=8` で再生成（154,387件 / 約5.6MB）
+- seedサイズシミュレーション結果に基づき、文字数制限（`--max-len`）中心の運用方針を README / AGENTS に反映
 
 ## [0.1.0] - 2026-02-07
 

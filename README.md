@@ -181,9 +181,11 @@ MIT License — 詳細は [LICENSE](LICENSE) を参照してください。
 uv run python scripts/export_android_seed.py \
   --output android/app/src/main/assets/anagram_seed.tsv \
   --min-len 2 \
-  --max-len 20 \
-  --limit 20000
+  --max-len 8
 ```
+
+- 推奨運用値は `--max-len 8`（約154,387件 / 約5.6MB）です。
+- `max-len 10` 以上はサイズ増分に対する語彙増分が小さいため、まず `8` を基準に運用します。
 
 ### 手動テスト手順（Android）
 

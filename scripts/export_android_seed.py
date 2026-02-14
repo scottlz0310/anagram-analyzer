@@ -25,7 +25,7 @@ def parse_args() -> argparse.Namespace:
         help="出力先TSVパス",
     )
     parser.add_argument("--min-len", type=int, default=2, help="最小文字数")
-    parser.add_argument("--max-len", type=int, default=20, help="最大文字数")
+    parser.add_argument("--max-len", type=int, default=8, help="最大文字数")
     parser.add_argument(
         "--limit",
         type=int,

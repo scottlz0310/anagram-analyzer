@@ -204,6 +204,8 @@ android/
 |---------|------|
 | `AssetSeedEntryLoader.kt` | `anagram_seed.tsv` の読込/parse と `SeedEntryLoader` 提供 |
 
+**運用方針**: seed生成は件数上限より `--max-len` による文字数制限を優先し、現行の推奨値は `max-len=8`。
+
 ### `android/app/src/main/java/com/anagram/analyzer/di/AppModule.kt` - Android DIモジュール
 
 **責務**: Hiltでアプリ共通依存（DB/DAO/SeedLoader/Dispatcher）を提供
@@ -322,7 +324,7 @@ cd android && ./gradlew :app:testDebugUnitTest
 cd android && ./gradlew :app:connectedDebugAndroidTest
 
 # Android seed TSV生成（jamdict / jamdict-data が必要）
-uv run python scripts/export_android_seed.py --output android/app/src/main/assets/anagram_seed.tsv --limit 20000
+uv run python scripts/export_android_seed.py --output android/app/src/main/assets/anagram_seed.tsv --min-len 2 --max-len 8
 
 # Lint
 cd android && ./gradlew :app:lintDebug
