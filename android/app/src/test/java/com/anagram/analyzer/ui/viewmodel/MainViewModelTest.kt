@@ -116,6 +116,34 @@ class MainViewModelTest {
         }
     }
 
+    @Test
+    fun preload完了時に計測ログを保持する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(
+                    entries = listOf(
+                        AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
+                        AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3),
+                    ),
+                ),
+                ioDispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+
+            val preloadLog = viewModel.uiState.value.preloadLog.orEmpty()
+            assertTrue(preloadLog.contains("source=seed_asset"))
+            assertTrue(preloadLog.contains("total=2"))
+            assertTrue(preloadLog.contains("inserted=2"))
+            assertTrue(preloadLog.contains("elapsedMs="))
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
     private class FakeAnagramDao(
         initialEntries: List<AnagramEntry> = emptyList(),
         private val insertDelayMs: Long = 0,

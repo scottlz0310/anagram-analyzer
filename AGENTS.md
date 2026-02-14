@@ -188,6 +188,8 @@ android/
 
 **ライセンス表示**: `MainScreen` の「辞書クレジット」ダイアログで JMdict の CC BY-SA 4.0 表記を表示
 
+**初回投入計測**: `MainViewModel` が seed preload 完了時に `source / total / inserted / elapsedMs` 形式の計測ログを生成し、UI状態に保持
+
 ### `android/app/src/main/java/com/anagram/analyzer/data/db/` - Android DBモジュール
 
 **責務**: Room によるアナグラム索引データの最小永続化
@@ -206,7 +208,7 @@ android/
 |---------|------|
 | `AssetSeedEntryLoader.kt` | `anagram_seed.tsv` の読込/parse と `SeedEntryLoader` 提供 |
 
-**運用方針**: seed生成は件数上限より `--max-len` による文字数制限を優先し、現行の推奨値は `max-len=8`。
+**運用方針**: seed生成は件数上限より `--max-len` による文字数制限を優先し、現行の推奨値は `max-len=8`（ローカルSQLite投入比較: `8` 約584ms / `10` 約712ms）。
 
 ### `android/app/src/main/java/com/anagram/analyzer/di/AppModule.kt` - Android DIモジュール
 
