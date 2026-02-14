@@ -1,6 +1,7 @@
 package com.anagram.analyzer.ui.screen
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -78,8 +79,25 @@ class MainScreenTest {
 
         composeRule.onNodeWithTag("candidate_detail_dialog_title").assertIsDisplayed()
         composeRule.onNodeWithTag("candidate_detail_reading").assertIsDisplayed()
-        composeRule.onNodeWithText("漢字表記: 林檎").assertIsDisplayed()
-        composeRule.onNodeWithText("意味: apple").assertIsDisplayed()
+        composeRule.onNodeWithTag("candidate_detail_kanji").assertTextContains("漢字表記: 林檎")
+        composeRule.onNodeWithTag("candidate_detail_meaning").assertTextContains("意味: apple")
+    }
+
+    @Test
+    fun 候補詳細が未対応の場合はフォールバック表示になる() {
+        composeRule.onNodeWithTag("input_field").performTextInput("おなじ")
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            composeRule.onAllNodesWithText("・おなじ").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithText("・おなじ").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithTag("candidate_detail_dialog_title").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithTag("candidate_detail_dialog_title").assertIsDisplayed()
+        composeRule.onNodeWithTag("candidate_detail_kanji").assertTextContains("（未対応）")
+        composeRule.onNodeWithTag("candidate_detail_meaning").assertTextContains("（未対応）")
     }
 
     @Test

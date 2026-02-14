@@ -10,10 +10,14 @@ data class CandidateDetail(
     val meaning: String,
 )
 
+interface CandidateDetailLoader {
+    suspend fun loadDetails(): Map<String, CandidateDetail>
+}
+
 class AssetCandidateDetailLoader @Inject constructor(
     @ApplicationContext private val context: Context,
-) {
-    fun loadDetails(): Map<String, CandidateDetail> {
+) : CandidateDetailLoader {
+    override suspend fun loadDetails(): Map<String, CandidateDetail> {
         return try {
             context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
                 parseCandidateDetails(reader.lineSequence())

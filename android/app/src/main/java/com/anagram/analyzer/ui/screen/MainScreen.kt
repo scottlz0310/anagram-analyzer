@@ -14,17 +14,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.anagram.analyzer.data.seed.AssetCandidateDetailLoader
 import com.anagram.analyzer.ui.viewmodel.MainUiState
 import com.anagram.analyzer.ui.viewmodel.MainViewModel
 
@@ -52,10 +49,6 @@ fun MainScreenContent(
 ) {
     var showAboutDialog by rememberSaveable { mutableStateOf(false) }
     var selectedCandidate by rememberSaveable { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
-    val candidateDetails = remember(context) {
-        AssetCandidateDetailLoader(context).loadDetails()
-    }
     val errorMessage = state.errorMessage
     Column(
         modifier = Modifier
@@ -130,15 +123,21 @@ fun MainScreenContent(
 
     val detailCandidate = selectedCandidate
     if (detailCandidate != null) {
-        val detail = candidateDetails[detailCandidate]
+        val detail = state.candidateDetails[detailCandidate]
         AlertDialog(
             onDismissRequest = { selectedCandidate = null },
             title = { Text("候補詳細", modifier = Modifier.testTag("candidate_detail_dialog_title")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("読み: $detailCandidate", modifier = Modifier.testTag("candidate_detail_reading"))
-                    Text("漢字表記: ${detail?.kanji ?: "（未対応）"}")
-                    Text("意味: ${detail?.meaning ?: "（未対応）"}")
+                    Text(
+                        "漢字表記: ${detail?.kanji ?: "（未対応）"}",
+                        modifier = Modifier.testTag("candidate_detail_kanji"),
+                    )
+                    Text(
+                        "意味: ${detail?.meaning ?: "（未対応）"}",
+                        modifier = Modifier.testTag("candidate_detail_meaning"),
+                    )
                 }
             },
             confirmButton = {
