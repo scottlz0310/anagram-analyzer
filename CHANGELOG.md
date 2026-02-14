@@ -25,6 +25,11 @@
 - GitHub Actions の CI に Android ビルドジョブを追加
   - JDK 17 をセットアップして `android/gradlew` を実行
   - `:app:testDebugUnitTest` と `:app:assembleDebug` をPR/Pushで検証
+- Android辞書seed導入の最小実装を追加
+  - `scripts/export_android_seed.py` を追加（JMdict語彙→`anagram_seed.tsv` 変換）
+  - `android/app/src/main/assets/anagram_seed.tsv` を追加（seed語彙）
+  - `AssetSeedEntryLoader` を追加（初回起動時のseed取込）
+  - `AssetSeedEntryLoaderTest` を追加（TSV parse検証）
 - Androidアプリ化に向けたドキュメント整備（Issue #14）
   - AGENTS.md: Android版の技術スタック、ディレクトリ構造案、コーディング規約、ビルドコマンド、AnagramEntryスキーマ設計
   - prompt.md: Android版の移植対象ロジック、辞書運用方針、アーキテクチャ設計、想定機能一覧
@@ -49,6 +54,7 @@
 - Roomスキーマ差分での起動クラッシュを回避するため、`AnagramDatabase` を version 2 に更新し、`Migration(1,2)` で重複解消と一意インデックス付与を実施
 - `MainScreen` を `MainScreenContent` に分離し、Compose UIテストから状態注入できる構成へ更新
 - `MainScreenTest`（androidTest）を追加し、入力→候補表示→エラー表示の最小E2Eを検証
+- `MainViewModel` の初期投入をデモ固定から seed asset 優先方式へ変更（seed未配置時のみデモ投入）
 
 ## [0.1.0] - 2026-02-07
 

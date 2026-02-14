@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
+import com.anagram.analyzer.data.seed.SeedEntryLoader
 import com.anagram.analyzer.domain.model.HiraganaNormalizer
 import com.anagram.analyzer.domain.model.NormalizationException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 data class MainUiState(
@@ -28,6 +29,7 @@ data class MainUiState(
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val anagramDao: AnagramDao,
+    private val seedEntryLoader: SeedEntryLoader,
     private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MainUiState())
@@ -38,11 +40,17 @@ class MainViewModel @Inject constructor(
     init {
         preloadJob = viewModelScope.launch(ioDispatcher) {
             try {
-                preloadDemoDataIfNeeded()
+                preloadSeedDataIfNeeded()
             } catch (error: SQLiteException) {
                 _uiState.update {
                     it.copy(
                         errorMessage = "データベース初期化に失敗しました: ${error.message ?: "原因不明"}",
+                    )
+                }
+            } catch (error: IllegalArgumentException) {
+                _uiState.update {
+                    it.copy(
+                        errorMessage = "辞書データの読み込みに失敗しました: ${error.message ?: "原因不明"}",
                     )
                 }
             }
@@ -96,17 +104,25 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private suspend fun preloadDemoDataIfNeeded() {
+    private suspend fun preloadSeedDataIfNeeded() {
         if (anagramDao.count() > 0) {
             return
         }
 
-        anagramDao.insertAll(
-            listOf(
-                AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
-                AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3),
-                AnagramEntry(sortedKey = "あいう", word = "あいう", length = 3),
-            ),
+        val seedEntries = seedEntryLoader.loadEntries()
+        if (seedEntries.isNotEmpty()) {
+            anagramDao.insertAll(seedEntries)
+            return
+        }
+
+        anagramDao.insertAll(DEMO_ENTRIES)
+    }
+
+    private companion object {
+        private val DEMO_ENTRIES = listOf(
+            AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
+            AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3),
+            AnagramEntry(sortedKey = "あいう", word = "あいう", length = 3),
         )
     }
 }

@@ -3,14 +3,15 @@ package com.anagram.analyzer.ui.viewmodel
 import android.database.sqlite.SQLiteException
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
+import com.anagram.analyzer.data.seed.SeedEntryLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.test.resetMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -24,6 +25,7 @@ class MainViewModelTest {
         try {
             val viewModel = MainViewModel(
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
+                seedEntryLoader = FakeSeedEntryLoader(),
                 ioDispatcher = dispatcher,
             )
 
@@ -54,6 +56,7 @@ class MainViewModelTest {
                         "くさら" to 10,
                     ),
                 ),
+                seedEntryLoader = FakeSeedEntryLoader(),
                 ioDispatcher = dispatcher,
             )
 
@@ -78,6 +81,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(
                     countFailure = SQLiteException("DB error"),
                 ),
+                seedEntryLoader = FakeSeedEntryLoader(),
                 ioDispatcher = dispatcher,
             )
 
@@ -85,6 +89,27 @@ class MainViewModelTest {
 
             assertTrue(
                 viewModel.uiState.value.errorMessage?.contains("データベース初期化に失敗しました") == true,
+            )
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun seed読み込み失敗時はエラーメッセージを反映する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(loadFailure = IllegalArgumentException("bad seed")),
+                ioDispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+
+            assertTrue(
+                viewModel.uiState.value.errorMessage?.contains("辞書データの読み込みに失敗しました") == true,
             )
         } finally {
             Dispatchers.resetMain()
@@ -124,6 +149,18 @@ class MainViewModelTest {
                 throw countFailure
             }
             return entries.size.toLong()
+        }
+    }
+
+    private class FakeSeedEntryLoader(
+        private val entries: List<AnagramEntry> = emptyList(),
+        private val loadFailure: IllegalArgumentException? = null,
+    ) : SeedEntryLoader {
+        override suspend fun loadEntries(): List<AnagramEntry> {
+            if (loadFailure != null) {
+                throw loadFailure
+            }
+            return entries
         }
     }
 }
