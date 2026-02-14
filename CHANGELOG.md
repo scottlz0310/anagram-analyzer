@@ -47,6 +47,8 @@
 - `MainViewModelTest` を追加し、preload待機・連続入力時の最新結果反映・preload失敗時の挙動を検証
 - `HiraganaNormalizerTest` を拡張し、Python版 `tests/test_normalize.py` 相当ケースでの一致検証を追加
 - Roomスキーマ差分での起動クラッシュを回避するため、`AnagramDatabase` を version 2 に更新し、`Migration(1,2)` で重複解消と一意インデックス付与を実施
+- `MainScreen` を `MainScreenContent` に分離し、Compose UIテストから状態注入できる構成へ更新
+- `MainScreenTest`（androidTest）を追加し、入力→候補表示→エラー表示の最小E2Eを検証
 
 ## [0.1.0] - 2026-02-07
 

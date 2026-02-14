@@ -12,18 +12,29 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.anagram.analyzer.ui.viewmodel.MainUiState
 import com.anagram.analyzer.ui.viewmodel.MainViewModel
 
 @Composable
-fun MainScreen() {
-    val viewModel: MainViewModel = hiltViewModel()
+fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val errorMessage = state.errorMessage
+    MainScreenContent(
+        state = state,
+        onInputChanged = viewModel::onInputChanged,
+    )
+}
 
+@Composable
+fun MainScreenContent(
+    state: MainUiState,
+    onInputChanged: (String) -> Unit,
+) {
+    val errorMessage = state.errorMessage
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -33,9 +44,11 @@ fun MainScreen() {
     ) {
         OutlinedTextField(
             value = state.input,
-            onValueChange = viewModel::onInputChanged,
+            onValueChange = onInputChanged,
             label = { Text("ひらがな入力") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("input_field"),
             singleLine = true,
         )
 
