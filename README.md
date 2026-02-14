@@ -156,9 +156,9 @@ MIT License — 詳細は [LICENSE](LICENSE) を参照してください。
 
 ---
 
-## Androidアプリ版（計画中）
+## Androidアプリ版（初期実装中）
 
-本プロジェクトでは、CLI版のコアロジックを移植した **Androidネイティブアプリ** を計画しています。
+本プロジェクトでは、CLI版のコアロジックを移植した **Androidネイティブアプリ** を段階的に実装中です。
 
 ### 技術スタック
 
@@ -167,12 +167,26 @@ MIT License — 詳細は [LICENSE](LICENSE) を参照してください。
 - **データ**: Room (SQLite) + DataStore
 - **辞書**: JMdict フルデータ（Asset同梱）
 
-### 想定機能
+### 現在できること（手動テスト可能）
 
-- テキストボックスによるひらがな入力・アナグラム候補の即時検索
-- 候補リストの見やすいUI表示（漢字表記・意味付き）
-- 入力履歴・お気に入り管理
-- オフライン対応（辞書・インデックスをローカルキャッシュ）
-- 設定（文字数範囲、UIテーマ切替等）
+- ひらがな/カタカナ入力の正規化
+- アナグラムキー生成
+- Room（ローカルDB）での候補検索と候補表示（デモデータ）
+
+### 手動テスト手順（Android）
+
+```bash
+cd android
+./gradlew :app:assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -n com.anagram.analyzer/.MainActivity
+```
+
+確認例：
+- `りんご` を入力 → キー `ごりん`、候補に `りんご`
+- `リンゴ` を入力 → ひらがなに正規化され同様に候補表示
+- `abc` を入力 → エラーメッセージ表示
+
+### 今後の機能
 
 詳細は [Issue #14](https://github.com/scottlz0310/anagram-analyzer/issues/14) を参照してください。

@@ -19,7 +19,7 @@
 | プラットフォーム | 状態 | 位置 |
 |-----------------|------|------|
 | Python CLI版 | ✅ 実装済み | `src/anagram_cli/` |
-| Android版 | 🚧 計画中 | `android/` （予定） |
+| Android版 | 🚧 初期実装中（手動テスト可） | `android/` |
 
 ## 技術スタック
 
@@ -35,7 +35,7 @@
 | パッケージ管理 | uv (推奨) |
 | テスト | pytest |
 
-### Android版（計画中）
+### Android版（初期構築中）
 
 | カテゴリ | 技術 |
 |---------|------|
@@ -74,7 +74,42 @@ anagram-analyzer/
 └── README.md                  # ユーザー向けドキュメント
 ```
 
-### Android版（予定）
+### Android版（現行: 初期実装）
+
+```
+android/
+├── app/
+│   ├── build.gradle.kts
+│   ├── proguard-rules.pro
+│   └── src/
+│       ├── main/
+│       │   ├── AndroidManifest.xml
+│       │   └── java/com/anagram/analyzer/
+│       │       ├── MainActivity.kt
+│       │       ├── data/db/
+│       │       │   ├── AnagramEntry.kt
+│       │       │   ├── AnagramDao.kt
+│       │       │   └── AnagramDatabase.kt
+│       │       ├── domain/model/HiraganaNormalizer.kt
+│       │       └── ui/
+│       │           ├── screen/MainScreen.kt
+│       │           └── viewmodel/MainViewModel.kt
+│       └── test/
+│           └── java/com/anagram/analyzer/
+│               ├── domain/model/HiraganaNormalizerTest.kt
+│               └── ui/viewmodel/MainViewModelTest.kt
+├── gradle/
+│   └── wrapper/
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── build.gradle.kts
+├── gradlew
+├── gradlew.bat
+├── gradle.properties
+└── settings.gradle.kts
+```
+
+### Android版（将来構成案）
 
 ```
 android/
@@ -121,6 +156,30 @@ android/
 | `anagram_key(s)` | ソート済み文字列（検索キー）を生成 |
 
 **例外**: `NormalizationError` - ひらがな以外の文字が含まれる場合
+
+### `android/app/src/main/java/com/anagram/analyzer/domain/model/HiraganaNormalizer.kt` - Android正規化モジュール
+
+**責務**: Python版 `normalize.py` 相当の正規化とキー生成をKotlinで提供
+
+| 関数 | 説明 |
+|------|------|
+| `normalizeHiragana(input)` | NFKC正規化、空白除去、カタカナ→ひらがな変換、バリデーション |
+| `katakanaToHiragana(input)` | カタカナをひらがなに変換 |
+| `isHiragana(char)` | 文字がひらがなか判定 |
+| `isAllHiragana(input)` | 文字列が全てひらがなか判定 |
+| `anagramKey(input)` | ソート済み文字列（検索キー）を生成 |
+
+**例外**: `NormalizationException` - ひらがな以外の文字が含まれる場合
+
+### `android/app/src/main/java/com/anagram/analyzer/data/db/` - Android DBモジュール
+
+**責務**: Room によるアナグラム索引データの最小永続化
+
+| ファイル | 説明 |
+|---------|------|
+| `AnagramEntry.kt` | アナグラム索引エントリのEntity（`sorted_key`/`word`/`length`、`sorted_key + word` 一意制約） |
+| `AnagramDao.kt` | 索引投入（`insertAll`）とキー検索（`lookupWords`）を提供 |
+| `AnagramDatabase.kt` | RoomDatabase本体とシングルトン取得処理 |
 
 ### `index.py` - インデックスモジュール
 
@@ -214,16 +273,22 @@ anagram solve "りんご"
 
 ```bash
 # ビルド
-cd android && ./gradlew assembleDebug
+cd android && ./gradlew :app:assembleDebug
+
+# インストール（デバイス/エミュレータ接続時）
+cd android && adb install -r app/build/outputs/apk/debug/app-debug.apk
+
+# 起動（デバイス/エミュレータ接続時）
+adb shell am start -n com.anagram.analyzer/.MainActivity
 
 # ユニットテスト
-cd android && ./gradlew test
+cd android && ./gradlew :app:testDebugUnitTest
 
 # UIテスト（エミュレータ/実機必要）
-cd android && ./gradlew connectedAndroidTest
+cd android && ./gradlew :app:connectedDebugAndroidTest
 
 # Lint
-cd android && ./gradlew lint
+cd android && ./gradlew :app:lintDebug
 ```
 
 ## アルゴリズム解説
