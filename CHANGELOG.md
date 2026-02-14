@@ -22,6 +22,9 @@
   - `MainViewModel` を `@HiltViewModel` + `@Inject` コンストラクタへ移行
   - `MainActivity` を `@AndroidEntryPoint` 化し、`MainScreen` を `hiltViewModel()` 利用へ変更
   - GradleにHiltプラグイン・依存関係を追加
+- GitHub Actions の CI に Android ビルドジョブを追加
+  - JDK 17 をセットアップして `android/gradlew` を実行
+  - `:app:testDebugUnitTest` と `:app:assembleDebug` をPR/Pushで検証
 - Androidアプリ化に向けたドキュメント整備（Issue #14）
   - AGENTS.md: Android版の技術スタック、ディレクトリ構造案、コーディング規約、ビルドコマンド、AnagramEntryスキーマ設計
   - prompt.md: Android版の移植対象ロジック、辞書運用方針、アーキテクチャ設計、想定機能一覧
