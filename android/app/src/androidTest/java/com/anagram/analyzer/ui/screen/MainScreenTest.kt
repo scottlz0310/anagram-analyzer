@@ -3,6 +3,7 @@ package com.anagram.analyzer.ui.screen
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -60,5 +61,23 @@ class MainScreenTest {
             .assertIsDisplayed()
         composeRule.onNodeWithTag("about_dialog_title").assertIsDisplayed()
         composeRule.onNodeWithText("閉じる").assertIsDisplayed()
+    }
+
+    @Test
+    fun 候補詳細ダイアログを表示できる() {
+        composeRule.onNodeWithTag("input_field").performTextInput("りんご")
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            composeRule.onAllNodesWithText("・りんご").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithText("・りんご").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithTag("candidate_detail_dialog_title").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithTag("candidate_detail_dialog_title").assertIsDisplayed()
+        composeRule.onNodeWithTag("candidate_detail_reading").assertIsDisplayed()
+        composeRule.onNodeWithText("漢字表記: （未対応）").assertIsDisplayed()
+        composeRule.onNodeWithText("意味: （未対応）").assertIsDisplayed()
     }
 }

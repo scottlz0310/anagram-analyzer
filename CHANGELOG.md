@@ -61,6 +61,8 @@
 - `MainScreen` に「辞書クレジット」ダイアログを追加し、JMdictライセンス表示をアプリ内から確認可能に更新
 - `MainViewModel` の初回seed投入で計測ログを追加し、`source / total / inserted / elapsedMs` をUI状態に保持するよう更新
 - seed投入時間の比較計測（`max-len=8`: 約584ms / `max-len=10`: 約712ms、ローカルSQLite測定）を実施し、運用上限を `max-len=8` 継続に更新
+- `MainScreen` の候補をタップして詳細ダイアログを開けるように更新（読み表示 + 漢字/意味はプレースホルダ）
+- `MainScreenTest` に候補詳細ダイアログ表示のUIテストを追加
 
 ## [0.1.0] - 2026-02-07
 
