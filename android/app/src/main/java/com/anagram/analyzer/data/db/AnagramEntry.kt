@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "anagram_entries",
     indices = [
+        Index(value = ["sorted_key", "word"], unique = true),
         Index(value = ["sorted_key"]),
         Index(value = ["length"]),
     ],

@@ -14,5 +14,5 @@ interface AnagramDao {
     suspend fun lookupWords(sortedKey: String): List<String>
 
     @Query("SELECT COUNT(*) FROM anagram_entries")
-    suspend fun count(): Int
+    suspend fun count(): Long
 }

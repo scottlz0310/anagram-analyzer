@@ -1,6 +1,7 @@
 package com.anagram.analyzer.ui.viewmodel
 
 import android.content.Context
+import android.database.sqlite.SQLiteException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import com.anagram.analyzer.data.db.AnagramDatabase
 import com.anagram.analyzer.data.db.AnagramEntry
 import com.anagram.analyzer.domain.model.HiraganaNormalizer
 import com.anagram.analyzer.domain.model.NormalizationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +29,7 @@ data class MainUiState(
 
 class MainViewModel(
     private val anagramDao: AnagramDao,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState
@@ -34,8 +37,16 @@ class MainViewModel(
     private var lookupJob: Job? = null
 
     init {
-        preloadJob = viewModelScope.launch(Dispatchers.IO) {
-            preloadDemoDataIfNeeded()
+        preloadJob = viewModelScope.launch(ioDispatcher) {
+            try {
+                preloadDemoDataIfNeeded()
+            } catch (error: SQLiteException) {
+                _uiState.update {
+                    it.copy(
+                        errorMessage = "データベース初期化に失敗しました: ${error.message ?: "原因不明"}",
+                    )
+                }
+            }
         }
     }
 
@@ -62,7 +73,7 @@ class MainViewModel(
 
             lookupJob = viewModelScope.launch {
                 preloadJob.join()
-                val words = withContext(Dispatchers.IO) {
+                val words = withContext(ioDispatcher) {
                     anagramDao.lookupWords(anagramKey)
                 }
                 _uiState.update { state ->

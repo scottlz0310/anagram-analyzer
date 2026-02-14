@@ -95,7 +95,9 @@ android/
 │       │           ├── screen/MainScreen.kt
 │       │           └── viewmodel/MainViewModel.kt
 │       └── test/
-│           └── java/com/anagram/analyzer/domain/model/HiraganaNormalizerTest.kt
+│           └── java/com/anagram/analyzer/
+│               ├── domain/model/HiraganaNormalizerTest.kt
+│               └── ui/viewmodel/MainViewModelTest.kt
 ├── gradle/
 │   └── wrapper/
 │       ├── gradle-wrapper.jar
@@ -175,7 +177,7 @@ android/
 
 | ファイル | 説明 |
 |---------|------|
-| `AnagramEntry.kt` | アナグラム索引エントリのEntity（`sorted_key`/`word`/`length`） |
+| `AnagramEntry.kt` | アナグラム索引エントリのEntity（`sorted_key`/`word`/`length`、`sorted_key + word` 一意制約） |
 | `AnagramDao.kt` | 索引投入（`insertAll`）とキー検索（`lookupWords`）を提供 |
 | `AnagramDatabase.kt` | RoomDatabase本体とシングルトン取得処理 |
 

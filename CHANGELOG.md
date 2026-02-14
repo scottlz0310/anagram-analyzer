@@ -31,6 +31,11 @@
 - `MainScreen` のエラーメッセージ表示でKotlinコンパイルエラーが出ないよう null 判定を調整
 - Androidビルドをグローバルgradle依存から Gradle Wrapper（`./gradlew`）中心に更新
 - デモデータ投入完了前の検索でも候補取得できるよう、`MainViewModel` の初期ロード待機を追加
+- `AnagramEntry` に `sorted_key + word` の一意制約を追加し、`INSERT IGNORE` の重複抑止を有効化
+- `AnagramDao.count()` の戻り値を `Long` に変更
+- `MainViewModel` のDB初期化失敗時にエラーメッセージをUIへ反映
+- 候補一覧が増えても閲覧できるよう `MainScreen` を縦スクロール対応
+- `MainViewModelTest` を追加し、preload待機・連続入力時の最新結果反映・preload失敗時の挙動を検証
 
 ## [0.1.0] - 2026-02-07
 
