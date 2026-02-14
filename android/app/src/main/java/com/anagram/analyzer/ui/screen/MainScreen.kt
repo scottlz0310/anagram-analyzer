@@ -123,14 +123,21 @@ fun MainScreenContent(
 
     val detailCandidate = selectedCandidate
     if (detailCandidate != null) {
+        val detail = state.candidateDetails[detailCandidate]
         AlertDialog(
             onDismissRequest = { selectedCandidate = null },
             title = { Text("候補詳細", modifier = Modifier.testTag("candidate_detail_dialog_title")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("読み: $detailCandidate", modifier = Modifier.testTag("candidate_detail_reading"))
-                    Text("漢字表記: （未対応）")
-                    Text("意味: （未対応）")
+                    Text(
+                        "漢字表記: ${detail?.kanji ?: "（未対応）"}",
+                        modifier = Modifier.testTag("candidate_detail_kanji"),
+                    )
+                    Text(
+                        "意味: ${detail?.meaning ?: "（未対応）"}",
+                        modifier = Modifier.testTag("candidate_detail_meaning"),
+                    )
                 }
             },
             confirmButton = {

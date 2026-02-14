@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
+import com.anagram.analyzer.data.seed.CandidateDetail
+import com.anagram.analyzer.data.seed.CandidateDetailLoader
 import com.anagram.analyzer.data.seed.SeedEntryLoader
 import com.anagram.analyzer.domain.model.HiraganaNormalizer
 import com.anagram.analyzer.domain.model.NormalizationException
@@ -35,6 +37,7 @@ data class MainUiState(
     val normalized: String = "",
     val anagramKey: String = "",
     val candidates: List<String> = emptyList(),
+    val candidateDetails: Map<String, CandidateDetail> = emptyMap(),
     val errorMessage: String? = null,
     val preloadLog: String? = null,
 )
@@ -43,6 +46,7 @@ data class MainUiState(
 class MainViewModel @Inject constructor(
     private val anagramDao: AnagramDao,
     private val seedEntryLoader: SeedEntryLoader,
+    private val candidateDetailLoader: CandidateDetailLoader,
     private val ioDispatcher: CoroutineDispatcher,
     private val preloadLogger: PreloadLogger,
 ) : ViewModel() {
@@ -55,9 +59,15 @@ class MainViewModel @Inject constructor(
         preloadJob = viewModelScope.launch(ioDispatcher) {
             try {
                 val metrics = preloadSeedDataIfNeeded()
+                val candidateDetails = candidateDetailLoader.loadDetails()
                 val preloadLog = metrics.toLogLine()
                 preloadLogger.log(preloadLog)
-                _uiState.update { it.copy(preloadLog = preloadLog) }
+                _uiState.update {
+                    it.copy(
+                        preloadLog = preloadLog,
+                        candidateDetails = candidateDetails,
+                    )
+                }
             } catch (error: SQLiteException) {
                 _uiState.update {
                     it.copy(
@@ -79,7 +89,10 @@ class MainViewModel @Inject constructor(
 
         if (value.isEmpty()) {
             _uiState.update { state ->
-                MainUiState(preloadLog = state.preloadLog)
+                MainUiState(
+                    preloadLog = state.preloadLog,
+                    candidateDetails = state.candidateDetails,
+                )
             }
             return
         }

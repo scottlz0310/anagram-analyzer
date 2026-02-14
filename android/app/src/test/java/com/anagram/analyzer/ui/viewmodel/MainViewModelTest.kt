@@ -3,6 +3,8 @@ package com.anagram.analyzer.ui.viewmodel
 import android.database.sqlite.SQLiteException
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
+import com.anagram.analyzer.data.seed.CandidateDetail
+import com.anagram.analyzer.data.seed.CandidateDetailLoader
 import com.anagram.analyzer.data.seed.SeedEntryLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -26,6 +28,7 @@ class MainViewModelTest {
             val viewModel = MainViewModel(
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
                 seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -58,6 +61,7 @@ class MainViewModelTest {
                     ),
                 ),
                 seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -84,6 +88,7 @@ class MainViewModelTest {
                     countFailure = SQLiteException("DB error"),
                 ),
                 seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -106,6 +111,7 @@ class MainViewModelTest {
             val viewModel = MainViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(loadFailure = IllegalArgumentException("bad seed")),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -133,6 +139,7 @@ class MainViewModelTest {
                         AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3),
                     ),
                 ),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -144,6 +151,32 @@ class MainViewModelTest {
             assertTrue(preloadLog.contains("total=2"))
             assertTrue(preloadLog.contains("inserted=2"))
             assertTrue(preloadLog.contains("elapsedMs="))
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 候補詳細データをstateに保持する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(
+                    details = mapOf(
+                        "りんご" to CandidateDetail(kanji = "林檎", meaning = "apple"),
+                    ),
+                ),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+
+            assertEquals("林檎", viewModel.uiState.value.candidateDetails["りんご"]?.kanji)
+            assertEquals("apple", viewModel.uiState.value.candidateDetails["りんご"]?.meaning)
         } finally {
             Dispatchers.resetMain()
         }
@@ -194,6 +227,14 @@ class MainViewModelTest {
                 throw loadFailure
             }
             return entries
+        }
+    }
+
+    private class FakeCandidateDetailLoader(
+        private val details: Map<String, CandidateDetail> = emptyMap(),
+    ) : CandidateDetailLoader {
+        override suspend fun loadDetails(): Map<String, CandidateDetail> {
+            return details
         }
     }
 }

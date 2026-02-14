@@ -4,7 +4,9 @@ import android.content.Context
 import android.util.Log
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramDatabase
+import com.anagram.analyzer.data.seed.AssetCandidateDetailLoader
 import com.anagram.analyzer.data.seed.AssetSeedEntryLoader
+import com.anagram.analyzer.data.seed.CandidateDetailLoader
 import com.anagram.analyzer.data.seed.SeedEntryLoader
 import com.anagram.analyzer.ui.viewmodel.PreloadLogger
 import dagger.Module
@@ -33,6 +35,12 @@ object AppModule {
     fun provideSeedEntryLoader(
         @ApplicationContext context: Context,
     ): SeedEntryLoader = AssetSeedEntryLoader(context)
+
+    @Provides
+    @Singleton
+    fun provideCandidateDetailLoader(
+        @ApplicationContext context: Context,
+    ): CandidateDetailLoader = AssetCandidateDetailLoader(context)
 
     @Provides
     fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
