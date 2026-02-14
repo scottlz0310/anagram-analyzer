@@ -66,6 +66,8 @@
 - `MainActivity` / `MainScreen` にライト/ダークテーマ切替ボタンを追加し、Material 3 の `colorScheme` を切り替え可能に更新
 - `MainScreenTest` にテーマ切替UIテストを追加
 - `ThemePreferenceStore`（DataStore Preferences）を追加し、テーマ切替状態を再起動後も維持するよう更新
+- `AssetCandidateDetailLoader` と `candidate_detail_seed.tsv` を追加し、候補詳細ダイアログで漢字/意味の実データ表示を可能に更新（未収録語はプレースホルダ）
+- `MainScreenTest` の候補詳細検証を実データ表示（林檎 / apple）ベースへ更新
 
 ## [0.1.0] - 2026-02-07
 

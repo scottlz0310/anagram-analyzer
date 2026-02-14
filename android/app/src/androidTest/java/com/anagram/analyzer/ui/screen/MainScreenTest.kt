@@ -78,8 +78,8 @@ class MainScreenTest {
 
         composeRule.onNodeWithTag("candidate_detail_dialog_title").assertIsDisplayed()
         composeRule.onNodeWithTag("candidate_detail_reading").assertIsDisplayed()
-        composeRule.onNodeWithText("漢字表記: （未対応）").assertIsDisplayed()
-        composeRule.onNodeWithText("意味: （未対応）").assertIsDisplayed()
+        composeRule.onNodeWithText("漢字表記: 林檎").assertIsDisplayed()
+        composeRule.onNodeWithText("意味: apple").assertIsDisplayed()
     }
 
     @Test

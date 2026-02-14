@@ -86,7 +86,8 @@ android/
 │       ├── main/
 │       │   ├── AndroidManifest.xml
 │       │   ├── assets/
-│       │   │   └── anagram_seed.tsv
+│       │   │   ├── anagram_seed.tsv
+│       │   │   └── candidate_detail_seed.tsv
 │       │   └── java/com/anagram/analyzer/
 │       │       ├── AnagramApplication.kt
 │       │       ├── MainActivity.kt
@@ -95,7 +96,8 @@ android/
 │       │       │   ├── AnagramDao.kt
 │       │       │   └── AnagramDatabase.kt
 │       │       ├── data/seed/
-│       │       │   └── AssetSeedEntryLoader.kt
+│       │       │   ├── AssetSeedEntryLoader.kt
+│       │       │   └── AssetCandidateDetailLoader.kt
 │       │       ├── data/datastore/
 │       │       │   └── ThemePreferenceStore.kt
 │       │       ├── di/AppModule.kt
@@ -190,7 +192,7 @@ android/
 
 **ライセンス表示**: `MainScreen` の「辞書クレジット」ダイアログで JMdict の CC BY-SA 4.0 表記を表示
 
-**候補詳細表示**: 候補タップで詳細ダイアログを表示（読みを表示、漢字/意味は現状プレースホルダ）
+**候補詳細表示**: 候補タップで詳細ダイアログを表示（`candidate_detail_seed.tsv` 収録語は漢字/意味を表示、未収録語はプレースホルダ）
 
 **テーマ切替**: `MainActivity` / `MainScreen` で Material 3 のライト/ダークテーマを切替可能
 
@@ -215,6 +217,7 @@ android/
 | ファイル | 説明 |
 |---------|------|
 | `AssetSeedEntryLoader.kt` | `anagram_seed.tsv` の読込/parse と `SeedEntryLoader` 提供 |
+| `AssetCandidateDetailLoader.kt` | `candidate_detail_seed.tsv` の読込/parse と候補詳細辞書の提供 |
 
 **運用方針**: seed生成は件数上限より `--max-len` による文字数制限を優先し、現行の推奨値は `max-len=8`（ローカルSQLite投入比較: `8` 約584ms / `10` 約712ms）。
 
