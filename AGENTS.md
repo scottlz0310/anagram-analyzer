@@ -184,7 +184,7 @@ android/
 |---------|------|
 | `AnagramEntry.kt` | アナグラム索引エントリのEntity（`sorted_key`/`word`/`length`、`sorted_key + word` 一意制約） |
 | `AnagramDao.kt` | 索引投入（`insertAll`）とキー検索（`lookupWords`）を提供 |
-| `AnagramDatabase.kt` | RoomDatabase本体とシングルトン取得処理（version 2、開発中は `fallbackToDestructiveMigration()` を有効化） |
+| `AnagramDatabase.kt` | RoomDatabase本体とシングルトン取得処理（version 2、`Migration(1,2)` で重複解消と一意インデックス追加） |
 
 ### `android/app/src/main/java/com/anagram/analyzer/di/AppModule.kt` - Android DIモジュール
 

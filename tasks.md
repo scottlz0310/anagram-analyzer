@@ -28,7 +28,7 @@
 - [x] パッケージ構成（data / domain / ui）のスケルトン作成
 - [x] Gradle Wrapper（`gradlew`）の導入
 - [x] Room DB セットアップ（AnagramEntry Entity + DAO）
-- [x] Roomスキーマ差分による起動クラッシュ対策（DB version更新 + 破壊的マイグレーション）
+- [x] Roomスキーマ差分による起動クラッシュ対策（DB version更新 + Migration 1→2追加）
 - [x] Hilt DI 基盤設定
 - [x] GitHub Actions にAndroidビルドジョブ追加
 
