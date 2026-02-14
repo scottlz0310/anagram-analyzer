@@ -58,6 +58,7 @@
 - `scripts/export_android_seed.py` の `--max-len` デフォルトを 8 に変更し、`anagram_seed.tsv` を `max-len=8` で再生成（154,387件 / 約5.6MB）
 - seedサイズシミュレーション結果に基づき、文字数制限（`--max-len`）中心の運用方針を README / AGENTS に反映
 - GitHub Actions CI に Android UIテスト（`reactivecircus/android-emulator-runner` + `:app:connectedDebugAndroidTest`）ジョブを追加
+- `MainScreen` に「辞書クレジット」ダイアログを追加し、JMdictライセンス表示をアプリ内から確認可能に更新
 
 ## [0.1.0] - 2026-02-07
 
