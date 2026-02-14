@@ -28,6 +28,7 @@
 - [x] パッケージ構成（data / domain / ui）のスケルトン作成
 - [x] Gradle Wrapper（`gradlew`）の導入
 - [x] Room DB セットアップ（AnagramEntry Entity + DAO）
+- [x] Roomスキーマ差分による起動クラッシュ対策（DB version更新 + Migration 1→2追加）
 - [x] Hilt DI 基盤設定
 - [x] GitHub Actions にAndroidビルドジョブ追加
 
@@ -78,7 +79,7 @@
 |---------|------|------|
 | 0: 基盤整備 | ✅ 完了 | Python CLI版 + ドキュメント整備済み |
 | 1: ロジック抽出 | 🔲 未着手 | |
-| 2: Android初期構築 | ✅ 完了 | Room最小DB構成 + Hilt DI基盤 + Android CIジョブ追加まで完了 |
+| 2: Android初期構築 | ✅ 完了 | Room最小DB構成 + Hilt DI基盤 + Android CIジョブ追加 + 起動クラッシュ対策まで完了 |
 | 3: ロジック移植 | ✅ 完了 | normalize移植 + Room検索接続 + Python版との一致テスト追加 |
 | 4: UI実装 | 🟡 進行中 | メイン画面実装、手動テスト可能な最小フローを確認 |
 | 5: 辞書データ | 🔲 未着手 | |
