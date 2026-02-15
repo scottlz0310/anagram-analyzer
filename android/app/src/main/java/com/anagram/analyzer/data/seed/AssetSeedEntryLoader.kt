@@ -2,6 +2,7 @@ package com.anagram.analyzer.data.seed
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteException
 import com.anagram.analyzer.data.db.AnagramEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -17,6 +18,9 @@ class AssetSeedEntryLoader @Inject constructor(
 ) : SeedEntryLoader {
     override suspend fun loadEntries(): List<AnagramEntry> {
         val dbEntries = loadSeedEntriesFromDatabaseAsset(context)
+        if (!dbEntries.isNullOrEmpty()) {
+            return dbEntries
+        }
         val tsvEntries = try {
             context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
                 parseSeedEntries(reader.lineSequence())
@@ -38,19 +42,24 @@ internal fun resolveSeedEntries(
     return dbEntries?.takeIf { it.isNotEmpty() } ?: tsvEntries
 }
 
-private fun loadSeedEntriesFromDatabaseAsset(context: Context): List<AnagramEntry>? {
+internal fun loadSeedEntriesFromDatabaseAsset(context: Context): List<AnagramEntry>? {
     if (!hasAsset(context, DB_ASSET_FILE_NAME)) {
         return null
     }
 
-    val tempFile = File.createTempFile("anagram_seed", ".db", context.cacheDir)
+    var tempFile: File? = null
     return try {
+        val workingFile = File.createTempFile("anagram_seed", ".db", context.cacheDir)
+        tempFile = workingFile
         context.assets.open(DB_ASSET_FILE_NAME).use { input ->
-            tempFile.outputStream().use { output ->
+            workingFile.outputStream().use { output ->
                 input.copyTo(output)
             }
         }
-        SQLiteDatabase.openDatabase(tempFile.path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
+        SQLiteDatabase.openDatabase(workingFile.path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
+            if (database.version != DB_SCHEMA_VERSION) {
+                return null
+            }
             database.query(
                 DB_TABLE_NAME,
                 DB_COLUMNS,
@@ -78,8 +87,12 @@ private fun loadSeedEntriesFromDatabaseAsset(context: Context): List<AnagramEntr
         }
     } catch (_: IOException) {
         null
+    } catch (_: SQLiteException) {
+        null
+    } catch (_: IllegalArgumentException) {
+        null
     } finally {
-        tempFile.delete()
+        tempFile?.delete()
     }
 }
 
@@ -136,4 +149,5 @@ internal fun parseSeedEntries(
 private const val ASSET_FILE_NAME = "anagram_seed.tsv"
 private const val DB_ASSET_FILE_NAME = "anagram_seed.db"
 private const val DB_TABLE_NAME = "anagram_entries"
+private const val DB_SCHEMA_VERSION = 3
 private val DB_COLUMNS = arrayOf("sorted_key", "word", "length")
