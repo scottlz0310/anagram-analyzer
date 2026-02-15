@@ -349,6 +349,71 @@ class MainViewModelTest {
     }
 
     @Test
+    fun 候補詳細が未収録でも取得要求でstateへ反映する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(
+                    fetchedDetails = mapOf(
+                        "おなじ" to CandidateDetail(kanji = "同じ", meaning = "same"),
+                    ),
+                ),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+            viewModel.onCandidateDetailFetchRequested("おなじ")
+            advanceUntilIdle()
+
+            assertEquals("同じ", viewModel.uiState.value.candidateDetails["おなじ"]?.kanji)
+            assertEquals("same", viewModel.uiState.value.candidateDetails["おなじ"]?.meaning)
+            assertEquals(null, viewModel.uiState.value.loadingCandidateDetailWord)
+            assertEquals(null, viewModel.uiState.value.candidateDetailErrorMessage)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 候補詳細取得失敗時はエラー状態を保持する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(
+                    fetchFailure = IllegalStateException("network error"),
+                ),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+            viewModel.onCandidateDetailFetchRequested("おなじ")
+            advanceUntilIdle()
+
+            assertEquals("おなじ", viewModel.uiState.value.candidateDetailErrorWord)
+            assertTrue(
+                viewModel.uiState.value.candidateDetailErrorMessage?.contains("候補詳細の取得に失敗しました") == true,
+            )
+            assertEquals(null, viewModel.uiState.value.loadingCandidateDetailWord)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
     fun 保存済み入力履歴を起動時に復元する() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
@@ -777,9 +842,18 @@ class MainViewModelTest {
 
     private class FakeCandidateDetailLoader(
         private val details: Map<String, CandidateDetail> = emptyMap(),
+        private val fetchedDetails: Map<String, CandidateDetail> = emptyMap(),
+        private val fetchFailure: IllegalStateException? = null,
     ) : CandidateDetailLoader {
         override suspend fun loadDetails(): Map<String, CandidateDetail> {
             return details
+        }
+
+        override suspend fun fetchDetail(word: String): CandidateDetail? {
+            if (fetchFailure != null) {
+                throw fetchFailure
+            }
+            return details[word] ?: fetchedDetails[word]
         }
     }
 

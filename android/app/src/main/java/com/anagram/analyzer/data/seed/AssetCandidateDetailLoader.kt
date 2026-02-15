@@ -1,6 +1,8 @@
 package com.anagram.analyzer.data.seed
 
 import android.content.Context
+import com.anagram.analyzer.data.db.CandidateDetailCacheDao
+import com.anagram.analyzer.data.db.CandidateDetailCacheEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import javax.inject.Inject
@@ -12,24 +14,53 @@ data class CandidateDetail(
 
 interface CandidateDetailLoader {
     suspend fun loadDetails(): Map<String, CandidateDetail>
+    suspend fun fetchDetail(word: String): CandidateDetail?
 }
 
 class AssetCandidateDetailLoader @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val candidateDetailCacheDao: CandidateDetailCacheDao,
+    private val candidateDetailRemoteDataSource: CandidateDetailRemoteDataSource,
 ) : CandidateDetailLoader {
     override suspend fun loadDetails(): Map<String, CandidateDetail> {
-        return try {
+        val seedDetails = try {
             context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
                 parseCandidateDetails(reader.lineSequence())
             }
         } catch (_: IOException) {
             emptyMap()
         }
+        val cachedDetails = candidateDetailCacheDao.findAll().associate { it.word to it.toCandidateDetail() }
+        return seedDetails + cachedDetails
+    }
+
+    override suspend fun fetchDetail(word: String): CandidateDetail? {
+        val cachedDetail = candidateDetailCacheDao.findByWord(word)?.toCandidateDetail()
+        if (cachedDetail != null) {
+            return cachedDetail
+        }
+        val remoteDetail = candidateDetailRemoteDataSource.fetchDetail(word) ?: return null
+        candidateDetailCacheDao.upsert(
+            CandidateDetailCacheEntry(
+                word = word,
+                kanji = remoteDetail.kanji,
+                meaning = remoteDetail.meaning,
+                updatedAt = System.currentTimeMillis(),
+            ),
+        )
+        return remoteDetail
     }
 
     private companion object {
         private const val ASSET_FILE_NAME = "candidate_detail_seed.tsv"
     }
+}
+
+private fun CandidateDetailCacheEntry.toCandidateDetail(): CandidateDetail {
+    return CandidateDetail(
+        kanji = kanji,
+        meaning = meaning,
+    )
 }
 
 internal fun parseCandidateDetails(lines: Sequence<String>): Map<String, CandidateDetail> {

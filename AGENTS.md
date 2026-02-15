@@ -95,11 +95,14 @@ android/
 │       │       ├── data/db/
 │       │       │   ├── AnagramEntry.kt
 │       │       │   ├── AnagramDao.kt
-│       │       │   └── AnagramDatabase.kt
+│       │       │   ├── AnagramDatabase.kt
+│       │       │   ├── CandidateDetailCacheEntry.kt
+│       │       │   └── CandidateDetailCacheDao.kt
 │       │       ├── data/seed/
 │       │       │   ├── AssetSeedEntryLoader.kt
 │       │       │   ├── AssetAdditionalSeedEntryLoader.kt
-│       │       │   └── AssetCandidateDetailLoader.kt
+│       │       │   ├── AssetCandidateDetailLoader.kt
+│       │       │   └── JishoCandidateDetailRemoteDataSource.kt
 │       │       ├── data/datastore/
 │       │       │   ├── ThemePreferenceStore.kt
 │       │       │   ├── InputHistoryStore.kt
@@ -197,7 +200,7 @@ android/
 
 **ライセンス表示**: `MainScreen` の「辞書クレジット」ダイアログで JMdict の CC BY-SA 4.0 表記を表示
 
-**候補詳細表示**: 候補タップで候補詳細画面を表示（`candidate_detail_seed.tsv` 収録語は漢字/意味を表示、未収録語はプレースホルダ）
+**候補詳細表示**: 候補タップで候補詳細画面を表示（`candidate_detail_seed.tsv` 収録語は即時表示、未収録語はオンデマンド取得してローカルキャッシュ。取得には `INTERNET` 権限を使用）
 
 **テーマ切替**: `MainActivity` / `MainScreen` の設定ダイアログで Material 3 のライト/ダークテーマを切替可能
 
@@ -219,7 +222,9 @@ android/
 |---------|------|
 | `AnagramEntry.kt` | アナグラム索引エントリのEntity（`sorted_key`/`word`/`length`、`sorted_key + word` 一意制約） |
 | `AnagramDao.kt` | 索引投入（`insertAll`）とキー検索（`lookupWords`）を提供 |
-| `AnagramDatabase.kt` | RoomDatabase本体とシングルトン取得処理（version 2、`Migration(1,2)` で重複解消と一意インデックス追加） |
+| `AnagramDatabase.kt` | RoomDatabase本体とシングルトン取得処理（version 3、`Migration(1,2)` で重複解消 + `Migration(2,3)` で候補詳細キャッシュ追加） |
+| `CandidateDetailCacheEntry.kt` | 候補詳細のオンデマンド取得結果を保持するキャッシュEntity（`word` 主キー） |
+| `CandidateDetailCacheDao.kt` | 候補詳細キャッシュの検索/保存（upsert）を提供 |
 
 ### `android/app/src/main/java/com/anagram/analyzer/data/seed/` - Android seed辞書モジュール
 
@@ -229,7 +234,8 @@ android/
 |---------|------|
 | `AssetSeedEntryLoader.kt` | `anagram_seed.tsv` の読込/parse と `SeedEntryLoader` 提供 |
 | `AssetAdditionalSeedEntryLoader.kt` | `anagram_additional_seed.tsv` の読込/parse と `AdditionalSeedEntryLoader` 提供 |
-| `AssetCandidateDetailLoader.kt` | `candidate_detail_seed.tsv` の読込/parse と候補詳細辞書の提供 |
+| `AssetCandidateDetailLoader.kt` | `candidate_detail_seed.tsv` と `candidate_detail_cache` を統合し、候補詳細の初期表示/オンデマンド取得を提供 |
+| `JishoCandidateDetailRemoteDataSource.kt` | 未収録語の候補詳細を Jisho API から取得 |
 
 **運用方針**: seed生成は件数上限より `--max-len` による文字数制限を優先し、現行の推奨値は `max-len=8`（ローカルSQLite投入比較: `8` 約584ms / `10` 約712ms）。
 
