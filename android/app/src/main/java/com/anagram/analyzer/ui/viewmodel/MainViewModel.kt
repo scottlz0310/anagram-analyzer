@@ -65,11 +65,34 @@ class MainViewModel @Inject constructor(
     val uiState: StateFlow<MainUiState> = _uiState
     private val preloadJob: Job
     private var lookupJob: Job? = null
+    private var searchSettingsPersistJob: Job? = null
 
     init {
         preloadJob = viewModelScope.launch(ioDispatcher) {
             val persistedInputHistory = inputHistoryStore.inputHistory.first().take(MAX_INPUT_HISTORY)
             val persistedSearchSettings = searchSettingsStore.searchSettings.first()
+            _uiState.update { state ->
+                val shouldApplyPersistedSearchSettings =
+                    state.minSearchLength == SearchSettings.DEFAULT_MIN_LENGTH &&
+                        state.maxSearchLength == SearchSettings.DEFAULT_MAX_LENGTH
+                state.copy(
+                    inputHistory = if (state.inputHistory.isEmpty()) {
+                        persistedInputHistory
+                    } else {
+                        state.inputHistory
+                    },
+                    minSearchLength = if (shouldApplyPersistedSearchSettings) {
+                        persistedSearchSettings.minLength
+                    } else {
+                        state.minSearchLength
+                    },
+                    maxSearchLength = if (shouldApplyPersistedSearchSettings) {
+                        persistedSearchSettings.maxLength
+                    } else {
+                        state.maxSearchLength
+                    },
+                )
+            }
             try {
                 val metrics = preloadSeedDataIfNeeded()
                 val candidateDetails = candidateDetailLoader.loadDetails()
@@ -79,27 +102,18 @@ class MainViewModel @Inject constructor(
                     it.copy(
                         preloadLog = preloadLog,
                         candidateDetails = candidateDetails,
-                        inputHistory = persistedInputHistory,
-                        minSearchLength = persistedSearchSettings.minLength,
-                        maxSearchLength = persistedSearchSettings.maxLength,
                     )
                 }
             } catch (error: SQLiteException) {
                 _uiState.update {
                     it.copy(
                         errorMessage = "データベース初期化に失敗しました: ${error.message ?: "原因不明"}",
-                        inputHistory = persistedInputHistory,
-                        minSearchLength = persistedSearchSettings.minLength,
-                        maxSearchLength = persistedSearchSettings.maxLength,
                     )
                 }
             } catch (error: IllegalArgumentException) {
                 _uiState.update {
                     it.copy(
                         errorMessage = "辞書データの読み込みに失敗しました: ${error.message ?: "原因不明"}",
-                        inputHistory = persistedInputHistory,
-                        minSearchLength = persistedSearchSettings.minLength,
-                        maxSearchLength = persistedSearchSettings.maxLength,
                     )
                 }
             }
@@ -206,7 +220,8 @@ class MainViewModel @Inject constructor(
                 settingsMessage = null,
             )
         }
-        viewModelScope.launch(ioDispatcher) {
+        searchSettingsPersistJob?.cancel()
+        searchSettingsPersistJob = viewModelScope.launch(ioDispatcher) {
             searchSettingsStore.setSearchLengthRange(
                 minLength = sanitizedMinLength,
                 maxLength = sanitizedMaxLength,
