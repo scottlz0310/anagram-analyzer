@@ -203,6 +203,8 @@ adb shell am start -n com.anagram.analyzer/.MainActivity
 adb logcat -d -s AnagramPreload
 ```
 
+GitHub Actions の `Android Build` ジョブでは `android-debug-apk` artifact として `app-debug.apk` をダウンロードできます。
+
 確認例：
 - `りんご` を入力 → キー `ごりん`、候補に `りんご`
 - `リンゴ` を入力 → ひらがなに正規化され同様に候補表示

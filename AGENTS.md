@@ -48,7 +48,7 @@
 | 辞書ソース | JMdict (CC BY-SA 4.0) |
 | ビルド | Gradle (Kotlin DSL) |
 | テスト | JUnit, Espresso |
-| CI | GitHub Actions（Python lint/test + Android build/test + Android UI test） |
+| CI | GitHub Actions（Python lint/test + Android build/test + Android UI test + debug APK artifact） |
 
 ## ディレクトリ構造
 

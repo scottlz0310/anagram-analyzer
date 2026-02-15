@@ -75,6 +75,7 @@
 ## フェーズ 7: CI/CD・QA・リリース
 
 - [x] GitHub Actions に Android UIテスト（エミュレータ）ジョブを追加
+- [x] GitHub Actions の Android Build ジョブで debug APK artifact をアップロード
 - [ ] Android用CI/CDパイプライン完成
 - [ ] リリースビルド設定（署名、ProGuard/R8）
 - [ ] Google Play Store 公開準備
@@ -93,4 +94,4 @@
 | 4: UI実装 | 🟡 進行中 | メイン画面実装、候補詳細ダイアログ最小実装+seed実データ表示、ライト/ダーク切替、手動テスト可能な最小フロー、Compose UIテスト追加 |
 | 5: 辞書データ | 🟡 進行中 | seed変換/取込導線 + サイズ最適化（`max-len=8`）+ ライセンス表示 + 初回インポート計測ログ + 8/10投入時間比較まで実施 |
 | 6: 追加機能 | 🟡 進行中 | DataStore によるテーマ設定永続化 + 入力履歴永続化まで実装 |
-| 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト（エミュレータ）ジョブを追加 |
+| 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト（エミュレータ）+ debug APK artifact アップロードを追加 |
