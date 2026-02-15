@@ -23,6 +23,22 @@ android {
     val releaseKeyPassword =
         providers.gradleProperty("ANDROID_SIGNING_KEY_PASSWORD").orNull
             ?: providers.environmentVariable("ANDROID_SIGNING_KEY_PASSWORD").orNull
+    val signingConfigValues =
+        mapOf(
+            "ANDROID_SIGNING_STORE_FILE" to releaseStoreFilePath,
+            "ANDROID_SIGNING_STORE_PASSWORD" to releaseStorePassword,
+            "ANDROID_SIGNING_KEY_ALIAS" to releaseKeyAlias,
+            "ANDROID_SIGNING_KEY_PASSWORD" to releaseKeyPassword,
+        )
+    val hasAnySigningInput = signingConfigValues.values.any { !it.isNullOrBlank() }
+    if (hasAnySigningInput) {
+        val missingSigningKeys = signingConfigValues.filterValues { it.isNullOrBlank() }.keys
+        if (missingSigningKeys.isNotEmpty()) {
+            throw GradleException(
+                "release署名設定が不完全です。未設定: ${missingSigningKeys.joinToString()}",
+            )
+        }
+    }
     val releaseStoreFile = releaseStoreFilePath?.takeIf { it.isNotBlank() }?.let(::file)
     val hasReleaseSigning =
         releaseStoreFile != null &&
