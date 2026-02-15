@@ -26,9 +26,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anagram.analyzer.ui.viewmodel.MainUiState
 import com.anagram.analyzer.ui.viewmodel.MainViewModel
 
-private const val MIN_SEARCH_LENGTH = 1
-private const val MAX_SEARCH_LENGTH = 20
-
 @Composable
 fun MainScreen(
     isDarkTheme: Boolean,
@@ -156,7 +153,10 @@ fun MainScreenContent(
             onDismissRequest = { showSettingsDialog = false },
             title = { Text("設定", modifier = Modifier.testTag("settings_dialog_title")) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     Text(
                         "文字数範囲: ${state.minSearchLength}〜${state.maxSearchLength}",
                         modifier = Modifier.testTag("settings_length_range"),
@@ -165,7 +165,7 @@ fun MainScreenContent(
                         TextButton(
                             onClick = {
                                 onSearchLengthRangeChanged(
-                                    (state.minSearchLength - 1).coerceAtLeast(MIN_SEARCH_LENGTH),
+                                    state.minSearchLength - 1,
                                     state.maxSearchLength,
                                 )
                             },
@@ -176,7 +176,7 @@ fun MainScreenContent(
                         TextButton(
                             onClick = {
                                 onSearchLengthRangeChanged(
-                                    (state.minSearchLength + 1).coerceAtMost(state.maxSearchLength),
+                                    state.minSearchLength + 1,
                                     state.maxSearchLength,
                                 )
                             },
@@ -190,7 +190,7 @@ fun MainScreenContent(
                             onClick = {
                                 onSearchLengthRangeChanged(
                                     state.minSearchLength,
-                                    (state.maxSearchLength - 1).coerceAtLeast(state.minSearchLength),
+                                    state.maxSearchLength - 1,
                                 )
                             },
                             modifier = Modifier.testTag("settings_max_decrease_button"),
@@ -201,7 +201,7 @@ fun MainScreenContent(
                             onClick = {
                                 onSearchLengthRangeChanged(
                                     state.minSearchLength,
-                                    (state.maxSearchLength + 1).coerceAtMost(MAX_SEARCH_LENGTH),
+                                    state.maxSearchLength + 1,
                                 )
                             },
                             modifier = Modifier.testTag("settings_max_increase_button"),
@@ -222,7 +222,7 @@ fun MainScreenContent(
                         Text("追加辞書をダウンロード")
                     }
                     Text(
-                        text = state.settingsMessage ?: "追加辞書ダウンロード機能は準備中です",
+                        text = state.settingsMessage ?: "追加辞書ダウンロード機能はまだ利用できません",
                         modifier = Modifier.testTag("settings_download_status"),
                     )
                 }

@@ -125,19 +125,6 @@ class MainViewModel @Inject constructor(
 
         try {
             val normalized = HiraganaNormalizer.normalizeHiragana(value)
-            val currentState = _uiState.value
-            if (normalized.length !in currentState.minSearchLength..currentState.maxSearchLength) {
-                _uiState.update {
-                    it.copy(
-                        input = value,
-                        normalized = normalized,
-                        anagramKey = "",
-                        candidates = emptyList(),
-                        errorMessage = "文字数は${it.minSearchLength}〜${it.maxSearchLength}文字で入力してください",
-                    )
-                }
-                return
-            }
             val anagramKey = HiraganaNormalizer.anagramKey(normalized)
             _uiState.update {
                 it.copy(
@@ -151,6 +138,21 @@ class MainViewModel @Inject constructor(
 
             lookupJob = viewModelScope.launch {
                 preloadJob.join()
+                val currentState = _uiState.value
+                if (normalized.length !in currentState.minSearchLength..currentState.maxSearchLength) {
+                    _uiState.update { state ->
+                        if (state.input != value) {
+                            state
+                        } else {
+                            state.copy(
+                                anagramKey = "",
+                                candidates = emptyList(),
+                                errorMessage = "文字数は${state.minSearchLength}〜${state.maxSearchLength}文字で入力してください",
+                            )
+                        }
+                    }
+                    return@launch
+                }
                 val words = withContext(ioDispatcher) {
                     anagramDao.lookupWords(anagramKey)
                 }
@@ -217,7 +219,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun onAdditionalDictionaryDownloadRequested() {
-        _uiState.update { it.copy(settingsMessage = "追加辞書ダウンロード機能は準備中です") }
+        _uiState.update { it.copy(settingsMessage = "現在、追加辞書ダウンロード機能は準備中です") }
     }
 
     private suspend fun preloadSeedDataIfNeeded(): PreloadMetrics {

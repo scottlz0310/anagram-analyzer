@@ -130,6 +130,34 @@ class MainViewModelTest {
     }
 
     @Test
+    fun preload中の入力でも保存済み文字数範囲で再検証する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(insertDelayMs = 100),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(
+                    initialSettings = SearchSettings(minLength = 4, maxLength = 8),
+                ),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertTrue(state.errorMessage?.contains("文字数は4〜8文字で入力してください") == true)
+            assertTrue(state.candidates.isEmpty())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
     fun 入力履歴は重複を先頭へ寄せる() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
