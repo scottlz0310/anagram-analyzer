@@ -386,7 +386,7 @@ uv run python scripts/export_android_room_db.py --xml ~/.jamdict/data/JMdict_e.g
 # Lint
 cd android && ./gradlew :app:lintDebug
 
-# GitHub Release向けワークフロー（タグpush or Actions手動実行）
+# GitHub Release向けワークフロー（タグpush or Actions手動実行。手動時はtag未指定で自動タグ発行）
 git tag v0.2.0 && git push origin v0.2.0
 ```
 

@@ -93,6 +93,8 @@
 - `AssetSeedEntryLoader` を更新し、`anagram_seed.db`（Room互換SQLite）を優先読込し、未同梱時は `anagram_seed.tsv` へフォールバックする初回投入導線に変更
 - Android `app/build.gradle.kts` に release 署名設定を追加し、`ANDROID_SIGNING_*` 環境変数（または Gradle Property）から keystore/alias/password を読込可能に更新
 - GitHub Actions に `Android Release` ワークフローを追加し、署名済み `app-release.apk` を artifact と GitHub Release asset の両方で配布可能に更新
+- `Android Release` ワークフローを改善し、`workflow_dispatch` でタグ未指定時に自動タグを作成して配布できるよう更新
+- `Android Release` ワークフローを改善し、自動タグ push による二重実行（dispatch + push）を防ぐガードを追加
 
 ## [0.1.0] - 2026-02-07
 
