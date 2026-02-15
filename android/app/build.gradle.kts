@@ -9,6 +9,23 @@ plugins {
 android {
     namespace = "com.anagram.analyzer"
     compileSdk = 34
+    val releaseStoreFilePath =
+        providers.gradleProperty("ANDROID_SIGNING_STORE_FILE").orNull
+            ?: providers.environmentVariable("ANDROID_SIGNING_STORE_FILE").orNull
+    val releaseStorePassword =
+        providers.gradleProperty("ANDROID_SIGNING_STORE_PASSWORD").orNull
+            ?: providers.environmentVariable("ANDROID_SIGNING_STORE_PASSWORD").orNull
+    val releaseKeyAlias =
+        providers.gradleProperty("ANDROID_SIGNING_KEY_ALIAS").orNull
+            ?: providers.environmentVariable("ANDROID_SIGNING_KEY_ALIAS").orNull
+    val releaseKeyPassword =
+        providers.gradleProperty("ANDROID_SIGNING_KEY_PASSWORD").orNull
+            ?: providers.environmentVariable("ANDROID_SIGNING_KEY_PASSWORD").orNull
+    val hasReleaseSigning =
+        !releaseStoreFilePath.isNullOrBlank() &&
+            !releaseStorePassword.isNullOrBlank() &&
+            !releaseKeyAlias.isNullOrBlank() &&
+            !releaseKeyPassword.isNullOrBlank()
 
     defaultConfig {
         applicationId = "com.anagram.analyzer"
@@ -20,6 +37,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(requireNotNull(releaseStoreFilePath))
+                storePassword = requireNotNull(releaseStorePassword)
+                keyAlias = requireNotNull(releaseKeyAlias)
+                keyPassword = requireNotNull(releaseKeyPassword)
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -27,6 +55,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

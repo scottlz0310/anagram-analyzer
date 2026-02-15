@@ -48,7 +48,7 @@
 | 辞書ソース | JMdict (CC BY-SA 4.0) |
 | ビルド | Gradle (Kotlin DSL) |
 | テスト | JUnit, Espresso |
-| CI | GitHub Actions（Python lint/test + Android build/test + Android UI test + debug APK artifact） |
+| CI | GitHub Actions（Python lint/test + Android build/test + Android UI test + debug APK artifact + GitHub Release向け署名済みAPK公開） |
 
 ## ディレクトリ構造
 
@@ -374,6 +374,9 @@ cd android && ./gradlew :app:testDebugUnitTest
 # UIテスト（エミュレータ/実機必要）
 cd android && ./gradlew :app:connectedDebugAndroidTest
 
+# release APK（署名情報を環境変数で指定）
+cd android && ANDROID_SIGNING_STORE_FILE=/path/to/release.keystore ANDROID_SIGNING_STORE_PASSWORD=*** ANDROID_SIGNING_KEY_ALIAS=*** ANDROID_SIGNING_KEY_PASSWORD=*** ./gradlew :app:assembleRelease
+
 # Android seed TSV生成（jamdict / jamdict-data が必要）
 uv run python scripts/export_android_seed.py --output android/app/src/main/assets/anagram_seed.tsv --min-len 2 --max-len 8
 
@@ -382,6 +385,9 @@ uv run python scripts/export_android_room_db.py --xml ~/.jamdict/data/JMdict_e.g
 
 # Lint
 cd android && ./gradlew :app:lintDebug
+
+# GitHub Release向けワークフロー（タグpush or Actions手動実行）
+git tag v0.2.0 && git push origin v0.2.0
 ```
 
 ## アルゴリズム解説
