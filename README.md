@@ -175,6 +175,7 @@ MIT License — 詳細は [LICENSE](LICENSE) を参照してください。
 - 候補タップで詳細ダイアログを表示（`candidate_detail_seed.tsv` 収録語は漢字/意味を表示、未収録語はプレースホルダ）
 - ライト/ダークテーマの切替（Material 3、DataStoreで永続化）
 - 入力履歴の折りたたみ表示（最新10件、表示/非表示トグル、タップで再入力、DataStoreで永続化）
+- ランチャーアイコンに `AnagramAnalyzerICON.png` を適用
 - アプリ内の「辞書クレジット」ダイアログで JMdict ライセンス表記を確認
 
 ### 辞書seedの更新（開発者向け）
@@ -214,6 +215,7 @@ GitHub Actions の `Android Build` ジョブでは `android-debug-apk` artifact 
 - アプリを再起動しても、選択したテーマ状態が維持される
 - 入力後に「入力履歴を表示」ボタンから履歴を展開でき、履歴タップで同じ語を再入力できる
 - アプリ再起動後も入力履歴（最新10件）が保持される
+- ホーム画面で虫眼鏡デザインのアプリアイコンが表示される
 - `辞書クレジット` ボタン → JMdict の CC BY-SA 4.0 表記ダイアログを表示
 - 起動直後の logcat に `preload source=... total=... inserted=... elapsedMs=...` が出力される
 

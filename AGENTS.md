@@ -202,6 +202,8 @@ android/
 
 **入力履歴**: `MainViewModel` が候補表示時に最新10件の履歴を保持し、`InputHistoryStore`（DataStore）で永続化しつつ `MainScreen` で折りたたみ表示と履歴タップ再入力を提供
 
+**アプリアイコン**: `asset/AnagramAnalyzerICON.png` を基に、`android:icon` / `android:roundIcon`（`@mipmap/ic_launcher`）を設定
+
 **初回投入計測**: `MainViewModel` が seed preload 完了時に `source / total / inserted / elapsedMs` 形式の計測ログを生成し、UI状態に保持
 
 ### `android/app/src/main/java/com/anagram/analyzer/data/db/` - Android DBモジュール
