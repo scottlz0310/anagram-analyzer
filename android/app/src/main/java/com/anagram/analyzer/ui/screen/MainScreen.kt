@@ -96,7 +96,7 @@ fun MainScreenContent(
                     onClick = { onInputChanged(history) },
                     modifier = Modifier.testTag("input_history_item_$index"),
                 ) {
-                    Text("・$history")
+                    Text("履歴: $history")
                 }
             }
         }

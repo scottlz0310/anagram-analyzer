@@ -38,11 +38,11 @@ class MainScreenTest {
     fun 入力履歴を表示できる() {
         composeRule.onNodeWithTag("input_field").performTextInput("りんご")
         composeRule.waitUntil(timeoutMillis = 30_000) {
-            composeRule.onAllNodesWithTag("input_history_item_0").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithText("履歴: りんご").fetchSemanticsNodes().isNotEmpty()
         }
 
         composeRule.onNodeWithTag("input_history_title").assertIsDisplayed()
-        composeRule.onNodeWithTag("input_history_item_0").assertTextContains("りんご")
+        composeRule.onNodeWithText("履歴: りんご").assertIsDisplayed()
     }
 
     @Test
