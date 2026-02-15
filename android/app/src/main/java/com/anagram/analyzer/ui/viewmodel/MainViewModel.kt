@@ -3,6 +3,7 @@ package com.anagram.analyzer.ui.viewmodel
 import android.database.sqlite.SQLiteException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anagram.analyzer.data.datastore.InputHistoryStore
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
 import com.anagram.analyzer.data.seed.CandidateDetail
@@ -15,7 +16,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.TimeSource
@@ -48,6 +51,7 @@ class MainViewModel @Inject constructor(
     private val anagramDao: AnagramDao,
     private val seedEntryLoader: SeedEntryLoader,
     private val candidateDetailLoader: CandidateDetailLoader,
+    private val inputHistoryStore: InputHistoryStore,
     private val ioDispatcher: CoroutineDispatcher,
     private val preloadLogger: PreloadLogger,
 ) : ViewModel() {
@@ -58,6 +62,7 @@ class MainViewModel @Inject constructor(
 
     init {
         preloadJob = viewModelScope.launch(ioDispatcher) {
+            val persistedInputHistory = inputHistoryStore.inputHistory.first().take(MAX_INPUT_HISTORY)
             try {
                 val metrics = preloadSeedDataIfNeeded()
                 val candidateDetails = candidateDetailLoader.loadDetails()
@@ -67,18 +72,21 @@ class MainViewModel @Inject constructor(
                     it.copy(
                         preloadLog = preloadLog,
                         candidateDetails = candidateDetails,
+                        inputHistory = persistedInputHistory,
                     )
                 }
             } catch (error: SQLiteException) {
                 _uiState.update {
                     it.copy(
                         errorMessage = "データベース初期化に失敗しました: ${error.message ?: "原因不明"}",
+                        inputHistory = persistedInputHistory,
                     )
                 }
             } catch (error: IllegalArgumentException) {
                 _uiState.update {
                     it.copy(
                         errorMessage = "辞書データの読み込みに失敗しました: ${error.message ?: "原因不明"}",
+                        inputHistory = persistedInputHistory,
                     )
                 }
             }
@@ -117,18 +125,24 @@ class MainViewModel @Inject constructor(
                 val words = withContext(ioDispatcher) {
                     anagramDao.lookupWords(anagramKey)
                 }
-                _uiState.update { state ->
+                val updatedState = _uiState.updateAndGet { state ->
                     if (state.input != value) {
                         state
                     } else {
+                        val updatedHistory = if (words.isNotEmpty()) {
+                            appendInputHistory(state.inputHistory, normalized)
+                        } else {
+                            state.inputHistory
+                        }
                         state.copy(
                             candidates = words,
-                            inputHistory = if (words.isNotEmpty()) {
-                                appendInputHistory(state.inputHistory, normalized)
-                            } else {
-                                state.inputHistory
-                            },
+                            inputHistory = updatedHistory,
                         )
+                    }
+                }
+                if (updatedState.input == value && words.isNotEmpty()) {
+                    withContext(ioDispatcher) {
+                        inputHistoryStore.setInputHistory(updatedState.inputHistory)
                     }
                 }
             }

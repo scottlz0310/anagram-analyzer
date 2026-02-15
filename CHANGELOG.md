@@ -70,6 +70,9 @@
 - `MainScreenTest` の候補詳細検証を実データ表示（林檎 / apple）ベースへ更新
 - `MainViewModel` に入力履歴（最新10件・重複は先頭へ寄せる）を追加し、`MainScreen` で履歴表示と再入力を可能に更新
 - `MainViewModelTest` / `MainScreenTest` に入力履歴のテストを追加
+- `InputHistoryStore`（DataStore Preferences）を追加し、入力履歴（最新10件）を再起動後も保持するよう更新
+- `MainViewModelTest` に入力履歴の復元/永続化テストを追加
+- `SettingsDataStore` を追加し、`ThemePreferenceStore` と `InputHistoryStore` が同一 DataStore インスタンスを共有するよう更新
 - GitHub Actions CI の Android Build ジョブで `app-debug.apk` を artifact としてアップロードするよう更新
 
 ## [0.1.0] - 2026-02-07
