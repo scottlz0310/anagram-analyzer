@@ -70,6 +70,7 @@
 - `MainScreenTest` の候補詳細検証を実データ表示（林檎 / apple）ベースへ更新
 - `MainViewModel` に入力履歴（最新10件・重複は先頭へ寄せる）を追加し、`MainScreen` で履歴表示と再入力を可能に更新
 - `MainViewModelTest` / `MainScreenTest` に入力履歴のテストを追加
+- GitHub Actions CI の Android Build ジョブで `app-debug.apk` を artifact としてアップロードするよう更新
 
 ## [0.1.0] - 2026-02-07
 
