@@ -3,6 +3,7 @@ package com.anagram.analyzer.data.seed
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
+import com.anagram.analyzer.data.db.ANAGRAM_DATABASE_VERSION
 import com.anagram.analyzer.data.db.AnagramEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -67,7 +68,7 @@ internal fun loadSeedEntriesFromDatabaseAsset(context: Context): List<AnagramEnt
 internal fun loadSeedEntriesFromDatabaseFile(path: String): List<AnagramEntry>? {
     return try {
         SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
-            if (database.version != DB_SCHEMA_VERSION) {
+            if (database.version != ANAGRAM_DATABASE_VERSION) {
                 return null
             }
             database.query(
@@ -82,17 +83,19 @@ internal fun loadSeedEntriesFromDatabaseFile(path: String): List<AnagramEntry>? 
                 val sortedKeyColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[0])
                 val wordColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[1])
                 val lengthColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[2])
-                buildList {
-                    while (cursor.moveToNext()) {
-                        add(
-                            AnagramEntry(
-                                sortedKey = cursor.getString(sortedKeyColumn),
-                                word = cursor.getString(wordColumn),
-                                length = cursor.getInt(lengthColumn),
-                            ),
-                        )
-                    }
+                val entries = ArrayList<AnagramEntry>(cursor.count)
+                while (cursor.moveToNext()) {
+                    val sortedKey = cursor.getString(sortedKeyColumn) ?: return null
+                    val word = cursor.getString(wordColumn) ?: return null
+                    entries.add(
+                        AnagramEntry(
+                            sortedKey = sortedKey,
+                            word = word,
+                            length = cursor.getInt(lengthColumn),
+                        ),
+                    )
                 }
+                entries
             }
         }
     } catch (_: SQLiteException) {
@@ -156,5 +159,4 @@ internal fun parseSeedEntries(
 private const val ASSET_FILE_NAME = "anagram_seed.tsv"
 private const val DB_ASSET_FILE_NAME = "anagram_seed.db"
 private const val DB_TABLE_NAME = "anagram_entries"
-private const val DB_SCHEMA_VERSION = 3
 private val DB_COLUMNS = arrayOf("sorted_key", "word", "length")

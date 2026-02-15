@@ -7,9 +7,11 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+internal const val ANAGRAM_DATABASE_VERSION = 3
+
 @Database(
     entities = [AnagramEntry::class, CandidateDetailCacheEntry::class],
-    version = 3,
+    version = ANAGRAM_DATABASE_VERSION,
     exportSchema = false,
 )
 abstract class AnagramDatabase : RoomDatabase() {

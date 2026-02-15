@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.anagram.analyzer.data.db.ANAGRAM_DATABASE_VERSION
 import com.anagram.analyzer.data.db.AnagramEntry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -16,7 +17,7 @@ class AssetSeedEntryLoaderInstrumentedTest {
     @Test
     fun dbファイルからseedエントリを読み込める() {
         val dbFile = createTemporarySeedDb {
-            version = 3
+            version = ANAGRAM_DATABASE_VERSION
             execSQL("CREATE TABLE anagram_entries (sorted_key TEXT NOT NULL, word TEXT NOT NULL, length INTEGER NOT NULL)")
             execSQL("INSERT INTO anagram_entries (sorted_key, word, length) VALUES ('ごりん', 'りんご', 3)")
         }
@@ -48,9 +49,25 @@ class AssetSeedEntryLoaderInstrumentedTest {
     @Test
     fun 必須列が不足しているdbはnullを返す() {
         val dbFile = createTemporarySeedDb {
-            version = 3
+            version = ANAGRAM_DATABASE_VERSION
             execSQL("CREATE TABLE anagram_entries (sorted_key TEXT NOT NULL, word TEXT NOT NULL)")
             execSQL("INSERT INTO anagram_entries (sorted_key, word) VALUES ('ごりん', 'りんご')")
+        }
+
+        try {
+            val entries = loadSeedEntriesFromDatabaseFile(dbFile.path)
+            assertNull(entries)
+        } finally {
+            dbFile.delete()
+        }
+    }
+
+    @Test
+    fun null列を含むdbはnullを返す() {
+        val dbFile = createTemporarySeedDb {
+            version = ANAGRAM_DATABASE_VERSION
+            execSQL("CREATE TABLE anagram_entries (sorted_key TEXT, word TEXT, length INTEGER NOT NULL)")
+            execSQL("INSERT INTO anagram_entries (sorted_key, word, length) VALUES (NULL, 'りんご', 3)")
         }
 
         try {
