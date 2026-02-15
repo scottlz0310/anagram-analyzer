@@ -56,7 +56,17 @@ internal fun loadSeedEntriesFromDatabaseAsset(context: Context): List<AnagramEnt
                 input.copyTo(output)
             }
         }
-        SQLiteDatabase.openDatabase(workingFile.path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
+        loadSeedEntriesFromDatabaseFile(workingFile.path)
+    } catch (_: IOException) {
+        null
+    } finally {
+        tempFile?.delete()
+    }
+}
+
+internal fun loadSeedEntriesFromDatabaseFile(path: String): List<AnagramEntry>? {
+    return try {
+        SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
             if (database.version != DB_SCHEMA_VERSION) {
                 return null
             }
@@ -85,20 +95,17 @@ internal fun loadSeedEntriesFromDatabaseAsset(context: Context): List<AnagramEnt
                 }
             }
         }
-    } catch (_: IOException) {
-        null
     } catch (_: SQLiteException) {
         null
     } catch (_: IllegalArgumentException) {
         null
-    } finally {
-        tempFile?.delete()
     }
 }
 
 private fun hasAsset(context: Context, fileName: String): Boolean {
     return try {
-        context.assets.list("")?.contains(fileName) == true
+        context.assets.open(fileName).use { }
+        true
     } catch (_: IOException) {
         false
     }
