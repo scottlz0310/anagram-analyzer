@@ -8,12 +8,24 @@ import com.anagram.analyzer.data.db.ANAGRAM_DATABASE_VERSION
 import com.anagram.analyzer.data.db.AnagramEntry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlinx.coroutines.runBlocking
 import java.io.File
 
 @RunWith(AndroidJUnit4::class)
 class AssetSeedEntryLoaderInstrumentedTest {
+    @Test
+    fun loadEntriesはdb未同梱時にtsvから読み込む() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val loader = AssetSeedEntryLoader(context)
+
+        val entries = loader.loadEntries()
+
+        assertTrue(entries.isNotEmpty())
+    }
+
     @Test
     fun dbファイルからseedエントリを読み込める() {
         val dbFile = createTemporarySeedDb {

@@ -19,17 +19,22 @@ class AssetSeedEntryLoader @Inject constructor(
 ) : SeedEntryLoader {
     override suspend fun loadEntries(): List<AnagramEntry> {
         val dbEntries = loadSeedEntriesFromDatabaseAsset(context)
-        if (!dbEntries.isNullOrEmpty()) {
-            return dbEntries
-        }
-        val tsvEntries = try {
-            context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
-                parseSeedEntries(reader.lineSequence())
+        val tsvEntries =
+            if (dbEntries.isNullOrEmpty()) {
+                try {
+                    context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
+                        parseSeedEntries(reader.lineSequence())
+                    }
+                } catch (_: IOException) {
+                    emptyList()
+                }
+            } else {
+                emptyList()
             }
-        } catch (_: IOException) {
-            emptyList()
-        }
-        return tsvEntries
+        return resolveSeedEntries(
+            dbEntries = dbEntries,
+            tsvEntries = tsvEntries,
+        )
     }
 }
 
@@ -41,10 +46,6 @@ internal fun resolveSeedEntries(
 }
 
 internal fun loadSeedEntriesFromDatabaseAsset(context: Context): List<AnagramEntry>? {
-    if (!hasAsset(context, DB_ASSET_FILE_NAME)) {
-        return null
-    }
-
     var tempFile: File? = null
     return try {
         val workingFile = File.createTempFile("anagram_seed", ".db", context.cacheDir)
@@ -99,15 +100,6 @@ internal fun loadSeedEntriesFromDatabaseFile(path: String): List<AnagramEntry>? 
         null
     } catch (_: IllegalArgumentException) {
         null
-    }
-}
-
-private fun hasAsset(context: Context, fileName: String): Boolean {
-    return try {
-        context.assets.open(fileName).use { }
-        true
-    } catch (_: IOException) {
-        false
     }
 }
 
