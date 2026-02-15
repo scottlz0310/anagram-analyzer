@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "リリースタグ (例: v0.2.0)"
-        required: true
+        description: "リリースタグ (例: v0.2.0 / 未指定時は自動生成)"
+        required: false
         type: string
       release_name:
         description: "リリース名（未指定時はタグ名）"
@@ -36,27 +36,50 @@ jobs:
           INPUT_NAME: ${{ github.event.inputs.release_name }}
           INPUT_PRERELEASE: ${{ github.event.inputs.prerelease }}
           REF_NAME: ${{ github.ref_name }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
-            TAG="${INPUT_TAG}"
-            NAME="${INPUT_NAME:-$INPUT_TAG}"
+            SANITIZED_REF="${REF_NAME//\//-}"
+            TAG="${INPUT_TAG:-v0.0.0-auto-${SANITIZED_REF}-${RUN_ID}}"
+            NAME="${INPUT_NAME:-$TAG}"
             PRERELEASE="${INPUT_PRERELEASE}"
+            CHECKOUT_REF="${REF_NAME}"
           else
             TAG="${REF_NAME}"
             NAME="${REF_NAME}"
             PRERELEASE="false"
+            CHECKOUT_REF="${REF_NAME}"
           fi
           {
             printf 'tag<<EOF\n%s\nEOF\n' "${TAG}"
             printf 'name<<EOF\n%s\nEOF\n' "${NAME}"
             printf 'prerelease<<EOF\n%s\nEOF\n' "${PRERELEASE}"
+            printf 'checkout_ref<<EOF\n%s\nEOF\n' "${CHECKOUT_REF}"
           } >> "${GITHUB_OUTPUT}"
 
       - name: Checkout release ref
         uses: actions/checkout@v6
         with:
-          ref: ${{ steps.meta.outputs.tag }}
+          ref: ${{ steps.meta.outputs.checkout_ref }}
           fetch-depth: 0
+
+      - name: Ensure release tag
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          git fetch --tags --force
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            git checkout "tags/${TAG}" --detach
+            echo "既存タグを利用します: ${TAG}"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag "${TAG}"
+            git push origin "refs/tags/${TAG}"
+            git checkout "tags/${TAG}" --detach
+            echo "タグを自動作成しました: ${TAG}"
+          fi
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
