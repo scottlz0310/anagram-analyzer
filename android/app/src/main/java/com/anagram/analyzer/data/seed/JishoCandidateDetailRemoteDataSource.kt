@@ -31,6 +31,8 @@ class JishoCandidateDetailRemoteDataSource @Inject constructor() : CandidateDeta
             }
             val body = connection.inputStream.bufferedReader().use { it.readText() }
             parseJishoCandidateDetail(word = word, body = body)
+        } catch (e: IOException) {
+            throw e
         } finally {
             connection.disconnect()
         }
