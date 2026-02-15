@@ -1,8 +1,10 @@
 package com.anagram.analyzer.data.seed
 
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import com.anagram.analyzer.data.db.AnagramEntry
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 
@@ -14,13 +16,78 @@ class AssetSeedEntryLoader @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : SeedEntryLoader {
     override suspend fun loadEntries(): List<AnagramEntry> {
-        return try {
+        val dbEntries = loadSeedEntriesFromDatabaseAsset(context)
+        val tsvEntries = try {
             context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
                 parseSeedEntries(reader.lineSequence())
             }
         } catch (_: IOException) {
             emptyList()
         }
+        return resolveSeedEntries(
+            dbEntries = dbEntries,
+            tsvEntries = tsvEntries,
+        )
+    }
+}
+
+internal fun resolveSeedEntries(
+    dbEntries: List<AnagramEntry>?,
+    tsvEntries: List<AnagramEntry>,
+): List<AnagramEntry> {
+    return dbEntries?.takeIf { it.isNotEmpty() } ?: tsvEntries
+}
+
+private fun loadSeedEntriesFromDatabaseAsset(context: Context): List<AnagramEntry>? {
+    if (!hasAsset(context, DB_ASSET_FILE_NAME)) {
+        return null
+    }
+
+    val tempFile = File.createTempFile("anagram_seed", ".db", context.cacheDir)
+    return try {
+        context.assets.open(DB_ASSET_FILE_NAME).use { input ->
+            tempFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        SQLiteDatabase.openDatabase(tempFile.path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
+            database.query(
+                DB_TABLE_NAME,
+                DB_COLUMNS,
+                null,
+                null,
+                null,
+                null,
+                null,
+            ).use { cursor ->
+                val sortedKeyColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[0])
+                val wordColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[1])
+                val lengthColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[2])
+                buildList {
+                    while (cursor.moveToNext()) {
+                        add(
+                            AnagramEntry(
+                                sortedKey = cursor.getString(sortedKeyColumn),
+                                word = cursor.getString(wordColumn),
+                                length = cursor.getInt(lengthColumn),
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+    } catch (_: IOException) {
+        null
+    } finally {
+        tempFile.delete()
+    }
+}
+
+private fun hasAsset(context: Context, fileName: String): Boolean {
+    return try {
+        context.assets.list("")?.contains(fileName) == true
+    } catch (_: IOException) {
+        false
     }
 }
 
@@ -67,3 +134,6 @@ internal fun parseSeedEntries(
 }
 
 private const val ASSET_FILE_NAME = "anagram_seed.tsv"
+private const val DB_ASSET_FILE_NAME = "anagram_seed.db"
+private const val DB_TABLE_NAME = "anagram_entries"
+private val DB_COLUMNS = arrayOf("sorted_key", "word", "length")

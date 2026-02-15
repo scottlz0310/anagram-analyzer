@@ -1,5 +1,6 @@
 package com.anagram.analyzer.data.seed
 
+import com.anagram.analyzer.data.db.AnagramEntry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -57,5 +58,42 @@ class AssetSeedEntryLoaderTest {
         }
         requireNotNull(exception)
         assertTrue(exception.message?.contains("anagram_additional_seed.tsv") == true)
+    }
+
+    @Test
+    fun db由来のseedがある場合はtsvより優先する() {
+        val dbEntries = listOf(AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3))
+        val tsvEntries = listOf(AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3))
+
+        val resolved = resolveSeedEntries(
+            dbEntries = dbEntries,
+            tsvEntries = tsvEntries,
+        )
+
+        assertEquals(dbEntries, resolved)
+    }
+
+    @Test
+    fun db由来seedが空ならtsvを使う() {
+        val tsvEntries = listOf(AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3))
+
+        val resolved = resolveSeedEntries(
+            dbEntries = emptyList(),
+            tsvEntries = tsvEntries,
+        )
+
+        assertEquals(tsvEntries, resolved)
+    }
+
+    @Test
+    fun db由来seedがnullならtsvを使う() {
+        val tsvEntries = listOf(AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3))
+
+        val resolved = resolveSeedEntries(
+            dbEntries = null,
+            tsvEntries = tsvEntries,
+        )
+
+        assertEquals(tsvEntries, resolved)
     }
 }

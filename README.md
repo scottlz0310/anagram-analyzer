@@ -165,7 +165,7 @@ MIT License — 詳細は [LICENSE](LICENSE) を参照してください。
 - **言語**: Kotlin
 - **UI**: Jetpack Compose
 - **データ**: Room (SQLite) + DataStore
-- **辞書**: seed TSV（JMdict由来データを段階導入）
+- **辞書**: seed Asset（`anagram_seed.db` 優先 / `anagram_seed.tsv` フォールバック）
 
 ### 現在できること（手動テスト可能）
 
@@ -209,7 +209,7 @@ uv run python scripts/export_android_room_db.py \
 ```
 
 - `candidate_detail_cache` テーブルと `PRAGMA user_version=3` も同時に初期化されます。
-- 現行アプリの初回投入導線はTSV（`anagram_seed.tsv`）のままです。SQLite生成は段階移行用の開発ツールです。
+- 初回投入時は `anagram_seed.db` が同梱されていれば優先読込し、未同梱時は `anagram_seed.tsv` を利用します。
 
 ### 手動テスト手順（Android）
 

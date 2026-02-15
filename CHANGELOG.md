@@ -90,6 +90,7 @@
 - `CandidateDetailLoader` を拡張し、`candidate_detail_seed.tsv` 未収録語はオンライン（Jisho API）からオンデマンド取得して `candidate_detail_cache`（Room）へ保存するよう更新
 - `AnagramDatabase` を version 3 へ更新し、`candidate_detail_cache` テーブル（`word`/`kanji`/`meaning`/`updated_at`）を追加
 - `MainScreen` の候補詳細画面に「詳細を取得/再取得」導線と取得中・失敗表示を追加
+- `AssetSeedEntryLoader` を更新し、`anagram_seed.db`（Room互換SQLite）を優先読込し、未同梱時は `anagram_seed.tsv` へフォールバックする初回投入導線に変更
 
 ## [0.1.0] - 2026-02-07
 
