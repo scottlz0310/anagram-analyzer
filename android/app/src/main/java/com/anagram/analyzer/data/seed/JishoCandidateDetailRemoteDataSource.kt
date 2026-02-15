@@ -4,8 +4,13 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
-import org.json.JSONObject
 import javax.inject.Inject
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 interface CandidateDetailRemoteDataSource {
     @Throws(IOException::class)
@@ -25,66 +30,10 @@ class JishoCandidateDetailRemoteDataSource @Inject constructor() : CandidateDeta
                 return null
             }
             val body = connection.inputStream.bufferedReader().use { it.readText() }
-            parseCandidateDetail(word = word, body = body)
+            parseJishoCandidateDetail(word = word, body = body)
         } finally {
             connection.disconnect()
         }
-    }
-
-    private fun parseCandidateDetail(word: String, body: String): CandidateDetail? {
-        val data = JSONObject(body).optJSONArray("data") ?: return null
-        for (entryIndex in 0 until data.length()) {
-            val entry = data.optJSONObject(entryIndex) ?: continue
-            val japanese = entry.optJSONArray("japanese") ?: continue
-            val matchedJapanese = findBestMatch(japanese, word) ?: continue
-            val kanji = matchedJapanese.optString("word").ifBlank {
-                matchedJapanese.optString("reading").ifBlank { word }
-            }
-            val meaning = extractMeaning(entry) ?: continue
-            return CandidateDetail(
-                kanji = kanji,
-                meaning = meaning,
-            )
-        }
-        return null
-    }
-
-    private fun findBestMatch(
-        japanese: org.json.JSONArray,
-        word: String,
-    ): JSONObject? {
-        var fallback: JSONObject? = null
-        for (japaneseIndex in 0 until japanese.length()) {
-            val candidate = japanese.optJSONObject(japaneseIndex) ?: continue
-            if (fallback == null) {
-                fallback = candidate
-            }
-            val reading = candidate.optString("reading")
-            val written = candidate.optString("word")
-            if (reading == word || written == word) {
-                return candidate
-            }
-        }
-        return fallback
-    }
-
-    private fun extractMeaning(entry: JSONObject): String? {
-        val senses = entry.optJSONArray("senses") ?: return null
-        val definitions = mutableListOf<String>()
-        for (senseIndex in 0 until senses.length()) {
-            val sense = senses.optJSONObject(senseIndex) ?: continue
-            val englishDefinitions = sense.optJSONArray("english_definitions") ?: continue
-            for (definitionIndex in 0 until englishDefinitions.length()) {
-                val definition = englishDefinitions.optString(definitionIndex).trim()
-                if (definition.isNotEmpty()) {
-                    definitions.add(definition)
-                }
-                if (definitions.size >= MAX_MEANING_ITEMS) {
-                    return definitions.joinToString(separator = ", ")
-                }
-            }
-        }
-        return definitions.takeIf { it.isNotEmpty() }?.joinToString(separator = ", ")
     }
 
     private companion object {
@@ -93,6 +42,71 @@ class JishoCandidateDetailRemoteDataSource @Inject constructor() : CandidateDeta
         private const val READ_TIMEOUT_MILLIS = 5_000
         private const val HTTP_SUCCESS_MIN = 200
         private const val HTTP_SUCCESS_MAX = 299
-        private const val MAX_MEANING_ITEMS = 3
     }
+}
+
+internal fun parseJishoCandidateDetail(word: String, body: String): CandidateDetail? {
+    val rootObject = runCatching {
+        Json.parseToJsonElement(body) as? JsonObject
+    }.getOrNull() ?: return null
+    val data = rootObject["data"] as? JsonArray ?: return null
+    for (entryElement in data) {
+        val entry = entryElement as? JsonObject ?: continue
+        val japanese = entry["japanese"] as? JsonArray ?: continue
+        val matchedJapanese = findBestJishoMatch(japanese, word) ?: continue
+        val kanji = matchedJapanese["word"].asStringOrNull().orEmpty().ifBlank {
+            matchedJapanese["reading"].asStringOrNull().orEmpty().ifBlank { word }
+        }
+        val meaning = extractJishoMeaning(entry) ?: continue
+        return CandidateDetail(
+            kanji = kanji,
+            meaning = meaning,
+        )
+    }
+    return null
+}
+
+private fun findBestJishoMatch(
+    japanese: JsonArray,
+    word: String,
+): JsonObject? {
+    var fallback: JsonObject? = null
+    for (candidateElement in japanese) {
+        val candidate = candidateElement as? JsonObject ?: continue
+        if (fallback == null) {
+            fallback = candidate
+        }
+        val reading = candidate["reading"].asStringOrNull().orEmpty()
+        val written = candidate["word"].asStringOrNull().orEmpty()
+        if (reading == word || written == word) {
+            return candidate
+        }
+    }
+    return fallback
+}
+
+private fun extractJishoMeaning(entry: JsonObject): String? {
+    val senses = entry["senses"] as? JsonArray ?: return null
+    val definitions = mutableListOf<String>()
+    for (senseElement in senses) {
+        val sense = senseElement as? JsonObject ?: continue
+        val englishDefinitions = sense["english_definitions"] as? JsonArray ?: continue
+        for (definitionElement in englishDefinitions) {
+            val definition = definitionElement.asStringOrNull().orEmpty().trim()
+            if (definition.isNotEmpty()) {
+                definitions.add(definition)
+            }
+            if (definitions.size >= MAX_MEANING_ITEMS) {
+                return definitions.joinToString(separator = ", ")
+            }
+        }
+    }
+    return definitions.takeIf { it.isNotEmpty() }?.joinToString(separator = ", ")
+}
+
+private const val MAX_MEANING_ITEMS = 3
+
+private fun JsonElement?.asStringOrNull(): String? {
+    val primitive = this as? JsonPrimitive ?: return null
+    return primitive.contentOrNull
 }

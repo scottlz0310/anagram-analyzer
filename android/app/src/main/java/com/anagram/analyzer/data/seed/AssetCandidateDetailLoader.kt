@@ -22,23 +22,29 @@ class AssetCandidateDetailLoader @Inject constructor(
     private val candidateDetailCacheDao: CandidateDetailCacheDao,
     private val candidateDetailRemoteDataSource: CandidateDetailRemoteDataSource,
 ) : CandidateDetailLoader {
+    private var seedDetailsCache: Map<String, CandidateDetail>? = null
+
     override suspend fun loadDetails(): Map<String, CandidateDetail> {
-        val seedDetails = try {
-            context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
-                parseCandidateDetails(reader.lineSequence())
-            }
-        } catch (_: IOException) {
-            emptyMap()
-        }
+        val seedDetails = loadSeedDetails()
         val cachedDetails = candidateDetailCacheDao.findAll().associate { it.word to it.toCandidateDetail() }
-        return seedDetails + cachedDetails
+        return mergeCandidateDetails(
+            seedDetails = seedDetails,
+            cachedDetails = cachedDetails,
+        )
     }
 
     override suspend fun fetchDetail(word: String): CandidateDetail? {
+        val seedDetails = loadSeedDetails()
         val cachedDetail = candidateDetailCacheDao.findByWord(word)?.toCandidateDetail()
-        if (cachedDetail != null) {
-            return cachedDetail
+        val localDetail = resolveLocalCandidateDetail(
+            word = word,
+            seedDetails = seedDetails,
+            cachedDetail = cachedDetail,
+        )
+        if (localDetail != null) {
+            return localDetail
         }
+
         val remoteDetail = candidateDetailRemoteDataSource.fetchDetail(word) ?: return null
         candidateDetailCacheDao.upsert(
             CandidateDetailCacheEntry(
@@ -51,9 +57,37 @@ class AssetCandidateDetailLoader @Inject constructor(
         return remoteDetail
     }
 
+    private suspend fun loadSeedDetails(): Map<String, CandidateDetail> {
+        seedDetailsCache?.let { return it }
+        val seedDetails = try {
+            context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
+                parseCandidateDetails(reader.lineSequence())
+            }
+        } catch (_: IOException) {
+            emptyMap()
+        }
+        seedDetailsCache = seedDetails
+        return seedDetails
+    }
+
     private companion object {
         private const val ASSET_FILE_NAME = "candidate_detail_seed.tsv"
     }
+}
+
+internal fun mergeCandidateDetails(
+    seedDetails: Map<String, CandidateDetail>,
+    cachedDetails: Map<String, CandidateDetail>,
+): Map<String, CandidateDetail> {
+    return seedDetails + cachedDetails.filterKeys { key -> key !in seedDetails }
+}
+
+internal fun resolveLocalCandidateDetail(
+    word: String,
+    seedDetails: Map<String, CandidateDetail>,
+    cachedDetail: CandidateDetail?,
+): CandidateDetail? {
+    return seedDetails[word] ?: cachedDetail
 }
 
 private fun CandidateDetailCacheEntry.toCandidateDetail(): CandidateDetail {
