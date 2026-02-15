@@ -100,7 +100,8 @@ android/
 │       │       │   └── AssetCandidateDetailLoader.kt
 │       │       ├── data/datastore/
 │       │       │   ├── ThemePreferenceStore.kt
-│       │       │   └── InputHistoryStore.kt
+│       │       │   ├── InputHistoryStore.kt
+│       │       │   └── SettingsDataStore.kt
 │       │       ├── di/AppModule.kt
 │       │       ├── domain/model/HiraganaNormalizer.kt
 │       │       └── ui/
@@ -232,6 +233,7 @@ android/
 |---------|------|
 | `ThemePreferenceStore.kt` | ライト/ダークテーマ設定の保存・読み込み（`Flow<Boolean>`） |
 | `InputHistoryStore.kt` | 入力履歴（最新10件）の保存・読み込み（`Flow<List<String>>`） |
+| `SettingsDataStore.kt` | `settings` DataStore インスタンスを共有する拡張プロパティ |
 
 ### `android/app/src/main/java/com/anagram/analyzer/di/AppModule.kt` - Android DIモジュール
 

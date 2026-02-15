@@ -72,6 +72,7 @@
 - `MainViewModelTest` / `MainScreenTest` に入力履歴のテストを追加
 - `InputHistoryStore`（DataStore Preferences）を追加し、入力履歴（最新10件）を再起動後も保持するよう更新
 - `MainViewModelTest` に入力履歴の復元/永続化テストを追加
+- `SettingsDataStore` を追加し、`ThemePreferenceStore` と `InputHistoryStore` が同一 DataStore インスタンスを共有するよう更新
 
 ## [0.1.0] - 2026-02-07
 
