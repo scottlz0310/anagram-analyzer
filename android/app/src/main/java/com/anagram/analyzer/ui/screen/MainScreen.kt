@@ -1,5 +1,6 @@
 package com.anagram.analyzer.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,6 +57,17 @@ fun MainScreenContent(
     var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
     var selectedCandidate by rememberSaveable { mutableStateOf<String?>(null) }
     var isInputHistoryExpanded by rememberSaveable { mutableStateOf(false) }
+    val detailCandidate = selectedCandidate
+    if (detailCandidate != null) {
+        val detail = state.candidateDetails[detailCandidate]
+        CandidateDetailScreen(
+            candidate = detailCandidate,
+            kanji = detail?.kanji,
+            meaning = detail?.meaning,
+            onBack = { selectedCandidate = null },
+        )
+        return
+    }
     val errorMessage = state.errorMessage
     Column(
         modifier = Modifier
@@ -235,31 +247,42 @@ fun MainScreenContent(
             },
         )
     }
+}
 
-    val detailCandidate = selectedCandidate
-    if (detailCandidate != null) {
-        val detail = state.candidateDetails[detailCandidate]
-        AlertDialog(
-            onDismissRequest = { selectedCandidate = null },
-            title = { Text("候補詳細", modifier = Modifier.testTag("candidate_detail_dialog_title")) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("読み: $detailCandidate", modifier = Modifier.testTag("candidate_detail_reading"))
-                    Text(
-                        "漢字表記: ${detail?.kanji ?: "（未対応）"}",
-                        modifier = Modifier.testTag("candidate_detail_kanji"),
-                    )
-                    Text(
-                        "意味: ${detail?.meaning ?: "（未対応）"}",
-                        modifier = Modifier.testTag("candidate_detail_meaning"),
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { selectedCandidate = null }) {
-                    Text("閉じる")
-                }
-            },
+@Composable
+private fun CandidateDetailScreen(
+    candidate: String,
+    kanji: String?,
+    meaning: String?,
+    onBack: () -> Unit,
+) {
+    BackHandler(onBack = onBack)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            "候補詳細",
+            modifier = Modifier.testTag("candidate_detail_screen_title"),
+            style = MaterialTheme.typography.titleLarge,
         )
+        Text("読み: $candidate", modifier = Modifier.testTag("candidate_detail_reading"))
+        Text(
+            "漢字表記: ${kanji ?: "（未対応）"}",
+            modifier = Modifier.testTag("candidate_detail_kanji"),
+        )
+        Text(
+            "意味: ${meaning ?: "（未対応）"}",
+            modifier = Modifier.testTag("candidate_detail_meaning"),
+        )
+        TextButton(
+            onClick = onBack,
+            modifier = Modifier.testTag("candidate_detail_back_button"),
+        ) {
+            Text("戻る")
+        }
     }
 }

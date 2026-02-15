@@ -197,7 +197,7 @@ android/
 
 **ライセンス表示**: `MainScreen` の「辞書クレジット」ダイアログで JMdict の CC BY-SA 4.0 表記を表示
 
-**候補詳細表示**: 候補タップで詳細ダイアログを表示（`candidate_detail_seed.tsv` 収録語は漢字/意味を表示、未収録語はプレースホルダ）
+**候補詳細表示**: 候補タップで候補詳細画面を表示（`candidate_detail_seed.tsv` 収録語は漢字/意味を表示、未収録語はプレースホルダ）
 
 **テーマ切替**: `MainActivity` / `MainScreen` の設定ダイアログで Material 3 のライト/ダークテーマを切替可能
 
