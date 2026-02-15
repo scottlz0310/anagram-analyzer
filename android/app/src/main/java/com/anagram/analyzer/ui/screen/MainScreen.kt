@@ -49,6 +49,7 @@ fun MainScreenContent(
 ) {
     var showAboutDialog by rememberSaveable { mutableStateOf(false) }
     var selectedCandidate by rememberSaveable { mutableStateOf<String?>(null) }
+    var isInputHistoryExpanded by rememberSaveable { mutableStateOf(false) }
     val errorMessage = state.errorMessage
     Column(
         modifier = Modifier
@@ -90,13 +91,21 @@ fun MainScreenContent(
         }
 
         if (state.inputHistory.isNotEmpty()) {
-            Text("入力履歴:", modifier = Modifier.testTag("input_history_title"))
-            state.inputHistory.forEachIndexed { index, history ->
-                TextButton(
-                    onClick = { onInputChanged(history) },
-                    modifier = Modifier.testTag("input_history_item_$index"),
-                ) {
-                    Text("履歴: $history")
+            TextButton(
+                onClick = { isInputHistoryExpanded = !isInputHistoryExpanded },
+                modifier = Modifier.testTag("input_history_toggle_button"),
+            ) {
+                Text(if (isInputHistoryExpanded) "入力履歴を隠す" else "入力履歴を表示")
+            }
+            if (isInputHistoryExpanded) {
+                Text("入力履歴:", modifier = Modifier.testTag("input_history_title"))
+                state.inputHistory.forEachIndexed { index, history ->
+                    TextButton(
+                        onClick = { onInputChanged(history) },
+                        modifier = Modifier.testTag("input_history_item_$index"),
+                    ) {
+                        Text("履歴: $history")
+                    }
                 }
             }
         }
