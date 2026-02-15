@@ -526,6 +526,32 @@ class MainViewModelTest {
         }
     }
 
+    @Test
+    fun 同一文字数範囲の操作では設定メッセージを変更しない() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+            viewModel.onAdditionalDictionaryDownloadRequested()
+            viewModel.onSearchLengthRangeChanged(minLength = 2, maxLength = 20)
+            advanceUntilIdle()
+
+            assertEquals("現在、追加辞書ダウンロード機能は準備中です", viewModel.uiState.value.settingsMessage)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
     private class FakeAnagramDao(
         initialEntries: List<AnagramEntry> = emptyList(),
         private val insertDelayMs: Long = 0,
