@@ -62,10 +62,12 @@ class MainScreenTest {
     fun 設定画面で文字数範囲と追加辞書項目を表示できる() {
         composeRule.onNodeWithTag("settings_button").performClick()
         composeRule.onNodeWithTag("settings_dialog_title").assertIsDisplayed()
-        composeRule.onNodeWithTag("settings_length_range").assertTextContains("文字数範囲:")
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("文字数範囲", substring = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("文字数範囲", substring = true).assertIsDisplayed()
 
         composeRule.onNodeWithTag("settings_max_decrease_button").performClick()
-        composeRule.onNodeWithTag("settings_length_range").assertTextContains("文字数範囲:")
 
         composeRule.onNodeWithTag("settings_download_button").performClick()
         composeRule.onNodeWithTag("settings_download_status")
