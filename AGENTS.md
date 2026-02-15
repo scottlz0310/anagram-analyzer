@@ -232,11 +232,11 @@ android/
 
 ### `android/app/src/main/java/com/anagram/analyzer/data/seed/` - Android seed辞書モジュール
 
-**責務**: Asset同梱された seed TSV を `AnagramEntry` として読み込み
+**責務**: Asset同梱された seed DB/TSV を `AnagramEntry` として読み込み
 
 | ファイル | 説明 |
 |---------|------|
-| `AssetSeedEntryLoader.kt` | `anagram_seed.tsv` の読込/parse と `SeedEntryLoader` 提供 |
+| `AssetSeedEntryLoader.kt` | `anagram_seed.db` を優先読込し、未同梱時は `anagram_seed.tsv` を読込む `SeedEntryLoader` 提供 |
 | `AssetAdditionalSeedEntryLoader.kt` | `anagram_additional_seed.tsv` の読込/parse と `AdditionalSeedEntryLoader` 提供 |
 | `AssetCandidateDetailLoader.kt` | `candidate_detail_seed.tsv` と `candidate_detail_cache` を統合し、候補詳細の初期表示/オンデマンド取得を提供 |
 | `JishoCandidateDetailRemoteDataSource.kt` | 未収録語の候補詳細を Jisho API から取得 |
