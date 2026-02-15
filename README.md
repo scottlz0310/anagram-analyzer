@@ -242,6 +242,26 @@ GitHub Actions の `Android Build` ジョブでは `android-debug-apk` artifact 
 - `辞書クレジット` ボタン → JMdict の CC BY-SA 4.0 表記ダイアログを表示
 - 起動直後の logcat に `preload source=... total=... inserted=... elapsedMs=...` が出力される
 
+### GitHub Release での配布（署名済みAPK）
+
+まずは GitHub Release から `app-release.apk` を配布し、端末へインストールする運用を想定しています。
+
+1. リポジトリ Secrets に以下を設定
+   - `ANDROID_KEYSTORE_BASE64`（keystoreファイルを base64 化した文字列）
+   - `ANDROID_SIGNING_STORE_PASSWORD`
+   - `ANDROID_SIGNING_KEY_ALIAS`
+   - `ANDROID_SIGNING_KEY_PASSWORD`
+2. `v*` タグを push（または Actions の `Android Release` を手動実行）
+3. GitHub Release に添付された `app-release.apk` をダウンロードしてインストール
+
+インストール例（ADB）:
+
+```bash
+adb install -r app-release.apk
+```
+
+同一署名鍵で継続配布することで、将来のアップデート配信へ移行しやすい構成にしています。
+
 ### 今後の機能
 
 詳細は [Issue #14](https://github.com/scottlz0310/anagram-analyzer/issues/14) を参照してください。

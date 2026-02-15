@@ -1,3 +1,5 @@
+import org.gradle.api.GradleException
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -9,6 +11,45 @@ plugins {
 android {
     namespace = "com.anagram.analyzer"
     compileSdk = 34
+    val releaseStoreFilePath =
+        providers.gradleProperty("ANDROID_SIGNING_STORE_FILE").orNull
+            ?: providers.environmentVariable("ANDROID_SIGNING_STORE_FILE").orNull
+    val releaseStorePassword =
+        providers.gradleProperty("ANDROID_SIGNING_STORE_PASSWORD").orNull
+            ?: providers.environmentVariable("ANDROID_SIGNING_STORE_PASSWORD").orNull
+    val releaseKeyAlias =
+        providers.gradleProperty("ANDROID_SIGNING_KEY_ALIAS").orNull
+            ?: providers.environmentVariable("ANDROID_SIGNING_KEY_ALIAS").orNull
+    val releaseKeyPassword =
+        providers.gradleProperty("ANDROID_SIGNING_KEY_PASSWORD").orNull
+            ?: providers.environmentVariable("ANDROID_SIGNING_KEY_PASSWORD").orNull
+    val signingConfigValues =
+        mapOf(
+            "ANDROID_SIGNING_STORE_FILE" to releaseStoreFilePath,
+            "ANDROID_SIGNING_STORE_PASSWORD" to releaseStorePassword,
+            "ANDROID_SIGNING_KEY_ALIAS" to releaseKeyAlias,
+            "ANDROID_SIGNING_KEY_PASSWORD" to releaseKeyPassword,
+        )
+    val hasAnySigningInput = signingConfigValues.values.any { !it.isNullOrBlank() }
+    if (hasAnySigningInput) {
+        val missingSigningKeys = signingConfigValues.filterValues { it.isNullOrBlank() }.keys
+        if (missingSigningKeys.isNotEmpty()) {
+            throw GradleException(
+                "release署名設定が不完全です。未設定: ${missingSigningKeys.joinToString()}",
+            )
+        }
+    }
+    val releaseStoreFile = releaseStoreFilePath?.takeIf { it.isNotBlank() }?.let(::file)
+    val hasReleaseSigning =
+        releaseStoreFile != null &&
+            !releaseStorePassword.isNullOrBlank() &&
+            !releaseKeyAlias.isNullOrBlank() &&
+            !releaseKeyPassword.isNullOrBlank()
+    if (hasReleaseSigning && !requireNotNull(releaseStoreFile).exists()) {
+        throw GradleException(
+            "ANDROID_SIGNING_STORE_FILE が見つかりません: ${releaseStoreFile.absolutePath}",
+        )
+    }
 
     defaultConfig {
         applicationId = "com.anagram.analyzer"
@@ -20,6 +61,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = requireNotNull(releaseStoreFile)
+                storePassword = requireNotNull(releaseStorePassword)
+                keyAlias = requireNotNull(releaseKeyAlias)
+                keyPassword = requireNotNull(releaseKeyPassword)
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -27,6 +79,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

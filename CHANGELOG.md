@@ -91,6 +91,8 @@
 - `AnagramDatabase` を version 3 へ更新し、`candidate_detail_cache` テーブル（`word`/`kanji`/`meaning`/`updated_at`）を追加
 - `MainScreen` の候補詳細画面に「詳細を取得/再取得」導線と取得中・失敗表示を追加
 - `AssetSeedEntryLoader` を更新し、`anagram_seed.db`（Room互換SQLite）を優先読込し、未同梱時は `anagram_seed.tsv` へフォールバックする初回投入導線に変更
+- Android `app/build.gradle.kts` に release 署名設定を追加し、`ANDROID_SIGNING_*` 環境変数（または Gradle Property）から keystore/alias/password を読込可能に更新
+- GitHub Actions に `Android Release` ワークフローを追加し、署名済み `app-release.apk` を artifact と GitHub Release asset の両方で配布可能に更新
 
 ## [0.1.0] - 2026-02-07
 
