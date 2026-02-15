@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.anagram.analyzer.MainActivity
 import org.junit.Assert.assertTrue
@@ -151,6 +152,25 @@ class MainScreenTest {
         composeRule.onNodeWithTag("candidate_detail_screen_title").assertIsDisplayed()
         composeRule.onNodeWithTag("candidate_detail_kanji").assertTextContains("漢字表記: （未対応）")
         composeRule.onNodeWithTag("candidate_detail_meaning").assertTextContains("意味: （未対応）")
+    }
+
+    @Test
+    fun 候補詳細画面でシステム戻るキー操作で戻れる() {
+        composeRule.onNodeWithTag("input_field").performTextInput("りんご")
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            composeRule.onAllNodesWithText("・りんご").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithText("・りんご").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithTag("candidate_detail_screen_title").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        pressBack()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithTag("candidate_detail_screen_title").fetchSemanticsNodes().isEmpty()
+        }
+        composeRule.onNodeWithTag("input_field").assertIsDisplayed()
     }
 
     @Test

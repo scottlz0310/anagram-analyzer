@@ -1,5 +1,6 @@
 package com.anagram.analyzer.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -255,6 +256,7 @@ private fun CandidateDetailScreen(
     meaning: String?,
     onBack: () -> Unit,
 ) {
+    BackHandler(onBack = onBack)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -262,7 +264,11 @@ private fun CandidateDetailScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("候補詳細", modifier = Modifier.testTag("candidate_detail_screen_title"))
+        Text(
+            "候補詳細",
+            modifier = Modifier.testTag("candidate_detail_screen_title"),
+            style = MaterialTheme.typography.titleLarge,
+        )
         Text("読み: $candidate", modifier = Modifier.testTag("candidate_detail_reading"))
         Text(
             "漢字表記: ${kanji ?: "（未対応）"}",
