@@ -29,10 +29,7 @@ class AssetSeedEntryLoader @Inject constructor(
         } catch (_: IOException) {
             emptyList()
         }
-        return resolveSeedEntries(
-            dbEntries = dbEntries,
-            tsvEntries = tsvEntries,
-        )
+        return tsvEntries
     }
 }
 
