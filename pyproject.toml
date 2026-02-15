@@ -8,7 +8,7 @@ license = "MIT"
 dependencies = [
     "typer>=0.23.1",
     "rich>=14.3.2",
-    "platformdirs>=4.7.1",
+    "platformdirs>=4.9.1",
 ]
 
 [project.optional-dependencies]
