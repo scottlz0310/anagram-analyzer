@@ -4,6 +4,8 @@ import android.database.sqlite.SQLiteException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anagram.analyzer.data.datastore.InputHistoryStore
+import com.anagram.analyzer.data.datastore.SearchSettings
+import com.anagram.analyzer.data.datastore.SearchSettingsStore
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
 import com.anagram.analyzer.data.seed.CandidateDetail
@@ -40,9 +42,12 @@ data class MainUiState(
     val normalized: String = "",
     val anagramKey: String = "",
     val candidates: List<String> = emptyList(),
+    val minSearchLength: Int = SearchSettings.DEFAULT_MIN_LENGTH,
+    val maxSearchLength: Int = SearchSettings.DEFAULT_MAX_LENGTH,
     val inputHistory: List<String> = emptyList(),
     val candidateDetails: Map<String, CandidateDetail> = emptyMap(),
     val errorMessage: String? = null,
+    val settingsMessage: String? = null,
     val preloadLog: String? = null,
 )
 
@@ -52,6 +57,7 @@ class MainViewModel @Inject constructor(
     private val seedEntryLoader: SeedEntryLoader,
     private val candidateDetailLoader: CandidateDetailLoader,
     private val inputHistoryStore: InputHistoryStore,
+    private val searchSettingsStore: SearchSettingsStore,
     private val ioDispatcher: CoroutineDispatcher,
     private val preloadLogger: PreloadLogger,
 ) : ViewModel() {
@@ -63,6 +69,7 @@ class MainViewModel @Inject constructor(
     init {
         preloadJob = viewModelScope.launch(ioDispatcher) {
             val persistedInputHistory = inputHistoryStore.inputHistory.first().take(MAX_INPUT_HISTORY)
+            val persistedSearchSettings = searchSettingsStore.searchSettings.first()
             try {
                 val metrics = preloadSeedDataIfNeeded()
                 val candidateDetails = candidateDetailLoader.loadDetails()
@@ -73,6 +80,8 @@ class MainViewModel @Inject constructor(
                         preloadLog = preloadLog,
                         candidateDetails = candidateDetails,
                         inputHistory = persistedInputHistory,
+                        minSearchLength = persistedSearchSettings.minLength,
+                        maxSearchLength = persistedSearchSettings.maxLength,
                     )
                 }
             } catch (error: SQLiteException) {
@@ -80,6 +89,8 @@ class MainViewModel @Inject constructor(
                     it.copy(
                         errorMessage = "データベース初期化に失敗しました: ${error.message ?: "原因不明"}",
                         inputHistory = persistedInputHistory,
+                        minSearchLength = persistedSearchSettings.minLength,
+                        maxSearchLength = persistedSearchSettings.maxLength,
                     )
                 }
             } catch (error: IllegalArgumentException) {
@@ -87,6 +98,8 @@ class MainViewModel @Inject constructor(
                     it.copy(
                         errorMessage = "辞書データの読み込みに失敗しました: ${error.message ?: "原因不明"}",
                         inputHistory = persistedInputHistory,
+                        minSearchLength = persistedSearchSettings.minLength,
+                        maxSearchLength = persistedSearchSettings.maxLength,
                     )
                 }
             }
@@ -102,6 +115,9 @@ class MainViewModel @Inject constructor(
                     preloadLog = state.preloadLog,
                     inputHistory = state.inputHistory,
                     candidateDetails = state.candidateDetails,
+                    minSearchLength = state.minSearchLength,
+                    maxSearchLength = state.maxSearchLength,
+                    settingsMessage = state.settingsMessage,
                 )
             }
             return
@@ -109,6 +125,19 @@ class MainViewModel @Inject constructor(
 
         try {
             val normalized = HiraganaNormalizer.normalizeHiragana(value)
+            val currentState = _uiState.value
+            if (normalized.length !in currentState.minSearchLength..currentState.maxSearchLength) {
+                _uiState.update {
+                    it.copy(
+                        input = value,
+                        normalized = normalized,
+                        anagramKey = "",
+                        candidates = emptyList(),
+                        errorMessage = "文字数は${it.minSearchLength}〜${it.maxSearchLength}文字で入力してください",
+                    )
+                }
+                return
+            }
             val anagramKey = HiraganaNormalizer.anagramKey(normalized)
             _uiState.update {
                 it.copy(
@@ -157,6 +186,38 @@ class MainViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun onSearchLengthRangeChanged(minLength: Int, maxLength: Int) {
+        val sanitizedMinLength = minLength.coerceIn(
+            SearchSettings.ABSOLUTE_MIN_LENGTH,
+            SearchSettings.ABSOLUTE_MAX_LENGTH,
+        )
+        val sanitizedMaxLength = maxLength.coerceIn(
+            sanitizedMinLength,
+            SearchSettings.ABSOLUTE_MAX_LENGTH,
+        )
+        _uiState.update {
+            it.copy(
+                minSearchLength = sanitizedMinLength,
+                maxSearchLength = sanitizedMaxLength,
+                settingsMessage = null,
+            )
+        }
+        viewModelScope.launch(ioDispatcher) {
+            searchSettingsStore.setSearchLengthRange(
+                minLength = sanitizedMinLength,
+                maxLength = sanitizedMaxLength,
+            )
+        }
+        val currentInput = _uiState.value.input
+        if (currentInput.isNotEmpty()) {
+            onInputChanged(currentInput)
+        }
+    }
+
+    fun onAdditionalDictionaryDownloadRequested() {
+        _uiState.update { it.copy(settingsMessage = "追加辞書ダウンロード機能は準備中です") }
     }
 
     private suspend fun preloadSeedDataIfNeeded(): PreloadMetrics {

@@ -2,6 +2,7 @@ package com.anagram.analyzer.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anagram.analyzer.ui.viewmodel.MainUiState
 import com.anagram.analyzer.ui.viewmodel.MainViewModel
 
+private const val MIN_SEARCH_LENGTH = 1
+private const val MAX_SEARCH_LENGTH = 20
+
 @Composable
 fun MainScreen(
     isDarkTheme: Boolean,
@@ -37,6 +41,8 @@ fun MainScreen(
         isDarkTheme = isDarkTheme,
         onToggleTheme = onToggleTheme,
         onInputChanged = viewModel::onInputChanged,
+        onSearchLengthRangeChanged = viewModel::onSearchLengthRangeChanged,
+        onAdditionalDictionaryDownloadRequested = viewModel::onAdditionalDictionaryDownloadRequested,
     )
 }
 
@@ -46,8 +52,11 @@ fun MainScreenContent(
     isDarkTheme: Boolean,
     onToggleTheme: () -> Unit,
     onInputChanged: (String) -> Unit,
+    onSearchLengthRangeChanged: (Int, Int) -> Unit,
+    onAdditionalDictionaryDownloadRequested: () -> Unit,
 ) {
     var showAboutDialog by rememberSaveable { mutableStateOf(false) }
+    var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
     var selectedCandidate by rememberSaveable { mutableStateOf<String?>(null) }
     var isInputHistoryExpanded by rememberSaveable { mutableStateOf(false) }
     val errorMessage = state.errorMessage
@@ -111,17 +120,17 @@ fun MainScreenContent(
         }
 
         TextButton(
+            onClick = { showSettingsDialog = true },
+            modifier = Modifier.testTag("settings_button"),
+        ) {
+            Text("設定")
+        }
+
+        TextButton(
             onClick = { showAboutDialog = true },
             modifier = Modifier.testTag("about_button"),
         ) {
             Text("辞書クレジット")
-        }
-
-        TextButton(
-            onClick = onToggleTheme,
-            modifier = Modifier.testTag("theme_toggle_button"),
-        ) {
-            Text(if (isDarkTheme) "テーマ: ダーク" else "テーマ: ライト")
         }
     }
 
@@ -136,6 +145,90 @@ fun MainScreenContent(
             },
             confirmButton = {
                 TextButton(onClick = { showAboutDialog = false }) {
+                    Text("閉じる")
+                }
+            },
+        )
+    }
+
+    if (showSettingsDialog) {
+        AlertDialog(
+            onDismissRequest = { showSettingsDialog = false },
+            title = { Text("設定", modifier = Modifier.testTag("settings_dialog_title")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "文字数範囲: ${state.minSearchLength}〜${state.maxSearchLength}",
+                        modifier = Modifier.testTag("settings_length_range"),
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(
+                            onClick = {
+                                onSearchLengthRangeChanged(
+                                    (state.minSearchLength - 1).coerceAtLeast(MIN_SEARCH_LENGTH),
+                                    state.maxSearchLength,
+                                )
+                            },
+                            modifier = Modifier.testTag("settings_min_decrease_button"),
+                        ) {
+                            Text("最小-")
+                        }
+                        TextButton(
+                            onClick = {
+                                onSearchLengthRangeChanged(
+                                    (state.minSearchLength + 1).coerceAtMost(state.maxSearchLength),
+                                    state.maxSearchLength,
+                                )
+                            },
+                            modifier = Modifier.testTag("settings_min_increase_button"),
+                        ) {
+                            Text("最小+")
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(
+                            onClick = {
+                                onSearchLengthRangeChanged(
+                                    state.minSearchLength,
+                                    (state.maxSearchLength - 1).coerceAtLeast(state.minSearchLength),
+                                )
+                            },
+                            modifier = Modifier.testTag("settings_max_decrease_button"),
+                        ) {
+                            Text("最大-")
+                        }
+                        TextButton(
+                            onClick = {
+                                onSearchLengthRangeChanged(
+                                    state.minSearchLength,
+                                    (state.maxSearchLength + 1).coerceAtMost(MAX_SEARCH_LENGTH),
+                                )
+                            },
+                            modifier = Modifier.testTag("settings_max_increase_button"),
+                        ) {
+                            Text("最大+")
+                        }
+                    }
+                    TextButton(
+                        onClick = onToggleTheme,
+                        modifier = Modifier.testTag("settings_theme_toggle_button"),
+                    ) {
+                        Text(if (isDarkTheme) "テーマ: ダーク" else "テーマ: ライト")
+                    }
+                    TextButton(
+                        onClick = onAdditionalDictionaryDownloadRequested,
+                        modifier = Modifier.testTag("settings_download_button"),
+                    ) {
+                        Text("追加辞書をダウンロード")
+                    }
+                    Text(
+                        text = state.settingsMessage ?: "追加辞書ダウンロード機能は準備中です",
+                        modifier = Modifier.testTag("settings_download_status"),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSettingsDialog = false }) {
                     Text("閉じる")
                 }
             },

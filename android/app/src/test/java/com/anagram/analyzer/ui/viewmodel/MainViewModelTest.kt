@@ -2,6 +2,8 @@ package com.anagram.analyzer.ui.viewmodel
 
 import android.database.sqlite.SQLiteException
 import com.anagram.analyzer.data.datastore.InputHistoryStore
+import com.anagram.analyzer.data.datastore.SearchSettings
+import com.anagram.analyzer.data.datastore.SearchSettingsStore
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
 import com.anagram.analyzer.data.seed.CandidateDetail
@@ -32,6 +34,7 @@ class MainViewModelTest {
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -57,6 +60,7 @@ class MainViewModelTest {
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -65,6 +69,61 @@ class MainViewModelTest {
             advanceUntilIdle()
 
             assertEquals(listOf("りんご"), viewModel.uiState.value.inputHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 保存済み文字数範囲を起動時に復元する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(
+                    initialSettings = SearchSettings(minLength = 3, maxLength = 8),
+                ),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+
+            assertEquals(3, viewModel.uiState.value.minSearchLength)
+            assertEquals(8, viewModel.uiState.value.maxSearchLength)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 文字数範囲外の入力はエラーを表示する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(
+                    initialSettings = SearchSettings(minLength = 4, maxLength = 8),
+                ),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertTrue(state.errorMessage?.contains("文字数は4〜8文字で入力してください") == true)
+            assertTrue(state.candidates.isEmpty())
         } finally {
             Dispatchers.resetMain()
         }
@@ -80,6 +139,7 @@ class MainViewModelTest {
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -116,6 +176,7 @@ class MainViewModelTest {
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -144,6 +205,7 @@ class MainViewModelTest {
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -168,6 +230,7 @@ class MainViewModelTest {
                 seedEntryLoader = FakeSeedEntryLoader(loadFailure = IllegalArgumentException("bad seed")),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -197,6 +260,7 @@ class MainViewModelTest {
                 ),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -227,6 +291,7 @@ class MainViewModelTest {
                     ),
                 ),
                 inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -253,6 +318,7 @@ class MainViewModelTest {
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 inputHistoryStore = inputHistoryStore,
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -277,6 +343,7 @@ class MainViewModelTest {
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 inputHistoryStore = inputHistoryStore,
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -301,6 +368,7 @@ class MainViewModelTest {
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 inputHistoryStore = inputHistoryStore,
+                searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -309,6 +377,34 @@ class MainViewModelTest {
             advanceUntilIdle()
 
             assertEquals(listOf("りんご"), inputHistoryStore.persistedHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 文字数範囲変更時に永続化する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val searchSettingsStore = FakeSearchSettingsStore()
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = searchSettingsStore,
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+            viewModel.onSearchLengthRangeChanged(minLength = 3, maxLength = 10)
+            advanceUntilIdle()
+
+            assertEquals(3, viewModel.uiState.value.minSearchLength)
+            assertEquals(10, viewModel.uiState.value.maxSearchLength)
+            assertEquals(SearchSettings(minLength = 3, maxLength = 10), searchSettingsStore.persistedSettings)
         } finally {
             Dispatchers.resetMain()
         }
@@ -381,6 +477,20 @@ class MainViewModelTest {
         override suspend fun setInputHistory(history: List<String>) {
             persistedHistory = history
             historyFlow.value = history
+        }
+    }
+
+    private class FakeSearchSettingsStore(
+        initialSettings: SearchSettings = SearchSettings(),
+    ) : SearchSettingsStore {
+        private val settingsFlow = MutableStateFlow(initialSettings)
+        var persistedSettings: SearchSettings = initialSettings
+
+        override val searchSettings = settingsFlow
+
+        override suspend fun setSearchLengthRange(minLength: Int, maxLength: Int) {
+            persistedSettings = SearchSettings(minLength = minLength, maxLength = maxLength)
+            settingsFlow.value = persistedSettings
         }
     }
 }
