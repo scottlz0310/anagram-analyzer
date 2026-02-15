@@ -195,6 +195,22 @@ uv run python scripts/export_android_seed.py \
 - `max-len 10` 以上はサイズ増分に対する語彙増分が小さいため、まず `8` を基準に運用します。
 - ローカルSQLiteでの初回投入シミュレーションでは `max-len 8` が約584ms、`max-len 10` が約712ms でした（`8` を継続採用）。
 
+### Room向けSQLiteの生成（開発者向け）
+
+JMdict XML（`.xml` / `.gz`）から、Android Roomの `anagram_entries` スキーマ互換SQLiteを生成できます。
+
+```bash
+uv run python scripts/export_android_room_db.py \
+  --xml ~/.jamdict/data/JMdict_e.gz \
+  --output android/app/src/main/assets/anagram_seed.db \
+  --min-len 2 \
+  --max-len 8 \
+  --force
+```
+
+- `candidate_detail_cache` テーブルと `PRAGMA user_version=3` も同時に初期化されます。
+- 現行アプリの初回投入導線はTSV（`anagram_seed.tsv`）のままです。SQLite生成は段階移行用の開発ツールです。
+
 ### 手動テスト手順（Android）
 
 ```bash
