@@ -414,6 +414,34 @@ class MainViewModelTest {
     }
 
     @Test
+    fun 候補詳細取得結果がnullのときは取得不可エラーを保持する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+            viewModel.onCandidateDetailFetchRequested("おなじ")
+            advanceUntilIdle()
+
+            assertEquals("おなじ", viewModel.uiState.value.candidateDetailErrorWord)
+            assertEquals("候補詳細を取得できませんでした", viewModel.uiState.value.candidateDetailErrorMessage)
+            assertEquals(null, viewModel.uiState.value.loadingCandidateDetailWord)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
     fun 保存済み入力履歴を起動時に復元する() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
