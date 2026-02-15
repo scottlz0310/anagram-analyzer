@@ -10,6 +10,7 @@ import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
 import com.anagram.analyzer.data.seed.CandidateDetail
 import com.anagram.analyzer.data.seed.CandidateDetailLoader
+import com.anagram.analyzer.data.seed.AdditionalSeedEntryLoader
 import com.anagram.analyzer.data.seed.SeedEntryLoader
 import com.anagram.analyzer.domain.model.HiraganaNormalizer
 import com.anagram.analyzer.domain.model.NormalizationException
@@ -48,6 +49,7 @@ data class MainUiState(
     val candidateDetails: Map<String, CandidateDetail> = emptyMap(),
     val errorMessage: String? = null,
     val settingsMessage: String? = null,
+    val isAdditionalDictionaryDownloading: Boolean = false,
     val preloadLog: String? = null,
     val hasUserChangedSearchLengthRange: Boolean = false,
     val isSearchSettingsInitialized: Boolean = false,
@@ -58,6 +60,7 @@ class MainViewModel @Inject constructor(
     private val anagramDao: AnagramDao,
     private val seedEntryLoader: SeedEntryLoader,
     private val candidateDetailLoader: CandidateDetailLoader,
+    private val additionalSeedEntryLoader: AdditionalSeedEntryLoader,
     private val inputHistoryStore: InputHistoryStore,
     private val searchSettingsStore: SearchSettingsStore,
     private val ioDispatcher: CoroutineDispatcher,
@@ -68,6 +71,7 @@ class MainViewModel @Inject constructor(
     private val preloadJob: Job
     private var lookupJob: Job? = null
     private var searchSettingsPersistJob: Job? = null
+    private var additionalDictionaryJob: Job? = null
 
     init {
         preloadJob = viewModelScope.launch(ioDispatcher) {
@@ -135,6 +139,7 @@ class MainViewModel @Inject constructor(
                     minSearchLength = state.minSearchLength,
                     maxSearchLength = state.maxSearchLength,
                     settingsMessage = state.settingsMessage,
+                    isAdditionalDictionaryDownloading = state.isAdditionalDictionaryDownloading,
                     hasUserChangedSearchLengthRange = state.hasUserChangedSearchLengthRange,
                     isSearchSettingsInitialized = state.isSearchSettingsInitialized,
                 )
@@ -229,7 +234,6 @@ class MainViewModel @Inject constructor(
             it.copy(
                 minSearchLength = sanitizedMinLength,
                 maxSearchLength = sanitizedMaxLength,
-                settingsMessage = null,
                 hasUserChangedSearchLengthRange = true,
             )
         }
@@ -247,7 +251,58 @@ class MainViewModel @Inject constructor(
     }
 
     fun onAdditionalDictionaryDownloadRequested() {
-        _uiState.update { it.copy(settingsMessage = "現在、追加辞書ダウンロード機能は準備中です") }
+        if (additionalDictionaryJob?.isActive == true) {
+            return
+        }
+        _uiState.update {
+            it.copy(
+                isAdditionalDictionaryDownloading = true,
+                settingsMessage = "追加辞書を適用中です...",
+            )
+        }
+        additionalDictionaryJob = viewModelScope.launch {
+            try {
+                val (insertedEntries, totalEntries) = withContext(ioDispatcher) {
+                    val additionalEntries = additionalSeedEntryLoader.loadEntries()
+                    require(additionalEntries.isNotEmpty()) { "追加辞書データが空です" }
+                    val beforeCount = anagramDao.count()
+                    anagramDao.insertAll(additionalEntries)
+                    val afterCount = anagramDao.count()
+                    Pair((afterCount - beforeCount).coerceAtLeast(0), additionalEntries.size)
+                }
+                _uiState.update {
+                    it.copy(
+                        isAdditionalDictionaryDownloading = false,
+                        settingsMessage = if (insertedEntries > 0) {
+                            "追加辞書を適用しました（追加${insertedEntries}件 / 読込${totalEntries}件）"
+                        } else {
+                            "追加辞書は最新です（追加0件 / 読込${totalEntries}件）"
+                        },
+                    )
+                }
+            } catch (error: IllegalArgumentException) {
+                _uiState.update {
+                    it.copy(
+                        isAdditionalDictionaryDownloading = false,
+                        settingsMessage = "追加辞書の適用に失敗しました: ${error.message ?: "原因不明"}",
+                    )
+                }
+            } catch (error: IllegalStateException) {
+                _uiState.update {
+                    it.copy(
+                        isAdditionalDictionaryDownloading = false,
+                        settingsMessage = "追加辞書の適用に失敗しました: ${error.message ?: "原因不明"}",
+                    )
+                }
+            } catch (error: SQLiteException) {
+                _uiState.update {
+                    it.copy(
+                        isAdditionalDictionaryDownloading = false,
+                        settingsMessage = "追加辞書の適用に失敗しました: ${error.message ?: "原因不明"}",
+                    )
+                }
+            }
+        }
     }
 
     private suspend fun preloadSeedDataIfNeeded(): PreloadMetrics {

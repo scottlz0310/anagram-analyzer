@@ -217,12 +217,13 @@ fun MainScreenContent(
                     }
                     TextButton(
                         onClick = onAdditionalDictionaryDownloadRequested,
+                        enabled = !state.isAdditionalDictionaryDownloading,
                         modifier = Modifier.testTag("settings_download_button"),
                     ) {
-                        Text("追加辞書をダウンロード")
+                        Text(if (state.isAdditionalDictionaryDownloading) "追加辞書を適用中..." else "追加辞書をダウンロード")
                     }
                     Text(
-                        text = state.settingsMessage ?: "追加辞書ダウンロード機能はまだ利用できません",
+                        text = state.settingsMessage ?: "追加辞書は未適用です",
                         modifier = Modifier.testTag("settings_download_status"),
                     )
                 }

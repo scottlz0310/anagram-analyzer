@@ -8,6 +8,8 @@ import com.anagram.analyzer.data.datastore.InputHistoryStore
 import com.anagram.analyzer.data.datastore.SearchSettingsStore
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramDatabase
+import com.anagram.analyzer.data.seed.AdditionalSeedEntryLoader
+import com.anagram.analyzer.data.seed.AssetAdditionalSeedEntryLoader
 import com.anagram.analyzer.data.seed.AssetCandidateDetailLoader
 import com.anagram.analyzer.data.seed.AssetSeedEntryLoader
 import com.anagram.analyzer.data.seed.CandidateDetailLoader
@@ -45,6 +47,12 @@ object AppModule {
     fun provideCandidateDetailLoader(
         @ApplicationContext context: Context,
     ): CandidateDetailLoader = AssetCandidateDetailLoader(context)
+
+    @Provides
+    @Singleton
+    fun provideAdditionalSeedEntryLoader(
+        @ApplicationContext context: Context,
+    ): AdditionalSeedEntryLoader = AssetAdditionalSeedEntryLoader(context)
 
     @Provides
     @Singleton
