@@ -1,6 +1,7 @@
 package com.anagram.analyzer.ui.viewmodel
 
 import android.database.sqlite.SQLiteException
+import com.anagram.analyzer.data.datastore.InputHistoryStore
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
 import com.anagram.analyzer.data.seed.CandidateDetail
@@ -9,6 +10,7 @@ import com.anagram.analyzer.data.seed.SeedEntryLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -29,6 +31,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -53,6 +56,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -75,6 +79,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -110,6 +115,7 @@ class MainViewModelTest {
                 ),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -137,6 +143,7 @@ class MainViewModelTest {
                 ),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -160,6 +167,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(loadFailure = IllegalArgumentException("bad seed")),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -188,6 +196,7 @@ class MainViewModelTest {
                     ),
                 ),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -217,6 +226,7 @@ class MainViewModelTest {
                         "りんご" to CandidateDetail(kanji = "林檎", meaning = "apple"),
                     ),
                 ),
+                inputHistoryStore = FakeInputHistoryStore(),
                 ioDispatcher = dispatcher,
                 preloadLogger = PreloadLogger { _ -> },
             )
@@ -225,6 +235,55 @@ class MainViewModelTest {
 
             assertEquals("林檎", viewModel.uiState.value.candidateDetails["りんご"]?.kanji)
             assertEquals("apple", viewModel.uiState.value.candidateDetails["りんご"]?.meaning)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 保存済み入力履歴を起動時に復元する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val inputHistoryStore = FakeInputHistoryStore(
+                initialHistory = listOf("りんご", "さくら"),
+            )
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = inputHistoryStore,
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+
+            assertEquals(listOf("りんご", "さくら"), viewModel.uiState.value.inputHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 入力履歴更新時に永続化する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val inputHistoryStore = FakeInputHistoryStore()
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = inputHistoryStore,
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            assertEquals(listOf("りんご"), inputHistoryStore.persistedHistory)
         } finally {
             Dispatchers.resetMain()
         }
@@ -283,6 +342,20 @@ class MainViewModelTest {
     ) : CandidateDetailLoader {
         override suspend fun loadDetails(): Map<String, CandidateDetail> {
             return details
+        }
+    }
+
+    private class FakeInputHistoryStore(
+        initialHistory: List<String> = emptyList(),
+    ) : InputHistoryStore {
+        private val historyFlow = MutableStateFlow(initialHistory)
+        var persistedHistory: List<String> = initialHistory
+
+        override val inputHistory = historyFlow
+
+        override suspend fun setInputHistory(history: List<String>) {
+            persistedHistory = history
+            historyFlow.value = history
         }
     }
 }

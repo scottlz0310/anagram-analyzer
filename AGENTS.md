@@ -99,7 +99,8 @@ android/
 │       │       │   ├── AssetSeedEntryLoader.kt
 │       │       │   └── AssetCandidateDetailLoader.kt
 │       │       ├── data/datastore/
-│       │       │   └── ThemePreferenceStore.kt
+│       │       │   ├── ThemePreferenceStore.kt
+│       │       │   └── InputHistoryStore.kt
 │       │       ├── di/AppModule.kt
 │       │       ├── domain/model/HiraganaNormalizer.kt
 │       │       └── ui/
@@ -198,7 +199,7 @@ android/
 
 **テーマ永続化**: `ThemePreferenceStore` が DataStore Preferences にテーマ設定を保存し、再起動後も反映
 
-**入力履歴**: `MainViewModel` が候補表示時に最新10件の履歴を保持し、`MainScreen` で履歴タップによる再入力を提供
+**入力履歴**: `MainViewModel` が候補表示時に最新10件の履歴を保持し、`InputHistoryStore`（DataStore）で永続化しつつ `MainScreen` で履歴タップ再入力を提供
 
 **初回投入計測**: `MainViewModel` が seed preload 完了時に `source / total / inserted / elapsedMs` 形式の計測ログを生成し、UI状態に保持
 
@@ -230,6 +231,7 @@ android/
 | ファイル | 説明 |
 |---------|------|
 | `ThemePreferenceStore.kt` | ライト/ダークテーマ設定の保存・読み込み（`Flow<Boolean>`） |
+| `InputHistoryStore.kt` | 入力履歴（最新10件）の保存・読み込み（`Flow<List<String>>`） |
 
 ### `android/app/src/main/java/com/anagram/analyzer/di/AppModule.kt` - Android DIモジュール
 
