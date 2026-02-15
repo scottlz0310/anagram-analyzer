@@ -500,6 +500,32 @@ class MainViewModelTest {
         }
     }
 
+    @Test
+    fun 同一文字数範囲では再永続化しない() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val searchSettingsStore = FakeSearchSettingsStore()
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = searchSettingsStore,
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+            viewModel.onSearchLengthRangeChanged(minLength = 2, maxLength = 20)
+            advanceUntilIdle()
+
+            assertEquals(0, searchSettingsStore.persistCallCount)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
     private class FakeAnagramDao(
         initialEntries: List<AnagramEntry> = emptyList(),
         private val insertDelayMs: Long = 0,
@@ -576,12 +602,14 @@ class MainViewModelTest {
     ) : SearchSettingsStore {
         private val settingsFlow = MutableStateFlow(initialSettings)
         var persistedSettings: SearchSettings = initialSettings
+        var persistCallCount: Int = 0
 
         override val searchSettings = settingsFlow
 
         override suspend fun setSearchLengthRange(minLength: Int, maxLength: Int) {
             val updatedSettings = SearchSettings(minLength = minLength, maxLength = maxLength)
             delay(persistDelayMs(updatedSettings))
+            persistCallCount += 1
             persistedSettings = updatedSettings
             settingsFlow.value = persistedSettings
         }

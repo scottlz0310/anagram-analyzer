@@ -213,6 +213,16 @@ class MainViewModel @Inject constructor(
             sanitizedMinLength,
             SearchSettings.ABSOLUTE_MAX_LENGTH,
         )
+        val currentState = _uiState.value
+        if (
+            currentState.minSearchLength == sanitizedMinLength &&
+            currentState.maxSearchLength == sanitizedMaxLength
+        ) {
+            if (currentState.settingsMessage != null) {
+                _uiState.update { it.copy(settingsMessage = null) }
+            }
+            return
+        }
         _uiState.update {
             it.copy(
                 minSearchLength = sanitizedMinLength,
