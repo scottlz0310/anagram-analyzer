@@ -34,15 +34,17 @@ class DataStoreInputHistoryStore @Inject constructor(
             preferences[KEY_INPUT_HISTORY]
                 ?.split(HISTORY_SEPARATOR)
                 ?.filter { it.isNotBlank() }
+                ?.take(MAX_INPUT_HISTORY)
                 ?: emptyList()
         }
 
     override suspend fun setInputHistory(history: List<String>) {
+        val sanitizedHistory = history.filter { it.isNotBlank() }.take(MAX_INPUT_HISTORY)
         context.settingsDataStore.edit { preferences ->
-            if (history.isEmpty()) {
+            if (sanitizedHistory.isEmpty()) {
                 preferences.remove(KEY_INPUT_HISTORY)
             } else {
-                preferences[KEY_INPUT_HISTORY] = history.joinToString(separator = HISTORY_SEPARATOR)
+                preferences[KEY_INPUT_HISTORY] = sanitizedHistory.joinToString(separator = HISTORY_SEPARATOR)
             }
         }
     }
@@ -50,5 +52,6 @@ class DataStoreInputHistoryStore @Inject constructor(
     private companion object {
         private val KEY_INPUT_HISTORY = stringPreferencesKey("input_history")
         private const val HISTORY_SEPARATOR = "\n"
+        private const val MAX_INPUT_HISTORY = 10
     }
 }

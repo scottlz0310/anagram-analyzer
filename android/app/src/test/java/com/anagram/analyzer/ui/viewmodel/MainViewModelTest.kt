@@ -266,6 +266,31 @@ class MainViewModelTest {
     }
 
     @Test
+    fun 保存済み入力履歴は10件まで復元する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val persistedHistory = (1..12).map { "りんご$it" }
+            val inputHistoryStore = FakeInputHistoryStore(initialHistory = persistedHistory)
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = inputHistoryStore,
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+
+            assertEquals(10, viewModel.uiState.value.inputHistory.size)
+            assertEquals(persistedHistory.take(10), viewModel.uiState.value.inputHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
     fun 入力履歴更新時に永続化する() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)

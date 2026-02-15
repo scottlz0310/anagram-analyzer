@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.TimeSource
@@ -61,7 +62,7 @@ class MainViewModel @Inject constructor(
 
     init {
         preloadJob = viewModelScope.launch(ioDispatcher) {
-            val persistedInputHistory = inputHistoryStore.inputHistory.first()
+            val persistedInputHistory = inputHistoryStore.inputHistory.first().take(MAX_INPUT_HISTORY)
             try {
                 val metrics = preloadSeedDataIfNeeded()
                 val candidateDetails = candidateDetailLoader.loadDetails()
@@ -124,8 +125,7 @@ class MainViewModel @Inject constructor(
                 val words = withContext(ioDispatcher) {
                     anagramDao.lookupWords(anagramKey)
                 }
-                var historyToPersist: List<String>? = null
-                _uiState.update { state ->
+                val updatedState = _uiState.updateAndGet { state ->
                     if (state.input != value) {
                         state
                     } else {
@@ -134,19 +134,15 @@ class MainViewModel @Inject constructor(
                         } else {
                             state.inputHistory
                         }
-                        if (updatedHistory != state.inputHistory) {
-                            historyToPersist = updatedHistory
-                        }
                         state.copy(
                             candidates = words,
                             inputHistory = updatedHistory,
                         )
                     }
                 }
-                val updatedHistory = historyToPersist
-                if (updatedHistory != null) {
+                if (updatedState.input == value && words.isNotEmpty()) {
                     withContext(ioDispatcher) {
-                        inputHistoryStore.setInputHistory(updatedHistory)
+                        inputHistoryStore.setInputHistory(updatedState.inputHistory)
                     }
                 }
             }
