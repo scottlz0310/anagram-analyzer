@@ -22,13 +22,16 @@ class AssetSeedEntryLoader @Inject constructor(
             emptyList()
         }
     }
-
-    private companion object {
-        private const val ASSET_FILE_NAME = "anagram_seed.tsv"
-    }
 }
 
 internal fun parseSeedEntries(lines: Sequence<String>): List<AnagramEntry> {
+    return parseSeedEntries(lines, ASSET_FILE_NAME)
+}
+
+internal fun parseSeedEntries(
+    lines: Sequence<String>,
+    fileName: String,
+): List<AnagramEntry> {
     val entries = mutableListOf<AnagramEntry>()
     lines.forEachIndexed { index, rawLine ->
         val line = rawLine.trimEnd('\r', '\n')
@@ -38,7 +41,7 @@ internal fun parseSeedEntries(lines: Sequence<String>): List<AnagramEntry> {
 
         val columns = line.split('\t', limit = 3)
         require(columns.size == 3) {
-            "anagram_seed.tsv ${index + 1}行目の列数が不正です: '$line'"
+            "$fileName ${index + 1}行目の列数が不正です: '$line'"
         }
 
         val sortedKey = columns[0].trim()
@@ -46,11 +49,11 @@ internal fun parseSeedEntries(lines: Sequence<String>): List<AnagramEntry> {
         val lengthText = columns[2].trim()
 
         require(sortedKey.isNotEmpty() && word.isNotEmpty() && lengthText.isNotEmpty()) {
-            "anagram_seed.tsv ${index + 1}行目に空列があります: '$line'"
+            "$fileName ${index + 1}行目に空列があります: '$line'"
         }
 
         val length = lengthText.toIntOrNull()
-            ?: throw IllegalArgumentException("anagram_seed.tsv ${index + 1}行目のlengthが不正です: '$line'")
+            ?: throw IllegalArgumentException("$fileName ${index + 1}行目のlengthが不正です: '$line'")
 
         entries.add(
             AnagramEntry(
@@ -62,3 +65,5 @@ internal fun parseSeedEntries(lines: Sequence<String>): List<AnagramEntry> {
     }
     return entries
 }
+
+private const val ASSET_FILE_NAME = "anagram_seed.tsv"

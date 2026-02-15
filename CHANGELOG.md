@@ -79,6 +79,9 @@
 - `MainScreen` に設定ダイアログを追加し、文字数範囲（最小/最大）設定・テーマ切替・追加辞書ダウンロード項目（準備中表示）を実装
 - `SearchSettingsStore`（DataStore Preferences）を追加し、文字数範囲設定を永続化
 - `MainViewModel` に文字数範囲バリデーションを追加し、設定範囲外入力でエラー表示するよう更新
+- `AssetAdditionalSeedEntryLoader` と `anagram_additional_seed.tsv` を追加し、設定ダイアログの「追加辞書をダウンロード」から追加seedをDBへ適用できるよう更新
+- 追加辞書適用中のボタン無効化・適用結果メッセージ（適用件数/最新/失敗）を `MainViewModel` / `MainScreen` に追加
+- `MainViewModelTest` / `MainScreenTest` を更新し、追加辞書適用の成功・失敗・UI表示を検証
 
 ## [0.1.0] - 2026-02-07
 

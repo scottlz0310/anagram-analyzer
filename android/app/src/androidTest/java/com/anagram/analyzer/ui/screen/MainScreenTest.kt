@@ -70,8 +70,16 @@ class MainScreenTest {
         composeRule.onNodeWithTag("settings_max_decrease_button").performClick()
 
         composeRule.onNodeWithTag("settings_download_button").performClick()
-        composeRule.onNodeWithTag("settings_download_status")
-            .assertTextContains("現在、追加辞書ダウンロード機能は準備中です")
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule
+                .onAllNodesWithText("追加辞書を適用しました", substring = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty() ||
+                composeRule
+                    .onAllNodesWithText("追加辞書は最新です", substring = true)
+                    .fetchSemanticsNodes()
+                    .isNotEmpty()
+        }
     }
 
     @Test

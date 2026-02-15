@@ -6,6 +6,7 @@ import com.anagram.analyzer.data.datastore.SearchSettings
 import com.anagram.analyzer.data.datastore.SearchSettingsStore
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
+import com.anagram.analyzer.data.seed.AdditionalSeedEntryLoader
 import com.anagram.analyzer.data.seed.CandidateDetail
 import com.anagram.analyzer.data.seed.CandidateDetailLoader
 import com.anagram.analyzer.data.seed.SeedEntryLoader
@@ -36,6 +37,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -62,6 +64,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -86,6 +89,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(
                     initialSettings = SearchSettings(minLength = 3, maxLength = 8),
@@ -112,6 +116,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(
                     initialSettings = SearchSettings(minLength = 4, maxLength = 8),
@@ -141,6 +146,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(
                     initialSettings = SearchSettings(minLength = 4, maxLength = 8),
@@ -169,6 +175,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -206,6 +213,7 @@ class MainViewModelTest {
                 ),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -235,6 +243,7 @@ class MainViewModelTest {
                 ),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -260,6 +269,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(loadFailure = IllegalArgumentException("bad seed")),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -290,6 +300,7 @@ class MainViewModelTest {
                     ),
                 ),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -321,6 +332,7 @@ class MainViewModelTest {
                         "りんご" to CandidateDetail(kanji = "林檎", meaning = "apple"),
                     ),
                 ),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -348,6 +360,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = inputHistoryStore,
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -373,6 +386,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = inputHistoryStore,
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -398,6 +412,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = inputHistoryStore,
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -423,6 +438,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = searchSettingsStore,
                 ioDispatcher = dispatcher,
@@ -451,6 +467,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = searchSettingsStore,
                 ioDispatcher = dispatcher,
@@ -486,6 +503,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = searchSettingsStore,
                 ioDispatcher = dispatcher,
@@ -513,6 +531,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = searchSettingsStore,
                 ioDispatcher = dispatcher,
@@ -538,6 +557,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
                 ioDispatcher = dispatcher,
@@ -546,10 +566,130 @@ class MainViewModelTest {
 
             advanceUntilIdle()
             viewModel.onAdditionalDictionaryDownloadRequested()
+            advanceUntilIdle()
+            val beforeNoOp = viewModel.uiState.value.settingsMessage
             viewModel.onSearchLengthRangeChanged(minLength = 2, maxLength = 20)
             advanceUntilIdle()
 
-            assertEquals("現在、追加辞書ダウンロード機能は準備中です", viewModel.uiState.value.settingsMessage)
+            assertEquals(beforeNoOp, viewModel.uiState.value.settingsMessage)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 追加辞書を適用して成功メッセージを表示する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(
+                    entries = listOf(
+                        AnagramEntry(
+                            sortedKey = "あいうえおかきくけこ",
+                            word = "あいうえおかきくけこ",
+                            length = 10,
+                        ),
+                    ),
+                ),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+            viewModel.onAdditionalDictionaryDownloadRequested()
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.settingsMessage?.contains("追加辞書を適用しました") == true)
+            assertTrue(viewModel.uiState.value.isAdditionalDictionaryDownloading.not())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 追加辞書適用はpreload完了を待ってから開始する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            var isSeedLoaded = false
+            var startedBeforePreload = false
+            val seedEntryLoader = object : SeedEntryLoader {
+                override suspend fun loadEntries(): List<AnagramEntry> {
+                    delay(100)
+                    isSeedLoaded = true
+                    return listOf(
+                        AnagramEntry(
+                            sortedKey = "ごりん",
+                            word = "りんご",
+                            length = 3,
+                        ),
+                    )
+                }
+            }
+            val additionalSeedEntryLoader = object : AdditionalSeedEntryLoader {
+                override suspend fun loadEntries(): List<AnagramEntry> {
+                    if (!isSeedLoaded) {
+                        startedBeforePreload = true
+                    }
+                    return listOf(
+                        AnagramEntry(
+                            sortedKey = "あいうえおかきくけこ",
+                            word = "あいうえおかきくけこ",
+                            length = 10,
+                        ),
+                    )
+                }
+            }
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = seedEntryLoader,
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = additionalSeedEntryLoader,
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            viewModel.onAdditionalDictionaryDownloadRequested()
+            advanceUntilIdle()
+
+            assertTrue(startedBeforePreload.not())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 追加辞書の読み込み失敗時にエラーメッセージを表示する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(
+                    loadFailure = IllegalStateException("network error"),
+                ),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            advanceUntilIdle()
+            viewModel.onAdditionalDictionaryDownloadRequested()
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.settingsMessage?.contains("追加辞書の適用に失敗しました") == true)
+            assertTrue(viewModel.uiState.value.isAdditionalDictionaryDownloading.not())
         } finally {
             Dispatchers.resetMain()
         }
@@ -568,6 +708,7 @@ class MainViewModelTest {
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = searchSettingsStore,
                 ioDispatcher = dispatcher,
@@ -639,6 +780,24 @@ class MainViewModelTest {
     ) : CandidateDetailLoader {
         override suspend fun loadDetails(): Map<String, CandidateDetail> {
             return details
+        }
+    }
+
+    private class FakeAdditionalSeedEntryLoader(
+        private val entries: List<AnagramEntry> = listOf(
+            AnagramEntry(
+                sortedKey = "あいうえおかきくけこ",
+                word = "あいうえおかきくけこ",
+                length = 10,
+            ),
+        ),
+        private val loadFailure: IllegalStateException? = null,
+    ) : AdditionalSeedEntryLoader {
+        override suspend fun loadEntries(): List<AnagramEntry> {
+            if (loadFailure != null) {
+                throw loadFailure
+            }
+            return entries
         }
     }
 

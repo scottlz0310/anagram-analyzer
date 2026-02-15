@@ -87,6 +87,7 @@ android/
 │       │   ├── AndroidManifest.xml
 │       │   ├── assets/
 │       │   │   ├── anagram_seed.tsv
+│       │   │   ├── anagram_additional_seed.tsv
 │       │   │   └── candidate_detail_seed.tsv
 │       │   └── java/com/anagram/analyzer/
 │       │       ├── AnagramApplication.kt
@@ -97,10 +98,12 @@ android/
 │       │       │   └── AnagramDatabase.kt
 │       │       ├── data/seed/
 │       │       │   ├── AssetSeedEntryLoader.kt
+│       │       │   ├── AssetAdditionalSeedEntryLoader.kt
 │       │       │   └── AssetCandidateDetailLoader.kt
 │       │       ├── data/datastore/
 │       │       │   ├── ThemePreferenceStore.kt
 │       │       │   ├── InputHistoryStore.kt
+│       │       │   ├── SearchSettingsStore.kt
 │       │       │   └── SettingsDataStore.kt
 │       │       ├── di/AppModule.kt
 │       │       ├── domain/model/HiraganaNormalizer.kt
@@ -202,7 +205,7 @@ android/
 
 **入力履歴**: `MainViewModel` が候補表示時に最新10件の履歴を保持し、`InputHistoryStore`（DataStore）で永続化しつつ `MainScreen` で折りたたみ表示と履歴タップ再入力を提供
 
-**設定画面**: `MainScreen` の設定ダイアログで文字数範囲（最小/最大）を変更し、`SearchSettingsStore`（DataStore）で永続化。追加辞書ダウンロード項目は準備中表示を提供
+**設定画面**: `MainScreen` の設定ダイアログで文字数範囲（最小/最大）を変更し、`SearchSettingsStore`（DataStore）で永続化。追加辞書ダウンロードで `anagram_additional_seed.tsv` を適用し、適用結果（件数/最新/失敗）を表示
 
 **アプリアイコン**: `asset/AnagramAnalyzerICON.png` を基に、`android:icon`（`@mipmap/ic_launcher`） / `android:roundIcon`（`@mipmap/ic_launcher_round`）を設定
 
@@ -225,6 +228,7 @@ android/
 | ファイル | 説明 |
 |---------|------|
 | `AssetSeedEntryLoader.kt` | `anagram_seed.tsv` の読込/parse と `SeedEntryLoader` 提供 |
+| `AssetAdditionalSeedEntryLoader.kt` | `anagram_additional_seed.tsv` の読込/parse と `AdditionalSeedEntryLoader` 提供 |
 | `AssetCandidateDetailLoader.kt` | `candidate_detail_seed.tsv` の読込/parse と候補詳細辞書の提供 |
 
 **運用方針**: seed生成は件数上限より `--max-len` による文字数制限を優先し、現行の推奨値は `max-len=8`（ローカルSQLite投入比較: `8` 約584ms / `10` 約712ms）。
@@ -249,6 +253,7 @@ android/
 | `AnagramDatabase` | アプリ全体で共有するRoom DBインスタンス |
 | `AnagramDao` | `MainViewModel` などから検索に使うDAO |
 | `SeedEntryLoader` | `anagram_seed.tsv` を初期投入するためのローダー |
+| `AdditionalSeedEntryLoader` | `anagram_additional_seed.tsv` を追加適用するためのローダー |
 | `CandidateDetailLoader` | `candidate_detail_seed.tsv` を詳細表示に使うためのローダー |
 | `SearchSettingsStore` | 文字数範囲設定（最小/最大）を保存・取得するStore |
 | `CoroutineDispatcher` | DBアクセス用のIOディスパッチャ |
