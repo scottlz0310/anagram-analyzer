@@ -20,7 +20,9 @@ class AssetSeedEntryLoaderInstrumentedTest {
     fun loadEntriesはdb未同梱時にtsvから読み込む() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val loader = AssetSeedEntryLoader(context)
+        val dbEntries = loadSeedEntriesFromDatabaseAsset(context)
 
+        assertNull(dbEntries)
         val entries = loader.loadEntries()
 
         assertTrue(entries.isNotEmpty())
