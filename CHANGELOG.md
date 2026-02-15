@@ -75,6 +75,7 @@
 - `SettingsDataStore` を追加し、`ThemePreferenceStore` と `InputHistoryStore` が同一 DataStore インスタンスを共有するよう更新
 - GitHub Actions CI の Android Build ジョブで `app-debug.apk` を artifact としてアップロードするよう更新
 - `MainScreen` の入力履歴を折りたたみ表示に変更し、表示/非表示トグルで必要時のみ展開できるよう更新
+- `AndroidManifest.xml` に `android:icon` / `android:roundIcon` を追加し、`asset/AnagramAnalyzerICON.png` をランチャーアイコンとして適用
 
 ## [0.1.0] - 2026-02-07
 
