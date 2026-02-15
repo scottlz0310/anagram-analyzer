@@ -59,6 +59,22 @@ class MainScreenTest {
     }
 
     @Test
+    fun 設定画面で文字数範囲と追加辞書項目を表示できる() {
+        composeRule.onNodeWithTag("settings_button").performClick()
+        composeRule.onNodeWithTag("settings_dialog_title").assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("文字数範囲", substring = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("文字数範囲", substring = true).assertIsDisplayed()
+
+        composeRule.onNodeWithTag("settings_max_decrease_button").performClick()
+
+        composeRule.onNodeWithTag("settings_download_button").performClick()
+        composeRule.onNodeWithTag("settings_download_status")
+            .assertTextContains("現在、追加辞書ダウンロード機能は準備中です")
+    }
+
+    @Test
     fun 非ひらがな入力でエラーを表示できる() {
         composeRule.onNodeWithTag("input_field").performTextInput("abc")
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -126,7 +142,8 @@ class MainScreenTest {
 
     @Test
     fun テーマ切替ボタンで表示を変更できる() {
-        composeRule.onNodeWithTag("theme_toggle_button").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings_button").performClick()
+        composeRule.onNodeWithTag("settings_theme_toggle_button").assertIsDisplayed()
 
         val lightLabel = "テーマ: ライト"
         val darkLabel = "テーマ: ダーク"
@@ -142,7 +159,7 @@ class MainScreenTest {
         assertTrue(beforeToggle == lightLabel || beforeToggle == darkLabel)
         val expectedAfterToggle = if (beforeToggle == lightLabel) darkLabel else lightLabel
 
-        composeRule.onNodeWithTag("theme_toggle_button").performClick()
+        composeRule.onNodeWithTag("settings_theme_toggle_button").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(expectedAfterToggle).fetchSemanticsNodes().isNotEmpty()
         }

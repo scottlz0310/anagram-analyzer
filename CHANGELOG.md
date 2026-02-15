@@ -76,6 +76,9 @@
 - GitHub Actions CI の Android Build ジョブで `app-debug.apk` を artifact としてアップロードするよう更新
 - `MainScreen` の入力履歴を折りたたみ表示に変更し、表示/非表示トグルで必要時のみ展開できるよう更新
 - `AndroidManifest.xml` に `android:icon` / `android:roundIcon` を追加し、`asset/AnagramAnalyzerICON.png` をランチャーアイコンとして適用
+- `MainScreen` に設定ダイアログを追加し、文字数範囲（最小/最大）設定・テーマ切替・追加辞書ダウンロード項目（準備中表示）を実装
+- `SearchSettingsStore`（DataStore Preferences）を追加し、文字数範囲設定を永続化
+- `MainViewModel` に文字数範囲バリデーションを追加し、設定範囲外入力でエラー表示するよう更新
 
 ## [0.1.0] - 2026-02-07
 

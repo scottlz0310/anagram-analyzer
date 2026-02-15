@@ -196,11 +196,13 @@ android/
 
 **候補詳細表示**: 候補タップで詳細ダイアログを表示（`candidate_detail_seed.tsv` 収録語は漢字/意味を表示、未収録語はプレースホルダ）
 
-**テーマ切替**: `MainActivity` / `MainScreen` で Material 3 のライト/ダークテーマを切替可能
+**テーマ切替**: `MainActivity` / `MainScreen` の設定ダイアログで Material 3 のライト/ダークテーマを切替可能
 
 **テーマ永続化**: `ThemePreferenceStore` が DataStore Preferences にテーマ設定を保存し、再起動後も反映
 
 **入力履歴**: `MainViewModel` が候補表示時に最新10件の履歴を保持し、`InputHistoryStore`（DataStore）で永続化しつつ `MainScreen` で折りたたみ表示と履歴タップ再入力を提供
+
+**設定画面**: `MainScreen` の設定ダイアログで文字数範囲（最小/最大）を変更し、`SearchSettingsStore`（DataStore）で永続化。追加辞書ダウンロード項目は準備中表示を提供
 
 **アプリアイコン**: `asset/AnagramAnalyzerICON.png` を基に、`android:icon`（`@mipmap/ic_launcher`） / `android:roundIcon`（`@mipmap/ic_launcher_round`）を設定
 
@@ -235,6 +237,7 @@ android/
 |---------|------|
 | `ThemePreferenceStore.kt` | ライト/ダークテーマ設定の保存・読み込み（`Flow<Boolean>`） |
 | `InputHistoryStore.kt` | 入力履歴（最新10件）の保存・読み込み（`Flow<List<String>>`） |
+| `SearchSettingsStore.kt` | 文字数範囲（最小/最大）の保存・読み込み（`Flow<SearchSettings>`） |
 | `SettingsDataStore.kt` | `settings` DataStore インスタンスを共有する拡張プロパティ |
 
 ### `android/app/src/main/java/com/anagram/analyzer/di/AppModule.kt` - Android DIモジュール
@@ -247,6 +250,7 @@ android/
 | `AnagramDao` | `MainViewModel` などから検索に使うDAO |
 | `SeedEntryLoader` | `anagram_seed.tsv` を初期投入するためのローダー |
 | `CandidateDetailLoader` | `candidate_detail_seed.tsv` を詳細表示に使うためのローダー |
+| `SearchSettingsStore` | 文字数範囲設定（最小/最大）を保存・取得するStore |
 | `CoroutineDispatcher` | DBアクセス用のIOディスパッチャ |
 
 ### `index.py` - インデックスモジュール
