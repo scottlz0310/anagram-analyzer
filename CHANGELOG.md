@@ -30,6 +30,9 @@
   - `android/app/src/main/assets/anagram_seed.tsv` を追加（seed語彙）
   - `AssetSeedEntryLoader` を追加（初回起動時のseed取込）
   - `AssetSeedEntryLoaderTest` を追加（TSV parse検証）
+- Android向け辞書変換ツールを拡張
+  - `scripts/export_android_room_db.py` を追加（JMdict XML(.gz) → Room互換SQLite）
+  - `tests/test_export_android_room_db.py` を追加（XML/gzip入力の変換検証）
 - Androidアプリ化に向けたドキュメント整備（Issue #14）
   - AGENTS.md: Android版の技術スタック、ディレクトリ構造案、コーディング規約、ビルドコマンド、AnagramEntryスキーマ設計
   - prompt.md: Android版の移植対象ロジック、辞書運用方針、アーキテクチャ設計、想定機能一覧

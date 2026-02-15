@@ -69,7 +69,11 @@ anagram-analyzer/
 │   ├── __init__.py
 │   ├── test_normalize.py      # 正規化モジュールのテスト
 │   ├── test_index.py          # インデックスモジュールのテスト
-│   └── test_integration.py    # 統合テスト
+│   ├── test_integration.py    # 統合テスト
+│   └── test_export_android_room_db.py  # JMdict XML→Room DB変換スクリプトのテスト
+├── scripts/
+│   ├── export_android_seed.py     # JMdict語彙をseed TSVへ変換
+│   └── export_android_room_db.py  # JMdict XML(.gz)をRoom互換SQLiteへ変換
 ├── pyproject.toml             # プロジェクト設定
 ├── prompt.md                  # 開発仕様書
 └── README.md                  # ユーザー向けドキュメント
@@ -372,6 +376,9 @@ cd android && ./gradlew :app:connectedDebugAndroidTest
 
 # Android seed TSV生成（jamdict / jamdict-data が必要）
 uv run python scripts/export_android_seed.py --output android/app/src/main/assets/anagram_seed.tsv --min-len 2 --max-len 8
+
+# JMdict XML(.gz) から Room互換SQLiteを生成（段階移行向け）
+uv run python scripts/export_android_room_db.py --xml ~/.jamdict/data/JMdict_e.gz --output android/app/src/main/assets/anagram_seed.db --min-len 2 --max-len 8 --force
 
 # Lint
 cd android && ./gradlew :app:lintDebug
