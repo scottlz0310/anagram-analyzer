@@ -200,7 +200,7 @@ android/
 
 **テーマ永続化**: `ThemePreferenceStore` が DataStore Preferences にテーマ設定を保存し、再起動後も反映
 
-**入力履歴**: `MainViewModel` が候補表示時に最新10件の履歴を保持し、`InputHistoryStore`（DataStore）で永続化しつつ `MainScreen` で履歴タップ再入力を提供
+**入力履歴**: `MainViewModel` が候補表示時に最新10件の履歴を保持し、`InputHistoryStore`（DataStore）で永続化しつつ `MainScreen` で折りたたみ表示と履歴タップ再入力を提供
 
 **初回投入計測**: `MainViewModel` が seed preload 完了時に `source / total / inserted / elapsedMs` 形式の計測ログを生成し、UI状態に保持
 

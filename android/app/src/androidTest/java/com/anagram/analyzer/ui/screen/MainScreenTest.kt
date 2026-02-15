@@ -38,11 +38,24 @@ class MainScreenTest {
     fun 入力履歴を表示できる() {
         composeRule.onNodeWithTag("input_field").performTextInput("りんご")
         composeRule.waitUntil(timeoutMillis = 30_000) {
+            composeRule.onAllNodesWithTag("input_history_toggle_button").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        assertTrue(
+            composeRule.onAllNodesWithTag("input_history_title").fetchSemanticsNodes().isEmpty(),
+        )
+        composeRule.onNodeWithTag("input_history_toggle_button").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("履歴: りんご").fetchSemanticsNodes().isNotEmpty()
         }
 
         composeRule.onNodeWithTag("input_history_title").assertIsDisplayed()
         composeRule.onNodeWithText("履歴: りんご").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("input_history_toggle_button").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("履歴: りんご").fetchSemanticsNodes().isEmpty()
+        }
     }
 
     @Test
