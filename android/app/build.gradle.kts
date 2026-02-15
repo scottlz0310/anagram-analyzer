@@ -1,3 +1,5 @@
+import org.gradle.api.GradleException
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -21,11 +23,17 @@ android {
     val releaseKeyPassword =
         providers.gradleProperty("ANDROID_SIGNING_KEY_PASSWORD").orNull
             ?: providers.environmentVariable("ANDROID_SIGNING_KEY_PASSWORD").orNull
+    val releaseStoreFile = releaseStoreFilePath?.takeIf { it.isNotBlank() }?.let(::file)
     val hasReleaseSigning =
-        !releaseStoreFilePath.isNullOrBlank() &&
+        releaseStoreFile != null &&
             !releaseStorePassword.isNullOrBlank() &&
             !releaseKeyAlias.isNullOrBlank() &&
             !releaseKeyPassword.isNullOrBlank()
+    if (hasReleaseSigning && !requireNotNull(releaseStoreFile).exists()) {
+        throw GradleException(
+            "ANDROID_SIGNING_STORE_FILE が見つかりません: ${releaseStoreFile.absolutePath}",
+        )
+    }
 
     defaultConfig {
         applicationId = "com.anagram.analyzer"
@@ -40,7 +48,7 @@ android {
     signingConfigs {
         if (hasReleaseSigning) {
             create("release") {
-                storeFile = file(requireNotNull(releaseStoreFilePath))
+                storeFile = requireNotNull(releaseStoreFile)
                 storePassword = requireNotNull(releaseStorePassword)
                 keyAlias = requireNotNull(releaseKeyAlias)
                 keyPassword = requireNotNull(releaseKeyPassword)
