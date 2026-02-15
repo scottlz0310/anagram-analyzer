@@ -15,6 +15,7 @@ import com.anagram.analyzer.data.seed.SeedEntryLoader
 import com.anagram.analyzer.domain.model.HiraganaNormalizer
 import com.anagram.analyzer.domain.model.NormalizationException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -261,6 +262,7 @@ class MainViewModel @Inject constructor(
             )
         }
         additionalDictionaryJob = viewModelScope.launch {
+            preloadJob.join()
             try {
                 val (insertedEntries, totalEntries) = withContext(ioDispatcher) {
                     val additionalEntries = additionalSeedEntryLoader.loadEntries()
@@ -272,7 +274,6 @@ class MainViewModel @Inject constructor(
                 }
                 _uiState.update {
                     it.copy(
-                        isAdditionalDictionaryDownloading = false,
                         settingsMessage = if (insertedEntries > 0) {
                             "追加辞書を適用しました（追加${insertedEntries}件 / 読込${totalEntries}件）"
                         } else {
@@ -280,25 +281,27 @@ class MainViewModel @Inject constructor(
                         },
                     )
                 }
-            } catch (error: IllegalArgumentException) {
-                _uiState.update {
-                    it.copy(
-                        isAdditionalDictionaryDownloading = false,
-                        settingsMessage = "追加辞書の適用に失敗しました: ${error.message ?: "原因不明"}",
-                    )
+            } catch (error: Throwable) {
+                if (error is CancellationException) {
+                    throw error
                 }
-            } catch (error: IllegalStateException) {
-                _uiState.update {
-                    it.copy(
-                        isAdditionalDictionaryDownloading = false,
-                        settingsMessage = "追加辞書の適用に失敗しました: ${error.message ?: "原因不明"}",
-                    )
+                if (
+                    error is IllegalArgumentException ||
+                    error is IllegalStateException ||
+                    error is SQLiteException
+                ) {
+                    _uiState.update {
+                        it.copy(
+                            settingsMessage = "追加辞書の適用に失敗しました: ${error.message ?: "原因不明"}",
+                        )
+                    }
+                } else {
+                    throw error
                 }
-            } catch (error: SQLiteException) {
+            } finally {
                 _uiState.update {
                     it.copy(
                         isAdditionalDictionaryDownloading = false,
-                        settingsMessage = "追加辞書の適用に失敗しました: ${error.message ?: "原因不明"}",
                     )
                 }
             }

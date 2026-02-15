@@ -43,4 +43,19 @@ class AssetSeedEntryLoaderTest {
         requireNotNull(exception)
         assertTrue(exception.message?.contains("空列") == true)
     }
+
+    @Test
+    fun ファイル名指定時は例外メッセージへ反映する() {
+        val exception = try {
+            parseSeedEntries(
+                lines = sequenceOf("ごりん\tりんご"),
+                fileName = "anagram_additional_seed.tsv",
+            )
+            null
+        } catch (e: IllegalArgumentException) {
+            e
+        }
+        requireNotNull(exception)
+        assertTrue(exception.message?.contains("anagram_additional_seed.tsv") == true)
+    }
 }

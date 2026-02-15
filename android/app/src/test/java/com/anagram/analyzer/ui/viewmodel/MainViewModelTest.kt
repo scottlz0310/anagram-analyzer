@@ -613,6 +613,60 @@ class MainViewModelTest {
     }
 
     @Test
+    fun 追加辞書適用はpreload完了を待ってから開始する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            var isSeedLoaded = false
+            var startedBeforePreload = false
+            val seedEntryLoader = object : SeedEntryLoader {
+                override suspend fun loadEntries(): List<AnagramEntry> {
+                    delay(100)
+                    isSeedLoaded = true
+                    return listOf(
+                        AnagramEntry(
+                            sortedKey = "ごりん",
+                            word = "りんご",
+                            length = 3,
+                        ),
+                    )
+                }
+            }
+            val additionalSeedEntryLoader = object : AdditionalSeedEntryLoader {
+                override suspend fun loadEntries(): List<AnagramEntry> {
+                    if (!isSeedLoaded) {
+                        startedBeforePreload = true
+                    }
+                    return listOf(
+                        AnagramEntry(
+                            sortedKey = "あいうえおかきくけこ",
+                            word = "あいうえおかきくけこ",
+                            length = 10,
+                        ),
+                    )
+                }
+            }
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = seedEntryLoader,
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = additionalSeedEntryLoader,
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            viewModel.onAdditionalDictionaryDownloadRequested()
+            advanceUntilIdle()
+
+            assertTrue(startedBeforePreload.not())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
     fun 追加辞書の読み込み失敗時にエラーメッセージを表示する() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)

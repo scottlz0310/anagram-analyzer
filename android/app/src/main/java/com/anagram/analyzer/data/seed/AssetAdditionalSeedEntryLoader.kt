@@ -16,7 +16,10 @@ class AssetAdditionalSeedEntryLoader @Inject constructor(
     override suspend fun loadEntries(): List<AnagramEntry> {
         return try {
             context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
-                parseSeedEntries(reader.lineSequence())
+                parseSeedEntries(
+                    lines = reader.lineSequence(),
+                    fileName = ASSET_FILE_NAME,
+                )
             }
         } catch (error: IOException) {
             throw IllegalStateException("追加辞書データの読み込みに失敗しました", error)
