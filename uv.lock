@@ -30,7 +30,7 @@ requires-dist = [
     { name = "basedpyright", marker = "extra == 'dev'", specifier = ">=1.38.0" },
     { name = "jamdict", marker = "extra == 'dict'", specifier = ">=0.1a11.post2" },
     { name = "jamdict-data", marker = "extra == 'dict'", specifier = ">=1.5" },
-    { name = "platformdirs", specifier = ">=4.7.1" },
+    { name = "platformdirs", specifier = ">=4.9.1" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.5.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.2" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
