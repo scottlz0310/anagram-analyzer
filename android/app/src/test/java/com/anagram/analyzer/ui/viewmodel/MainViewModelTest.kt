@@ -12,7 +12,10 @@ import com.anagram.analyzer.data.seed.SeedEntryLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -552,6 +555,37 @@ class MainViewModelTest {
         }
     }
 
+    @Test
+    fun preload前に変更してデフォルトへ戻しても保存済み範囲で上書きしない() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val searchSettingsStore = FakeSearchSettingsStore(
+                initialSettings = SearchSettings(minLength = 3, maxLength = 10),
+                initialReadDelayMs = 100,
+            )
+            val viewModel = MainViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = searchSettingsStore,
+                ioDispatcher = dispatcher,
+                preloadLogger = PreloadLogger { _ -> },
+            )
+
+            viewModel.onSearchLengthRangeChanged(minLength = 4, maxLength = 10)
+            viewModel.onSearchLengthRangeChanged(minLength = 2, maxLength = 20)
+            advanceUntilIdle()
+
+            assertEquals(2, viewModel.uiState.value.minSearchLength)
+            assertEquals(20, viewModel.uiState.value.maxSearchLength)
+            assertEquals(SearchSettings(minLength = 2, maxLength = 20), searchSettingsStore.persistedSettings)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
     private class FakeAnagramDao(
         initialEntries: List<AnagramEntry> = emptyList(),
         private val insertDelayMs: Long = 0,
@@ -625,12 +659,16 @@ class MainViewModelTest {
     private class FakeSearchSettingsStore(
         initialSettings: SearchSettings = SearchSettings(),
         private val persistDelayMs: (SearchSettings) -> Long = { 0L },
+        private val initialReadDelayMs: Long = 0L,
     ) : SearchSettingsStore {
         private val settingsFlow = MutableStateFlow(initialSettings)
         var persistedSettings: SearchSettings = initialSettings
         var persistCallCount: Int = 0
 
-        override val searchSettings = settingsFlow
+        override val searchSettings: Flow<SearchSettings> = flow {
+            delay(initialReadDelayMs)
+            emitAll(settingsFlow)
+        }
 
         override suspend fun setSearchLengthRange(minLength: Int, maxLength: Int) {
             val updatedSettings = SearchSettings(minLength = minLength, maxLength = maxLength)

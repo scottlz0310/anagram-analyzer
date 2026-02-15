@@ -49,6 +49,8 @@ data class MainUiState(
     val errorMessage: String? = null,
     val settingsMessage: String? = null,
     val preloadLog: String? = null,
+    val hasUserChangedSearchLengthRange: Boolean = false,
+    val isSearchSettingsInitialized: Boolean = false,
 )
 
 @HiltViewModel
@@ -73,8 +75,8 @@ class MainViewModel @Inject constructor(
             val persistedSearchSettings = searchSettingsStore.searchSettings.first()
             _uiState.update { state ->
                 val shouldApplyPersistedSearchSettings =
-                    state.minSearchLength == SearchSettings.DEFAULT_MIN_LENGTH &&
-                        state.maxSearchLength == SearchSettings.DEFAULT_MAX_LENGTH
+                    !state.hasUserChangedSearchLengthRange &&
+                        !state.isSearchSettingsInitialized
                 state.copy(
                     inputHistory = if (state.inputHistory.isEmpty()) {
                         persistedInputHistory
@@ -91,6 +93,7 @@ class MainViewModel @Inject constructor(
                     } else {
                         state.maxSearchLength
                     },
+                    isSearchSettingsInitialized = true,
                 )
             }
             try {
@@ -132,6 +135,8 @@ class MainViewModel @Inject constructor(
                     minSearchLength = state.minSearchLength,
                     maxSearchLength = state.maxSearchLength,
                     settingsMessage = state.settingsMessage,
+                    hasUserChangedSearchLengthRange = state.hasUserChangedSearchLengthRange,
+                    isSearchSettingsInitialized = state.isSearchSettingsInitialized,
                 )
             }
             return
@@ -225,6 +230,7 @@ class MainViewModel @Inject constructor(
                 minSearchLength = sanitizedMinLength,
                 maxSearchLength = sanitizedMaxLength,
                 settingsMessage = null,
+                hasUserChangedSearchLengthRange = true,
             )
         }
         searchSettingsPersistJob?.cancel()
