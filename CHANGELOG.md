@@ -82,6 +82,8 @@
 - `AssetAdditionalSeedEntryLoader` と `anagram_additional_seed.tsv` を追加し、設定ダイアログの「追加辞書をダウンロード」から追加seedをDBへ適用できるよう更新
 - 追加辞書適用中のボタン無効化・適用結果メッセージ（適用件数/最新/失敗）を `MainViewModel` / `MainScreen` に追加
 - `MainViewModelTest` / `MainScreenTest` を更新し、追加辞書適用の成功・失敗・UI表示を検証
+- `MainScreen` の候補詳細をダイアログ表示から専用画面表示へ変更し、戻るボタンで検索画面へ戻れるよう更新
+- `MainScreenTest` の候補詳細UIテストを詳細画面表示と戻る操作の検証に更新
 
 ## [0.1.0] - 2026-02-07
 
