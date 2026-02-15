@@ -37,4 +37,40 @@ class AssetCandidateDetailLoaderTest {
         requireNotNull(exception)
         assertTrue(exception.message?.contains("空列") == true)
     }
+
+    @Test
+    fun seedとcacheのマージはseedを優先する() {
+        val seedDetails = mapOf(
+            "りんご" to CandidateDetail(kanji = "林檎", meaning = "apple"),
+        )
+        val cachedDetails = mapOf(
+            "りんご" to CandidateDetail(kanji = "リンゴ", meaning = "old apple"),
+            "おなじ" to CandidateDetail(kanji = "同じ", meaning = "same"),
+        )
+
+        val merged = mergeCandidateDetails(
+            seedDetails = seedDetails,
+            cachedDetails = cachedDetails,
+        )
+
+        assertEquals("林檎", merged["りんご"]?.kanji)
+        assertEquals("same", merged["おなじ"]?.meaning)
+    }
+
+    @Test
+    fun ローカル詳細解決はseedをcacheより優先する() {
+        val seedDetails = mapOf(
+            "りんご" to CandidateDetail(kanji = "林檎", meaning = "apple"),
+        )
+        val cachedDetail = CandidateDetail(kanji = "リンゴ", meaning = "old apple")
+
+        val resolved = resolveLocalCandidateDetail(
+            word = "りんご",
+            seedDetails = seedDetails,
+            cachedDetail = cachedDetail,
+        )
+
+        assertEquals("林檎", resolved?.kanji)
+        assertEquals("apple", resolved?.meaning)
+    }
 }

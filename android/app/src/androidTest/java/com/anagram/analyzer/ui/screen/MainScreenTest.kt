@@ -152,6 +152,7 @@ class MainScreenTest {
         composeRule.onNodeWithTag("candidate_detail_screen_title").assertIsDisplayed()
         composeRule.onNodeWithTag("candidate_detail_kanji").assertTextContains("漢字表記: （未対応）")
         composeRule.onNodeWithTag("candidate_detail_meaning").assertTextContains("意味: （未対応）")
+        composeRule.onNodeWithTag("candidate_detail_fetch_button").assertIsDisplayed()
     }
 
     @Test

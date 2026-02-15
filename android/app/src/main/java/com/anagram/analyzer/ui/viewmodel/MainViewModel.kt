@@ -51,6 +51,9 @@ data class MainUiState(
     val errorMessage: String? = null,
     val settingsMessage: String? = null,
     val isAdditionalDictionaryDownloading: Boolean = false,
+    val loadingCandidateDetailWord: String? = null,
+    val candidateDetailErrorWord: String? = null,
+    val candidateDetailErrorMessage: String? = null,
     val preloadLog: String? = null,
     val hasUserChangedSearchLengthRange: Boolean = false,
     val isSearchSettingsInitialized: Boolean = false,
@@ -73,6 +76,7 @@ class MainViewModel @Inject constructor(
     private var lookupJob: Job? = null
     private var searchSettingsPersistJob: Job? = null
     private var additionalDictionaryJob: Job? = null
+    private var candidateDetailFetchJob: Job? = null
 
     init {
         preloadJob = viewModelScope.launch(ioDispatcher) {
@@ -141,6 +145,9 @@ class MainViewModel @Inject constructor(
                     maxSearchLength = state.maxSearchLength,
                     settingsMessage = state.settingsMessage,
                     isAdditionalDictionaryDownloading = state.isAdditionalDictionaryDownloading,
+                    loadingCandidateDetailWord = state.loadingCandidateDetailWord,
+                    candidateDetailErrorWord = state.candidateDetailErrorWord,
+                    candidateDetailErrorMessage = state.candidateDetailErrorMessage,
                     hasUserChangedSearchLengthRange = state.hasUserChangedSearchLengthRange,
                     isSearchSettingsInitialized = state.isSearchSettingsInitialized,
                 )
@@ -303,6 +310,64 @@ class MainViewModel @Inject constructor(
                     it.copy(
                         isAdditionalDictionaryDownloading = false,
                     )
+                }
+            }
+        }
+    }
+
+    fun onCandidateDetailFetchRequested(word: String) {
+        val currentState = _uiState.value
+        if (currentState.candidateDetails.containsKey(word)) {
+            return
+        }
+        if (currentState.loadingCandidateDetailWord == word) {
+            return
+        }
+        candidateDetailFetchJob?.cancel()
+        _uiState.update {
+            it.copy(
+                loadingCandidateDetailWord = word,
+                candidateDetailErrorWord = null,
+                candidateDetailErrorMessage = null,
+            )
+        }
+        candidateDetailFetchJob = viewModelScope.launch {
+            preloadJob.join()
+            try {
+                val fetchedDetail = withContext(ioDispatcher) {
+                    candidateDetailLoader.fetchDetail(word)
+                }
+                _uiState.update { state ->
+                    if (fetchedDetail != null) {
+                        state.copy(
+                            candidateDetails = state.candidateDetails + (word to fetchedDetail),
+                            candidateDetailErrorWord = null,
+                            candidateDetailErrorMessage = null,
+                        )
+                    } else {
+                        state.copy(
+                            candidateDetailErrorWord = word,
+                            candidateDetailErrorMessage = "候補詳細を取得できませんでした",
+                        )
+                    }
+                }
+            } catch (error: Throwable) {
+                if (error is CancellationException) {
+                    throw error
+                }
+                _uiState.update {
+                    it.copy(
+                        candidateDetailErrorWord = word,
+                        candidateDetailErrorMessage = "候補詳細の取得に失敗しました: ${error.message ?: "原因不明"}",
+                    )
+                }
+            } finally {
+                _uiState.update { state ->
+                    if (state.loadingCandidateDetailWord == word) {
+                        state.copy(loadingCandidateDetailWord = null)
+                    } else {
+                        state
+                    }
                 }
             }
         }

@@ -41,6 +41,7 @@ fun MainScreen(
         onInputChanged = viewModel::onInputChanged,
         onSearchLengthRangeChanged = viewModel::onSearchLengthRangeChanged,
         onAdditionalDictionaryDownloadRequested = viewModel::onAdditionalDictionaryDownloadRequested,
+        onCandidateDetailFetchRequested = viewModel::onCandidateDetailFetchRequested,
     )
 }
 
@@ -52,6 +53,7 @@ fun MainScreenContent(
     onInputChanged: (String) -> Unit,
     onSearchLengthRangeChanged: (Int, Int) -> Unit,
     onAdditionalDictionaryDownloadRequested: () -> Unit,
+    onCandidateDetailFetchRequested: (String) -> Unit,
 ) {
     var showAboutDialog by rememberSaveable { mutableStateOf(false) }
     var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
@@ -64,6 +66,13 @@ fun MainScreenContent(
             candidate = detailCandidate,
             kanji = detail?.kanji,
             meaning = detail?.meaning,
+            isLoading = state.loadingCandidateDetailWord == detailCandidate,
+            errorMessage = if (state.candidateDetailErrorWord == detailCandidate) {
+                state.candidateDetailErrorMessage
+            } else {
+                null
+            },
+            onFetchDetail = { onCandidateDetailFetchRequested(detailCandidate) },
             onBack = { selectedCandidate = null },
         )
         return
@@ -254,6 +263,9 @@ private fun CandidateDetailScreen(
     candidate: String,
     kanji: String?,
     meaning: String?,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onFetchDetail: () -> Unit,
     onBack: () -> Unit,
 ) {
     BackHandler(onBack = onBack)
@@ -278,6 +290,34 @@ private fun CandidateDetailScreen(
             "意味: ${meaning ?: "（未対応）"}",
             modifier = Modifier.testTag("candidate_detail_meaning"),
         )
+        if (kanji == null || meaning == null) {
+            TextButton(
+                onClick = onFetchDetail,
+                enabled = !isLoading,
+                modifier = Modifier.testTag("candidate_detail_fetch_button"),
+            ) {
+                Text(
+                    when {
+                        isLoading -> "詳細を取得中..."
+                        errorMessage != null -> "詳細を再取得"
+                        else -> "詳細を取得"
+                    },
+                )
+            }
+            if (isLoading) {
+                Text(
+                    "オンライン辞書から候補詳細を取得しています...",
+                    modifier = Modifier.testTag("candidate_detail_loading_text"),
+                )
+            }
+            if (errorMessage != null) {
+                Text(
+                    errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("candidate_detail_error_text"),
+                )
+            }
+        }
         TextButton(
             onClick = onBack,
             modifier = Modifier.testTag("candidate_detail_back_button"),

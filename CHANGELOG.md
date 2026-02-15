@@ -84,6 +84,9 @@
 - `MainViewModelTest` / `MainScreenTest` を更新し、追加辞書適用の成功・失敗・UI表示を検証
 - `MainScreen` の候補詳細をダイアログ表示から専用画面表示へ変更し、戻るボタンで検索画面へ戻れるよう更新
 - `MainScreenTest` の候補詳細UIテストを詳細画面表示と戻る操作の検証に更新
+- `CandidateDetailLoader` を拡張し、`candidate_detail_seed.tsv` 未収録語はオンライン（Jisho API）からオンデマンド取得して `candidate_detail_cache`（Room）へ保存するよう更新
+- `AnagramDatabase` を version 3 へ更新し、`candidate_detail_cache` テーブル（`word`/`kanji`/`meaning`/`updated_at`）を追加
+- `MainScreen` の候補詳細画面に「詳細を取得/再取得」導線と取得中・失敗表示を追加
 
 ## [0.1.0] - 2026-02-07
 

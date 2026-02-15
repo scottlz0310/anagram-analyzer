@@ -8,12 +8,13 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [AnagramEntry::class],
-    version = 2,
+    entities = [AnagramEntry::class, CandidateDetailCacheEntry::class],
+    version = 3,
     exportSchema = false,
 )
 abstract class AnagramDatabase : RoomDatabase() {
     abstract fun anagramDao(): AnagramDao
+    abstract fun candidateDetailCacheDao(): CandidateDetailCacheDao
 
     companion object {
         @Volatile
@@ -39,6 +40,25 @@ abstract class AnagramDatabase : RoomDatabase() {
                     )
                 }
             }
+        private val migration2To3 =
+            object : Migration(2, 3) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        """
+                        CREATE TABLE IF NOT EXISTS `candidate_detail_cache` (
+                            `word` TEXT NOT NULL,
+                            `kanji` TEXT NOT NULL,
+                            `meaning` TEXT NOT NULL,
+                            `updated_at` INTEGER NOT NULL,
+                            PRIMARY KEY(`word`)
+                        )
+                        """.trimIndent(),
+                    )
+                    db.execSQL(
+                        "CREATE INDEX IF NOT EXISTS `index_candidate_detail_cache_updated_at` ON `candidate_detail_cache` (`updated_at`)",
+                    )
+                }
+            }
 
         fun getInstance(context: Context): AnagramDatabase {
             return instance ?: synchronized(this) {
@@ -46,7 +66,7 @@ abstract class AnagramDatabase : RoomDatabase() {
                     context.applicationContext,
                     AnagramDatabase::class.java,
                     "anagram.db",
-                ).addMigrations(migration1To2)
+                ).addMigrations(migration1To2, migration2To3)
                     .build()
                     .also { instance = it }
             }

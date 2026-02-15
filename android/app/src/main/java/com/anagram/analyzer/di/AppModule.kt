@@ -8,11 +8,14 @@ import com.anagram.analyzer.data.datastore.InputHistoryStore
 import com.anagram.analyzer.data.datastore.SearchSettingsStore
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramDatabase
+import com.anagram.analyzer.data.db.CandidateDetailCacheDao
 import com.anagram.analyzer.data.seed.AdditionalSeedEntryLoader
 import com.anagram.analyzer.data.seed.AssetAdditionalSeedEntryLoader
 import com.anagram.analyzer.data.seed.AssetCandidateDetailLoader
 import com.anagram.analyzer.data.seed.AssetSeedEntryLoader
 import com.anagram.analyzer.data.seed.CandidateDetailLoader
+import com.anagram.analyzer.data.seed.CandidateDetailRemoteDataSource
+import com.anagram.analyzer.data.seed.JishoCandidateDetailRemoteDataSource
 import com.anagram.analyzer.data.seed.SeedEntryLoader
 import com.anagram.analyzer.ui.viewmodel.PreloadLogger
 import dagger.Module
@@ -37,6 +40,15 @@ object AppModule {
     fun provideAnagramDao(database: AnagramDatabase): AnagramDao = database.anagramDao()
 
     @Provides
+    fun provideCandidateDetailCacheDao(
+        database: AnagramDatabase,
+    ): CandidateDetailCacheDao = database.candidateDetailCacheDao()
+
+    @Provides
+    @Singleton
+    fun provideCandidateDetailRemoteDataSource(): CandidateDetailRemoteDataSource = JishoCandidateDetailRemoteDataSource()
+
+    @Provides
     @Singleton
     fun provideSeedEntryLoader(
         @ApplicationContext context: Context,
@@ -46,7 +58,13 @@ object AppModule {
     @Singleton
     fun provideCandidateDetailLoader(
         @ApplicationContext context: Context,
-    ): CandidateDetailLoader = AssetCandidateDetailLoader(context)
+        candidateDetailCacheDao: CandidateDetailCacheDao,
+        candidateDetailRemoteDataSource: CandidateDetailRemoteDataSource,
+    ): CandidateDetailLoader = AssetCandidateDetailLoader(
+        context = context,
+        candidateDetailCacheDao = candidateDetailCacheDao,
+        candidateDetailRemoteDataSource = candidateDetailRemoteDataSource,
+    )
 
     @Provides
     @Singleton
