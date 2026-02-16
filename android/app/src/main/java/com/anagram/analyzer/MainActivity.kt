@@ -17,8 +17,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collect
 
-@AndroidEntryPoint(ComponentActivity::class)
-class MainActivity : Hilt_MainActivity() {
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
     @Inject
     lateinit var themePreferenceStore: ThemePreferenceStore
 
