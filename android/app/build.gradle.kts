@@ -1,16 +1,19 @@
+import com.android.build.api.dsl.ApplicationExtension
 import org.gradle.api.GradleException
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.kapt")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.dagger.hilt.android")
 }
 
-android {
+extensions.configure<ApplicationExtension> {
     namespace = "com.anagram.analyzer"
-    compileSdk = 34
+    compileSdk = 36
     val releaseStoreFilePath =
         providers.gradleProperty("ANDROID_SIGNING_STORE_FILE").orNull
             ?: providers.environmentVariable("ANDROID_SIGNING_STORE_FILE").orNull
@@ -90,16 +93,15 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
