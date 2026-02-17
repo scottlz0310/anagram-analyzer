@@ -36,7 +36,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "rich", specifier = ">=14.3.2" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.1" },
-    { name = "typer", specifier = ">=0.23.2" },
+    { name = "typer", specifier = ">=0.24.0" },
 ]
 provides-extras = ["dict", "dev"]
 
