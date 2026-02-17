@@ -95,6 +95,7 @@
 - GitHub Actions に `Android Release` ワークフローを追加し、署名済み `app-release.apk` を artifact と GitHub Release asset の両方で配布可能に更新
 - `Android Release` ワークフローを改善し、`workflow_dispatch` でタグ未指定時に自動タグを作成して配布できるよう更新
 - `Android Release` ワークフローを改善し、自動タグ push による二重実行（dispatch + push）を防ぐガードを追加
+- GitHub Actions CI の Android処理を `Android Unit Test` / `Android Build` / `Android UI Test` に分割し、ジョブ依存を減らして並列実行できるよう更新
 
 ## [0.1.0] - 2026-02-07
 
