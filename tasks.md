@@ -84,6 +84,7 @@
 - [x] `Android Release` の `workflow_dispatch` でタグ未指定時の自動タグ発行を追加
 - [x] Android release 署名設定（keystore / alias / password の環境変数読込）を追加
 - [x] GitHub Actions CI の Androidジョブを分割し、Unit Test / Build / UI Test を並列実行できるよう最適化
+- [x] GitHub Actions CI の Androidジョブへ `gradle/actions/setup-gradle` と `--build-cache` を適用し、依存/ビルドキャッシュを強化
 - [ ] Android用CI/CDパイプライン完成
 - [ ] リリースビルド設定（署名、ProGuard/R8）
 - [ ] Google Play Store 公開準備
