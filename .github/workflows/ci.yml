@@ -76,15 +76,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Set up Gradle cache
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: android
+          cache: gradle
 
       - name: Run Android unit tests
         working-directory: android
-        run: ./gradlew :app:testDebugUnitTest --no-daemon --build-cache
+        run: ./gradlew :app:testDebugUnitTest --no-daemon
 
   android-build:
     name: Android Build
@@ -97,15 +93,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Set up Gradle cache
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: android
+          cache: gradle
 
       - name: Build Android debug APK
         working-directory: android
-        run: ./gradlew :app:assembleDebug --no-daemon --build-cache
+        run: ./gradlew :app:assembleDebug --no-daemon
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v6
@@ -126,11 +118,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Set up Gradle cache
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: android
+          cache: gradle
 
       - name: Enable KVM
         run: |
@@ -148,4 +136,4 @@ jobs:
           working-directory: android
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          script: ./gradlew :app:connectedDebugAndroidTest --no-daemon --build-cache
+          script: ./gradlew :app:connectedDebugAndroidTest --no-daemon
