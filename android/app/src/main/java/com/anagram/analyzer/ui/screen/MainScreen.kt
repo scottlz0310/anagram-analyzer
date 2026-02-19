@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -180,15 +183,22 @@ fun MainScreenContent(
                     } else {
                         val visibleCandidates = state.candidates.take(MAX_VISIBLE_CANDIDATES)
                         Text("候補:", color = MaterialTheme.colorScheme.onSecondaryContainer)
-                        visibleCandidates.forEach { candidate ->
-                            TextButton(
-                                onClick = { selectedCandidate = candidate },
-                                colors = ButtonDefaults.textButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                ),
-                            ) {
-                                Text("・$candidate")
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 280.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            items(items = visibleCandidates, key = { it }) { candidate ->
+                                TextButton(
+                                    onClick = { selectedCandidate = candidate },
+                                    colors = ButtonDefaults.textButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    ),
+                                ) {
+                                    Text("・$candidate")
+                                }
                             }
                         }
                         if (state.candidates.size > visibleCandidates.size) {
