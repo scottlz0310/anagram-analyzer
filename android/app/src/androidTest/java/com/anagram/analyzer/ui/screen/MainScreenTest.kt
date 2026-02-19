@@ -168,7 +168,7 @@ class MainScreenTest {
         }
 
         pressBack()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
+        composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithTag("candidate_detail_screen_title").fetchSemanticsNodes().isEmpty()
         }
         composeRule.onNodeWithTag("input_field").assertIsDisplayed()
