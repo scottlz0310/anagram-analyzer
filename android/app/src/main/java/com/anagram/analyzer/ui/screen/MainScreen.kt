@@ -1,15 +1,20 @@
 package com.anagram.analyzer.ui.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -19,8 +24,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -81,46 +88,130 @@ fun MainScreenContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.10f),
+                        MaterialTheme.colorScheme.background,
+                    ),
+                ),
+            )
             .padding(16.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        OutlinedTextField(
-            value = state.input,
-            onValueChange = onInputChanged,
-            label = { Text("ひらがな入力") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("input_field"),
-            singleLine = true,
-        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.92f),
+            ),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    "Anagram Analyzer",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Text(
+                    "ひらがなを入力して、カラフルに候補を探しましょう。",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            ),
+        ) {
+            OutlinedTextField(
+                value = state.input,
+                onValueChange = onInputChanged,
+                label = { Text("ひらがな入力") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+                    .testTag("input_field"),
+                singleLine = true,
+            )
+        }
 
         if (errorMessage != null) {
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error,
-            )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+            ) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.padding(12.dp),
+                )
+            }
         } else if (state.normalized.isNotEmpty()) {
-            Text("正規化: ${state.normalized}")
-            Text("キー: ${state.anagramKey}")
-            if (state.candidates.isEmpty()) {
-                Text("候補: なし")
-            } else {
-                Text("候補:")
-                state.candidates.forEach { candidate ->
-                    TextButton(onClick = { selectedCandidate = candidate }) {
-                        Text("・$candidate")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.92f),
+                ),
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text("正規化: ${state.normalized}", color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    Text("キー: ${state.anagramKey}", color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    if (state.candidates.isEmpty()) {
+                        Text("候補: なし", color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    } else {
+                        Text("候補:", color = MaterialTheme.colorScheme.onSecondaryContainer)
+                        state.candidates.forEach { candidate ->
+                            TextButton(
+                                onClick = { selectedCandidate = candidate },
+                                colors = ButtonDefaults.textButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                ),
+                            ) {
+                                Text("・$candidate")
+                            }
+                        }
                     }
                 }
             }
         } else {
-            Text("文字を入力すると正規化結果とキーを表示します。")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+            ) {
+                Text(
+                    "文字を入力すると正規化結果とキーを表示します。",
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.padding(12.dp),
+                )
+            }
         }
 
         if (state.inputHistory.isNotEmpty()) {
             TextButton(
                 onClick = { isInputHistoryExpanded = !isInputHistoryExpanded },
-                modifier = Modifier.testTag("input_history_toggle_button"),
+                colors = ButtonDefaults.textButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("input_history_toggle_button"),
             ) {
                 Text(if (isInputHistoryExpanded) "入力履歴を隠す" else "入力履歴を表示")
             }
@@ -129,6 +220,10 @@ fun MainScreenContent(
                 state.inputHistory.forEachIndexed { index, history ->
                     TextButton(
                         onClick = { onInputChanged(history) },
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
                         modifier = Modifier.testTag("input_history_item_$index"),
                     ) {
                         Text("履歴: $history")
@@ -139,14 +234,26 @@ fun MainScreenContent(
 
         TextButton(
             onClick = { showSettingsDialog = true },
-            modifier = Modifier.testTag("settings_button"),
+            colors = ButtonDefaults.textButtonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("settings_button"),
         ) {
             Text("設定")
         }
 
         TextButton(
             onClick = { showAboutDialog = true },
-            modifier = Modifier.testTag("about_button"),
+            colors = ButtonDefaults.textButtonColors(
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                contentColor = MaterialTheme.colorScheme.onTertiary,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("about_button"),
         ) {
             Text("辞書クレジット")
         }
