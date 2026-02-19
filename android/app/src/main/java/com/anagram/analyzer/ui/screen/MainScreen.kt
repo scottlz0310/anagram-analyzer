@@ -22,6 +22,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Brush
@@ -33,6 +34,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anagram.analyzer.ui.viewmodel.MainUiState
 import com.anagram.analyzer.ui.viewmodel.MainViewModel
+
+private const val MAX_VISIBLE_CANDIDATES = 50
 
 @Composable
 fun MainScreen(
@@ -85,18 +88,20 @@ fun MainScreenContent(
         return
     }
     val errorMessage = state.errorMessage
+    val colorScheme = MaterialTheme.colorScheme
+    val backgroundBrush = remember(colorScheme.primary, colorScheme.tertiary, colorScheme.background) {
+        Brush.verticalGradient(
+            listOf(
+                colorScheme.primary.copy(alpha = 0.14f),
+                colorScheme.tertiary.copy(alpha = 0.10f),
+                colorScheme.background,
+            ),
+        )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    listOf(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
-                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.10f),
-                        MaterialTheme.colorScheme.background,
-                    ),
-                ),
-            )
+            .background(brush = backgroundBrush)
             .padding(16.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -173,8 +178,9 @@ fun MainScreenContent(
                     if (state.candidates.isEmpty()) {
                         Text("候補: なし", color = MaterialTheme.colorScheme.onSecondaryContainer)
                     } else {
+                        val visibleCandidates = state.candidates.take(MAX_VISIBLE_CANDIDATES)
                         Text("候補:", color = MaterialTheme.colorScheme.onSecondaryContainer)
-                        state.candidates.forEach { candidate ->
+                        visibleCandidates.forEach { candidate ->
                             TextButton(
                                 onClick = { selectedCandidate = candidate },
                                 colors = ButtonDefaults.textButtonColors(
@@ -184,6 +190,12 @@ fun MainScreenContent(
                             ) {
                                 Text("・$candidate")
                             }
+                        }
+                        if (state.candidates.size > visibleCandidates.size) {
+                            Text(
+                                "…ほか ${state.candidates.size - visibleCandidates.size} 件",
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            )
                         }
                     }
                 }

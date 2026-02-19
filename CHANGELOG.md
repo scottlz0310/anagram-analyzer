@@ -102,6 +102,7 @@
 - GitHub Actions `CI` に `dorny/paths-filter`（commit SHA固定）ベースの差分判定を追加し、PR時はAndroid関連変更（`android/**` と関連workflow）に限定して `Android Unit Test` / `Android Build` を実行するよう更新
 - Android CI（`Android Unit Test` / `Android Build` / `Android UI Tests`）で Gradle Configuration Cache を有効化（`--configuration-cache` + `android/.gradle/configuration-cache` の保存・復元）し、ローカル連続実行の `testDebugUnitTest --dry-run --no-daemon` 計測で 6.69s → 4.10s（再利用時、約39%短縮）を確認
 - Android `MainActivity` / `MainScreen` のCompose UIを更新し、カスタムColorScheme・グラデーション背景・カードレイアウト・カラーボタンで視認性を改善
+- Android `MainScreen` の候補表示を最大50件 + 残件数表示に最適化し、大量候補時のCompose描画負荷を軽減
 
 ## [0.1.0] - 2026-02-07
 

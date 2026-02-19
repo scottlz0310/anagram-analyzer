@@ -214,6 +214,8 @@ android/
 
 **UIカラー強化**: `MainActivity` のカスタム `ColorScheme` と `MainScreen` のグラデーション背景/カード/カラーボタンで、入力・候補・履歴セクションを視認しやすく表示
 
+**候補表示最適化**: `MainScreen` は候補ボタンのCompose負荷を抑えるため、候補一覧の表示を最大50件に制限し、超過分は残件数を表示
+
 **テーマ永続化**: `ThemePreferenceStore` が DataStore Preferences にテーマ設定を保存し、再起動後も反映
 
 **入力履歴**: `MainViewModel` が候補表示時に最新10件の履歴を保持し、`InputHistoryStore`（DataStore）で永続化しつつ `MainScreen` で折りたたみ表示と履歴タップ再入力を提供
