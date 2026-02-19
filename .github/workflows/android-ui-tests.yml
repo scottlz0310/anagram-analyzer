@@ -76,6 +76,15 @@ jobs:
           java-version: "17"
           cache: gradle
 
+      - name: Cache Gradle configuration cache (ui)
+        if: steps.shard.outputs.run_tests == 'true'
+        uses: actions/cache@v4
+        with:
+          path: android/.gradle/configuration-cache
+          key: ${{ runner.os }}-android-config-cache-ui-shard-${{ matrix.shard_index }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle.properties', 'android/settings.gradle.kts', 'android/gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-android-config-cache-ui-shard-${{ matrix.shard_index }}-
+
       - name: Enable KVM
         if: steps.shard.outputs.run_tests == 'true'
         run: |
@@ -116,4 +125,4 @@ jobs:
             exit 0
           fi
           echo "- 割当クラス: \`${{ steps.shard.outputs.class_display }}\`" >> "${GITHUB_STEP_SUMMARY}"
-          echo "- 再現コマンド: \`cd android && ./gradlew :app:connectedDebugAndroidTest --no-daemon -Pandroid.testInstrumentationRunnerArguments.class=${{ steps.shard.outputs.class_argument }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- 再現コマンド: \`cd android && ./gradlew :app:connectedDebugAndroidTest --no-daemon --configuration-cache -Pandroid.testInstrumentationRunnerArguments.class=${{ steps.shard.outputs.class_argument }}\`" >> "${GITHUB_STEP_SUMMARY}"
