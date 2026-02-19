@@ -99,6 +99,7 @@
 - GitHub Actions CI の AndroidジョブのGradleキャッシュ方式を `actions/setup-java` の `cache: gradle` に統一し、PRでのコールドビルドを抑制
 - GitHub Actions CI から Android UIテストを分離し、`Android UI Tests` ワークフロー（`pull_request` / `workflow_dispatch` / `schedule`）へ移行
 - `Android UI Tests` ワークフローで `androidTest` の `*Test.kt` をクラス単位2シャードで並列実行し、失敗時にシャード別レポート artifact と再現コマンドを出力するよう更新
+- GitHub Actions `CI` に `dorny/paths-filter`（commit SHA固定）ベースの差分判定を追加し、PR時はAndroid関連変更（`android/**` と関連workflow）に限定して `Android Unit Test` / `Android Build` を実行するよう更新
 
 ## [0.1.0] - 2026-02-07
 
