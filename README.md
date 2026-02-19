@@ -242,6 +242,17 @@ GitHub Actions の `Android Build` ジョブでは `android-debug-apk` artifact 
 - `辞書クレジット` ボタン → JMdict の CC BY-SA 4.0 表記ダイアログを表示
 - 起動直後の logcat に `preload source=... total=... inserted=... elapsedMs=...` が出力される
 
+### CI運用（Android UIテスト）
+
+CI待ち時間短縮のため、Android UIテストは通常の `CI` ワークフローから分離しています。
+
+- **PR必須**: `CI` ワークフロー（Python lint/test + Android Unit Test + Android Build）
+- **PR補助（任意）**: `Android UI Tests` ワークフロー
+  - `pull_request`: `android/**` または関連ワークフロー変更時のみ自動実行
+  - `workflow_dispatch`: 任意ブランチで手動実行
+  - `schedule`: 毎日 03:00 JST（`0 18 * * *`）に定期実行
+- UIテストは `androidTest` の `*Test.kt` クラスを2シャードに分割して並列実行し、失敗時は各シャードのレポート artifact と再現コマンドをジョブサマリに出力
+
 ### GitHub Release での配布（署名済みAPK）
 
 まずは GitHub Release から `app-release.apk` を配布し、端末へインストールする運用を想定しています。
