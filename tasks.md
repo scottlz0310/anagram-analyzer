@@ -86,7 +86,7 @@
 - [x] GitHub Actions CI の Androidジョブを分割し、Unit Test / Build / UI Test を並列実行できるよう最適化
 - [x] GitHub Actions CI の AndroidジョブのGradleキャッシュ方式を `setup-java` の `cache: gradle` に統一し、PRでのコールドビルドを抑制
 - [x] Android UIテストを `Android UI Tests` 専用ワークフローへ分離し、`androidTest` クラス単位2シャード（`pull_request` / `workflow_dispatch` / `schedule`）で実行
-- [x] GitHub Actions CI に変更差分判定（`dorny/paths-filter`）を追加し、PR時はAndroid関連変更のみ Android Unit Test / Build を実行
+- [x] GitHub Actions CI に変更差分判定（`dorny/paths-filter` をcommit SHA固定）を追加し、PR時はAndroid関連変更のみ Android Unit Test / Build を実行
 - [ ] Android用CI/CDパイプライン完成
 - [ ] リリースビルド設定（署名、ProGuard/R8）
 - [ ] Google Play Store 公開準備

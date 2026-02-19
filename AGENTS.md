@@ -202,7 +202,7 @@ android/
 
 **UIテスト**: `MainScreenTest.kt` で入力→候補表示→エラー表示の最小E2Eを検証
 
-**CI運用（Android Unit/Build）**: `CI`（`.github/workflows/ci.yml`）は `dorny/paths-filter` でPR差分を判定し、`android/**`・`.github/workflows/ci.yml`・`.github/workflows/android-ui-tests.yml` 変更時のみ Android Unit Test / Build を実行（`push` to `main` は常時実行）
+**CI運用（Android Unit/Build）**: `CI`（`.github/workflows/ci.yml`）は `dorny/paths-filter`（commit SHA固定）でPR差分を判定し、`android/**`・`.github/workflows/ci.yml`・`.github/workflows/android-ui-tests.yml` 変更時のみ Android Unit Test / Build を実行（`push` to `main` は常時実行）
 
 **CI運用（Android UIテスト）**: `CI` ワークフローから分離した `Android UI Tests`（`.github/workflows/android-ui-tests.yml`）で `androidTest` の `*Test.kt` をクラス単位2シャード実行。PRでは `android/**` 変更時のみ自動実行し、`workflow_dispatch` / `schedule` でも実行
 

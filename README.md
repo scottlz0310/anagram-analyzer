@@ -248,7 +248,7 @@ CI待ち時間短縮のため、Android関連ジョブは用途ごとに実行�
 
 - **PR必須**: `CI` ワークフロー
   - Python lint/test は常時実行
-  - Android Unit Test / Build は `dorny/paths-filter` で差分判定し、`android/**` または関連workflow変更時のみ実行
+  - Android Unit Test / Build は `dorny/paths-filter`（commit SHA固定）で差分判定し、`android/**` または関連workflow変更時のみ実行
 - **PR補助（任意）**: `Android UI Tests` ワークフロー
   - `pull_request`: `android/**` または関連ワークフロー変更時のみ自動実行
   - `workflow_dispatch`: 任意ブランチで手動実行

@@ -18,7 +18,7 @@ jobs:
       - name: Detect changed paths (PR)
         if: github.event_name == 'pull_request'
         id: filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         with:
           filters: |
             android:
@@ -99,7 +99,7 @@ jobs:
   android-unit:
     name: Android Unit Test
     needs: detect-android-changes
-    if: github.event_name != 'pull_request' || needs.detect-android-changes.outputs.android == 'true'
+    if: needs.detect-android-changes.outputs.android == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -118,7 +118,7 @@ jobs:
   android-build:
     name: Android Build
     needs: detect-android-changes
-    if: github.event_name != 'pull_request' || needs.detect-android-changes.outputs.android == 'true'
+    if: needs.detect-android-changes.outputs.android == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
