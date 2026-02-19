@@ -248,12 +248,14 @@ CI待ち時間短縮のため、Android関連ジョブは用途ごとに実行�
 
 - **PR必須**: `CI` ワークフロー
   - Python lint/test は常時実行
-  - Android Unit Test / Build は `dorny/paths-filter`（commit SHA固定）で差分判定し、`android/**` または関連workflow変更時のみ実行
+  - Android Unit Test / Build は `dorny/paths-filter`（commit SHA固定）で差分判定し、`android/**` または関連workflow変更時のみ実行（`--configuration-cache` + `org.gradle.configuration-cache=true` を有効化）
 - **PR補助（任意）**: `Android UI Tests` ワークフロー
   - `pull_request`: `android/**` または関連ワークフロー変更時のみ自動実行
   - `workflow_dispatch`: 任意ブランチで手動実行
   - `schedule`: 毎日 03:00 JST（`0 18 * * *`）に定期実行
-- UIテストは `androidTest` の `*Test.kt` クラスを2シャードに分割して並列実行し、失敗時は各シャードのレポート artifact と再現コマンドをジョブサマリに出力
+- UIテストは `androidTest` の `*Test.kt` クラスを2シャードに分割して並列実行し、失敗時は各シャードのレポート artifact と再現コマンドをジョブサマリに出力（`connectedDebugAndroidTest` も `--configuration-cache` を有効化）
+- 計測例（`cd android && ./gradlew :app:testDebugUnitTest --dry-run --no-daemon`）: `--no-configuration-cache` 6.69s → Configuration Cache再利用時 4.10s（約39%短縮）
+- 注意: Configuration Cache は初回実行時に生成コストが発生し、Gradle/AGP/プラグイン更新時は再生成される
 
 ### GitHub Release での配布（署名済みAPK）
 

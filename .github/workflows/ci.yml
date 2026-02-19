@@ -113,7 +113,7 @@ jobs:
 
       - name: Run Android unit tests
         working-directory: android
-        run: ./gradlew :app:testDebugUnitTest --no-daemon
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --configuration-cache
 
   android-build:
     name: Android Build
@@ -132,7 +132,7 @@ jobs:
 
       - name: Build Android debug APK
         working-directory: android
-        run: ./gradlew :app:assembleDebug --no-daemon
+        run: ./gradlew :app:assembleDebug --no-daemon --configuration-cache
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v6
