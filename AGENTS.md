@@ -48,7 +48,7 @@
 | 辞書ソース | JMdict (CC BY-SA 4.0) |
 | ビルド | Gradle (Kotlin DSL) |
 | テスト | JUnit, Espresso |
-| CI | GitHub Actions（CI: Python lint/test + Android Unit Test + Android Build + debug APK artifact、Android UI Tests: クラス単位2シャード + pull_request/workflow_dispatch/schedule、Android Release: 署名済みAPK公開） |
+| CI | GitHub Actions（CI: Python lint/test + Android Unit Test/Build（PRはAndroid差分時のみ）+ debug APK artifact、Android UI Tests: クラス単位2シャード + pull_request/workflow_dispatch/schedule、Android Release: 署名済みAPK公開） |
 
 ## ディレクトリ構造
 
@@ -201,6 +201,8 @@ android/
 **テスト**: `HiraganaNormalizerTest.kt` で Python版 `tests/test_normalize.py` の主要ケースとの一致を検証
 
 **UIテスト**: `MainScreenTest.kt` で入力→候補表示→エラー表示の最小E2Eを検証
+
+**CI運用（Android Unit/Build）**: `CI`（`.github/workflows/ci.yml`）は `dorny/paths-filter` でPR差分を判定し、`android/**`・`.github/workflows/ci.yml`・`.github/workflows/android-ui-tests.yml` 変更時のみ Android Unit Test / Build を実行（`push` to `main` は常時実行）
 
 **CI運用（Android UIテスト）**: `CI` ワークフローから分離した `Android UI Tests`（`.github/workflows/android-ui-tests.yml`）で `androidTest` の `*Test.kt` をクラス単位2シャード実行。PRでは `android/**` 変更時のみ自動実行し、`workflow_dispatch` / `schedule` でも実行
 
