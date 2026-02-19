@@ -85,6 +85,7 @@
 - [x] Android release 署名設定（keystore / alias / password の環境変数読込）を追加
 - [x] GitHub Actions CI の Androidジョブを分割し、Unit Test / Build / UI Test を並列実行できるよう最適化
 - [x] GitHub Actions CI の AndroidジョブのGradleキャッシュ方式を `setup-java` の `cache: gradle` に統一し、PRでのコールドビルドを抑制
+- [x] Android UIテストを `Android UI Tests` 専用ワークフローへ分離し、`androidTest` クラス単位2シャード（`pull_request` / `workflow_dispatch` / `schedule`）で実行
 - [ ] Android用CI/CDパイプライン完成
 - [ ] リリースビルド設定（署名、ProGuard/R8）
 - [ ] Google Play Store 公開準備
@@ -104,4 +105,4 @@
 | 4: UI実装 | 🟡 進行中 | メイン画面実装、候補詳細画面（漢字/意味のseed実データ表示 + 未収録語オンデマンド取得導線）、ライト/ダーク切替、ランチャーアイコン適用、手動テスト可能な最小フロー、Compose UIテスト追加 |
 | 5: 辞書データ | 🟡 進行中 | seed変換/取込導線 + サイズ最適化（`max-len=8`）+ ライセンス表示 + 初回インポート計測ログ + 8/10投入時間比較 + 候補詳細オンデマンド取得/キャッシュ + JMdict XML→Room DB 変換ツール + `anagram_seed.db` 優先読込まで実施 |
 | 6: 追加機能 | 🟡 進行中 | DataStore によるテーマ設定永続化 + 入力履歴永続化 + 履歴折りたたみ表示 + 設定画面（文字数範囲/テーマ/追加辞書DL適用）まで実装 |
-| 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト（エミュレータ）+ debug APK artifact + GitHub Release向け署名済みAPK公開ワークフロー（dispatch自動タグ発行対応）を追加 |
+| 7: CI/CD・リリース | 🟡 進行中 | Android UIテストを専用ワークフローへ分離し、2シャード並列（PRはAndroid変更時のみ自動 + 手動 + 定期）運用を追加。debug APK artifact と GitHub Release向け署名済みAPK公開ワークフロー（dispatch自動タグ発行対応）も運用中 |

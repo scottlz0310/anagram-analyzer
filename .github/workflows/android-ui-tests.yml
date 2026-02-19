@@ -1,0 +1,119 @@
+name: Android UI Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "android/**"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/android-ui-tests.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 18 * * *"
+
+concurrency:
+  group: android-ui-tests-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-ui:
+    name: Android UI Test (shard ${{ matrix.shard_index }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard_index: [0, 1]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Select shard classes
+        id: shard
+        shell: bash
+        run: |
+          mapfile -t classes < <(
+            find android/app/src/androidTest/java -name '*Test.kt' -print \
+              | sed -E 's#android/app/src/androidTest/java/##; s#/#.#g; s#\.kt$##' \
+              | sort
+          )
+
+          if [ "${#classes[@]}" -eq 0 ]; then
+            echo "run_tests=false" >> "${GITHUB_OUTPUT}"
+            echo "class_argument=" >> "${GITHUB_OUTPUT}"
+            echo "class_display=(なし)" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          shard_total=2
+          shard_index=${{ matrix.shard_index }}
+          shard_classes=()
+          for idx in "${!classes[@]}"; do
+            if (( idx % shard_total == shard_index )); then
+              shard_classes+=("${classes[$idx]}")
+            fi
+          done
+
+          if [ "${#shard_classes[@]}" -eq 0 ]; then
+            echo "run_tests=false" >> "${GITHUB_OUTPUT}"
+            echo "class_argument=" >> "${GITHUB_OUTPUT}"
+            echo "class_display=(なし)" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          class_argument=$(IFS=,; echo "${shard_classes[*]}")
+          class_display=$(printf '%s, ' "${shard_classes[@]}")
+          class_display=${class_display%, }
+
+          echo "run_tests=true" >> "${GITHUB_OUTPUT}"
+          echo "class_argument=${class_argument}" >> "${GITHUB_OUTPUT}"
+          echo "class_display=${class_display}" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up JDK 17
+        if: steps.shard.outputs.run_tests == 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Enable KVM
+        if: steps.shard.outputs.run_tests == 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Android connected UI tests
+        if: steps.shard.outputs.run_tests == 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          working-directory: android
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: ./gradlew :app:connectedDebugAndroidTest --no-daemon -Pandroid.testInstrumentationRunnerArguments.class=${{ steps.shard.outputs.class_argument }}
+
+      - name: Upload Android UI test report
+        if: always() && steps.shard.outputs.run_tests == 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: android-ui-test-report-shard-${{ matrix.shard_index }}
+          path: |
+            android/app/build/reports/androidTests/connected
+            android/app/build/outputs/androidTest-results/connected
+          if-no-files-found: warn
+
+      - name: Write shard summary
+        if: always()
+        shell: bash
+        run: |
+          echo "### Android UI Test shard ${{ matrix.shard_index }}" >> "${GITHUB_STEP_SUMMARY}"
+          if [ "${{ steps.shard.outputs.run_tests }}" != "true" ]; then
+            echo "- 割当クラス: なし" >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          echo "- 割当クラス: \`${{ steps.shard.outputs.class_display }}\`" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- 再現コマンド: \`cd android && ./gradlew :app:connectedDebugAndroidTest --no-daemon -Pandroid.testInstrumentationRunnerArguments.class=${{ steps.shard.outputs.class_argument }}\`" >> "${GITHUB_STEP_SUMMARY}"
