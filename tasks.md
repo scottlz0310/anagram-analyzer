@@ -47,6 +47,7 @@
 - [x] 手動テスト可能な最小フロー（debug APKビルド + 入力確認手順）
 - [x] ランチャーアイコンをアプリ専用画像へ差し替え
 - [x] 更新済み `asset/AnagramAnalyzerICON.png` から Android ランチャーアイコン（`mipmap-*/ic_launcher*.png`）を再生成
+- [x] AndroidShell向け丸形アイコン更新後、`asset/AnagramAnalyzerICON.png` からランチャーアイコンを再生成
 - [x] 候補詳細画面（漢字表記・意味表示）
 - [x] 候補詳細画面の最小実装（読み表示 + 漢字/意味プレースホルダ、旧: ダイアログ）
 - [x] 候補詳細画面で漢字/意味のseed実データ表示（未収録語はプレースホルダ、旧: ダイアログ）
