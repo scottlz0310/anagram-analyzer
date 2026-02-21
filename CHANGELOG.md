@@ -103,6 +103,12 @@
 - Android CI（`Android Unit Test` / `Android Build` / `Android UI Tests`）で Gradle Configuration Cache を有効化（`--configuration-cache` + `android/.gradle/configuration-cache` の保存・復元）し、ローカル連続実行の `testDebugUnitTest --dry-run --no-daemon` 計測で 6.69s → 4.10s（再利用時、約39%短縮）を確認
 - Android `MainActivity` / `MainScreen` のCompose UIを更新し、カスタムColorScheme・グラデーション背景・カードレイアウト・カラーボタンで視認性を改善
 - Android `MainScreen` の候補表示を最大50件 + 残件数表示に最適化し、大量候補時のCompose描画負荷を軽減
+- Android `MainScreen` の上部左右に `charactor1.png` / `charactor2.png`、下部に `spot-illustration.png`（`spot_illustration.png`）を配置
+- Android `MainActivity` の `ColorScheme` をPastelパレットへ更新（Primary: ピンク `#FF8AAE` / Secondary: ミント `#6EDDD3` / Tertiary: ラベンダー `#C39BFF` / 背景: アイボリー `#FFF8E7`）
+- Android `MainScreen` の装飾イラスト3点で `contentDescription = null` を設定し、スクリーンリーダーが不要読み上げしないようアクセシビリティを改善
+- `Android UI Tests` ワークフローの `android/.gradle/configuration-cache` キャッシュキーに `github.sha` を追加し、古いコミットのConfiguration Cache再利用で発生する `:app:mergeDebugAndroidTestAssets`（AAR欠損）失敗を回避
+- Android `MainScreenTest` の「候補詳細画面でシステム戻るキー操作で戻れる」を `Espresso.pressBack()` から `onBackPressedDispatcher` 呼び出しへ変更し、CI環境での `ComposeTimeoutException` 発生を抑制
+- 更新済み `asset/AnagramAnalyzerICON.png` をもとに Android ランチャーアイコン（`mipmap-*/ic_launcher.png` / `ic_launcher_round.png`）を再生成し、密度別サイズ（48/72/96/144/192px）へ正規化
 
 ## [0.1.0] - 2026-02-07
 

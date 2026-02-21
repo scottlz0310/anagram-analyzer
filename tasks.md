@@ -46,11 +46,14 @@
 - [x] メイン画面（テキスト入力 + 検索 + 候補リスト）
 - [x] 手動テスト可能な最小フロー（debug APKビルド + 入力確認手順）
 - [x] ランチャーアイコンをアプリ専用画像へ差し替え
+- [x] 更新済み `asset/AnagramAnalyzerICON.png` から Android ランチャーアイコン（`mipmap-*/ic_launcher*.png`）を再生成
 - [x] 候補詳細画面（漢字表記・意味表示）
 - [x] 候補詳細画面の最小実装（読み表示 + 漢字/意味プレースホルダ、旧: ダイアログ）
 - [x] 候補詳細画面で漢字/意味のseed実データ表示（未収録語はプレースホルダ、旧: ダイアログ）
 - [x] テーマ設定（Material 3: ライト/ダーク切替）
 - [x] メイン画面のUIカラー強化（グラデーション背景 + カードレイアウト + カラーボタン）
+- [x] メイン画面にイラスト配置（上部左右 + 下部）とPastel配色（Primary/Secondary/Tertiary）を適用
+- [x] 装飾イラストをアクセシビリティ対応（`contentDescription = null`）に調整
 - [x] 候補一覧の描画最適化（表示最大50件 + 残件数表示）
 - [x] UIテスト（Compose Testing）
 
@@ -90,6 +93,8 @@
 - [x] Android UIテストを `Android UI Tests` 専用ワークフローへ分離し、`androidTest` クラス単位2シャード（`pull_request` / `workflow_dispatch` / `schedule`）で実行
 - [x] GitHub Actions CI に変更差分判定（`dorny/paths-filter` をcommit SHA固定）を追加し、PR時はAndroid関連変更のみ Android Unit Test / Build を実行
 - [x] Android CI（Unit/Build/UI）で Gradle Configuration Cache を有効化し、`android/.gradle/configuration-cache` の保存・復元を追加。ローカル連続実行の `testDebugUnitTest --dry-run --no-daemon` 計測で 6.69s → 4.10s（再利用時、約39%短縮）を確認
+- [x] `Android UI Tests` の Configuration Cacheキーに `github.sha` を含め、古いコミットのキャッシュ再利用で発生する `mergeDebugAndroidTestAssets` 失敗（AAR欠損）を回避
+- [x] `MainScreenTest` の「システム戻るキー」検証を `onBackPressedDispatcher` ベースへ調整し、CIエミュレータでのタイムアウト（`ComposeTimeoutException`）を抑制
 - [ ] Android用CI/CDパイプライン完成
 - [ ] リリースビルド設定（署名、ProGuard/R8）
 - [ ] Google Play Store 公開準備
@@ -106,7 +111,7 @@
 | 1: ロジック抽出 | 🔲 未着手 | |
 | 2: Android初期構築 | ✅ 完了 | Room最小DB構成 + Hilt DI基盤 + Android CIジョブ追加 + 起動クラッシュ対策まで完了 |
 | 3: ロジック移植 | ✅ 完了 | normalize移植 + Room検索接続 + Python版との一致テスト追加 |
-| 4: UI実装 | 🟡 進行中 | メイン画面実装、候補詳細画面（漢字/意味のseed実データ表示 + 未収録語オンデマンド取得導線）、ライト/ダーク切替、グラデーション背景/カード/カラーボタンによるUIカラー強化、候補一覧の50件上限制御、ランチャーアイコン適用、手動テスト可能な最小フロー、Compose UIテスト追加 |
+| 4: UI実装 | 🟡 進行中 | メイン画面実装、候補詳細画面（漢字/意味のseed実データ表示 + 未収録語オンデマンド取得導線）、ライト/ダーク切替、グラデーション背景/カード/カラーボタンによるUIカラー強化、上部左右/下部イラスト配置 + Pastel配色適用、候補一覧の50件上限制御、ランチャーアイコン適用（更新素材から再生成含む）、手動テスト可能な最小フロー、Compose UIテスト追加 |
 | 5: 辞書データ | 🟡 進行中 | seed変換/取込導線 + サイズ最適化（`max-len=8`）+ ライセンス表示 + 初回インポート計測ログ + 8/10投入時間比較 + 候補詳細オンデマンド取得/キャッシュ + JMdict XML→Room DB 変換ツール + `anagram_seed.db` 優先読込まで実施 |
 | 6: 追加機能 | 🟡 進行中 | DataStore によるテーマ設定永続化 + 入力履歴永続化 + 履歴折りたたみ表示 + 設定画面（文字数範囲/テーマ/追加辞書DL適用）まで実装 |
-| 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト分離（2シャード）+ CI本体の差分判定でPR時のAndroid Unit/Build条件実行 + Android Unit/Build/UIでConfiguration Cache有効化（`android/.gradle/configuration-cache` 保存復元、ローカル連続計測で `testDebugUnitTest --dry-run` 6.69s→4.10s）まで運用中。debug APK artifact と GitHub Release向け署名済みAPK公開ワークフロー（dispatch自動タグ発行対応）も継続 |
+| 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト分離（2シャード）+ CI本体の差分判定でPR時のAndroid Unit/Build条件実行 + Android Unit/Build/UIでConfiguration Cache有効化（`android/.gradle/configuration-cache` 保存復元、ローカル連続計測で `testDebugUnitTest --dry-run` 6.69s→4.10s）に加え、UIテストのConfiguration Cacheキーへ `github.sha` を導入して古いコミットのキャッシュ再利用起因の失敗を抑制。debug APK artifact と GitHub Release向け署名済みAPK公開ワークフロー（dispatch自動タグ発行対応）も継続 |
