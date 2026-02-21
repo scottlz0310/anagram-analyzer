@@ -92,6 +92,7 @@
 - [x] Android UIテストを `Android UI Tests` 専用ワークフローへ分離し、`androidTest` クラス単位2シャード（`pull_request` / `workflow_dispatch` / `schedule`）で実行
 - [x] GitHub Actions CI に変更差分判定（`dorny/paths-filter` をcommit SHA固定）を追加し、PR時はAndroid関連変更のみ Android Unit Test / Build を実行
 - [x] Android CI（Unit/Build/UI）で Gradle Configuration Cache を有効化し、`android/.gradle/configuration-cache` の保存・復元を追加。ローカル連続実行の `testDebugUnitTest --dry-run --no-daemon` 計測で 6.69s → 4.10s（再利用時、約39%短縮）を確認
+- [x] `Android UI Tests` の Configuration Cacheキーに `github.sha` を含め、古いコミットのキャッシュ再利用で発生する `mergeDebugAndroidTestAssets` 失敗（AAR欠損）を回避
 - [ ] Android用CI/CDパイプライン完成
 - [ ] リリースビルド設定（署名、ProGuard/R8）
 - [ ] Google Play Store 公開準備
@@ -111,4 +112,4 @@
 | 4: UI実装 | 🟡 進行中 | メイン画面実装、候補詳細画面（漢字/意味のseed実データ表示 + 未収録語オンデマンド取得導線）、ライト/ダーク切替、グラデーション背景/カード/カラーボタンによるUIカラー強化、上部左右/下部イラスト配置 + Pastel配色適用、候補一覧の50件上限制御、ランチャーアイコン適用、手動テスト可能な最小フロー、Compose UIテスト追加 |
 | 5: 辞書データ | 🟡 進行中 | seed変換/取込導線 + サイズ最適化（`max-len=8`）+ ライセンス表示 + 初回インポート計測ログ + 8/10投入時間比較 + 候補詳細オンデマンド取得/キャッシュ + JMdict XML→Room DB 変換ツール + `anagram_seed.db` 優先読込まで実施 |
 | 6: 追加機能 | 🟡 進行中 | DataStore によるテーマ設定永続化 + 入力履歴永続化 + 履歴折りたたみ表示 + 設定画面（文字数範囲/テーマ/追加辞書DL適用）まで実装 |
-| 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト分離（2シャード）+ CI本体の差分判定でPR時のAndroid Unit/Build条件実行 + Android Unit/Build/UIでConfiguration Cache有効化（`android/.gradle/configuration-cache` 保存復元、ローカル連続計測で `testDebugUnitTest --dry-run` 6.69s→4.10s）まで運用中。debug APK artifact と GitHub Release向け署名済みAPK公開ワークフロー（dispatch自動タグ発行対応）も継続 |
+| 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト分離（2シャード）+ CI本体の差分判定でPR時のAndroid Unit/Build条件実行 + Android Unit/Build/UIでConfiguration Cache有効化（`android/.gradle/configuration-cache` 保存復元、ローカル連続計測で `testDebugUnitTest --dry-run` 6.69s→4.10s）に加え、UIテストのConfiguration Cacheキーへ `github.sha` を導入して古いコミットのキャッシュ再利用起因の失敗を抑制。debug APK artifact と GitHub Release向け署名済みAPK公開ワークフロー（dispatch自動タグ発行対応）も継続 |

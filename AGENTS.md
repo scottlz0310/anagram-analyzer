@@ -204,7 +204,7 @@ android/
 
 **CI運用（Android Unit/Build）**: `CI`（`.github/workflows/ci.yml`）は `dorny/paths-filter`（commit SHA固定）でPR差分を判定し、`android/**`・`.github/workflows/ci.yml`・`.github/workflows/android-ui-tests.yml` 変更時のみ Android Unit Test / Build を実行（`push` to `main` は常時実行）。実行コマンドは `--configuration-cache` を付与し、`android/.gradle/configuration-cache` を `actions/cache` で保存・復元
 
-**CI運用（Android UIテスト）**: `CI` ワークフローから分離した `Android UI Tests`（`.github/workflows/android-ui-tests.yml`）で `androidTest` の `*Test.kt` をクラス単位2シャード実行。PRでは `android/**` 変更時のみ自動実行し、`workflow_dispatch` / `schedule` でも実行。`connectedDebugAndroidTest` は `--configuration-cache` を有効化し、`android/.gradle/configuration-cache` を `actions/cache` で保存・復元
+**CI運用（Android UIテスト）**: `CI` ワークフローから分離した `Android UI Tests`（`.github/workflows/android-ui-tests.yml`）で `androidTest` の `*Test.kt` をクラス単位2シャード実行。PRでは `android/**` 変更時のみ自動実行し、`workflow_dispatch` / `schedule` でも実行。`connectedDebugAndroidTest` は `--configuration-cache` を有効化し、`android/.gradle/configuration-cache` を `actions/cache` で保存・復元（キャッシュキーは `github.sha` を含め、古いコミットの再利用を避ける）
 
 **ライセンス表示**: `MainScreen` の「辞書クレジット」ダイアログで JMdict の CC BY-SA 4.0 表記を表示
 

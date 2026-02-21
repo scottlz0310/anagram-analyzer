@@ -81,9 +81,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: android/.gradle/configuration-cache
-          key: ${{ runner.os }}-android-config-cache-ui-shard-${{ matrix.shard_index }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle.properties', 'android/settings.gradle.kts', 'android/gradle/libs.versions.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-android-config-cache-ui-shard-${{ matrix.shard_index }}-
+          key: ${{ runner.os }}-android-config-cache-ui-shard-${{ matrix.shard_index }}-${{ github.sha }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle.properties', 'android/settings.gradle.kts', 'android/gradle/libs.versions.toml') }}
 
       - name: Enable KVM
         if: steps.shard.outputs.run_tests == 'true'
