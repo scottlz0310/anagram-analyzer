@@ -52,6 +52,7 @@
 - [x] テーマ設定（Material 3: ライト/ダーク切替）
 - [x] メイン画面のUIカラー強化（グラデーション背景 + カードレイアウト + カラーボタン）
 - [x] メイン画面にイラスト配置（上部左右 + 下部）とPastel配色（Primary/Secondary/Tertiary）を適用
+- [x] 装飾イラストをアクセシビリティ対応（`contentDescription = null`）に調整
 - [x] 候補一覧の描画最適化（表示最大50件 + 残件数表示）
 - [x] UIテスト（Compose Testing）
 

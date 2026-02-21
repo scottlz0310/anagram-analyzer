@@ -122,13 +122,13 @@ fun MainScreenContent(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.charactor1),
-                contentDescription = "キャラクター1",
+                contentDescription = null,
                 modifier = Modifier.size(92.dp),
                 contentScale = ContentScale.Fit,
             )
             Image(
                 painter = painterResource(id = R.drawable.charactor2),
-                contentDescription = "キャラクター2",
+                contentDescription = null,
                 modifier = Modifier.size(92.dp),
                 contentScale = ContentScale.Fit,
             )
@@ -307,7 +307,7 @@ fun MainScreenContent(
 
         Image(
             painter = painterResource(id = R.drawable.spot_illustration),
-            contentDescription = "スポットイラスト",
+            contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 160.dp),

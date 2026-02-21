@@ -105,6 +105,7 @@
 - Android `MainScreen` の候補表示を最大50件 + 残件数表示に最適化し、大量候補時のCompose描画負荷を軽減
 - Android `MainScreen` の上部左右に `charactor1.png` / `charactor2.png`、下部に `spot-illustration.png`（`spot_illustration.png`）を配置
 - Android `MainActivity` の `ColorScheme` をPastelパレットへ更新（Primary: ピンク `#FF8AAE` / Secondary: ミント `#6EDDD3` / Tertiary: ラベンダー `#C39BFF` / 背景: アイボリー `#FFF8E7`）
+- Android `MainScreen` の装飾イラスト3点で `contentDescription = null` を設定し、スクリーンリーダーが不要読み上げしないようアクセシビリティを改善
 
 ## [0.1.0] - 2026-02-07
 
