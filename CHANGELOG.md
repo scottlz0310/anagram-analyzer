@@ -108,6 +108,7 @@
 - Android `MainScreen` の装飾イラスト3点で `contentDescription = null` を設定し、スクリーンリーダーが不要読み上げしないようアクセシビリティを改善
 - `Android UI Tests` ワークフローの `android/.gradle/configuration-cache` キャッシュキーに `github.sha` を追加し、古いコミットのConfiguration Cache再利用で発生する `:app:mergeDebugAndroidTestAssets`（AAR欠損）失敗を回避
 - Android `MainScreenTest` の「候補詳細画面でシステム戻るキー操作で戻れる」を `Espresso.pressBack()` から `onBackPressedDispatcher` 呼び出しへ変更し、CI環境での `ComposeTimeoutException` 発生を抑制
+- 更新済み `asset/AnagramAnalyzerICON.png` をもとに Android ランチャーアイコン（`mipmap-*/ic_launcher.png` / `ic_launcher_round.png`）を再生成し、密度別サイズ（48/72/96/144/192px）へ正規化
 
 ## [0.1.0] - 2026-02-07
 
