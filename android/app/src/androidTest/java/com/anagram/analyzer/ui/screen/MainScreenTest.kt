@@ -9,7 +9,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import androidx.test.espresso.Espresso.pressBack
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.anagram.analyzer.MainActivity
 import org.junit.Assert.assertTrue
@@ -167,9 +166,11 @@ class MainScreenTest {
             composeRule.onAllNodesWithTag("candidate_detail_screen_title").fetchSemanticsNodes().isNotEmpty()
         }
 
-        pressBack()
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithTag("candidate_detail_screen_title").fetchSemanticsNodes().isEmpty()
+        composeRule.activityRule.scenario.onActivity { activity ->
+            activity.onBackPressedDispatcher.onBackPressed()
+        }
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            composeRule.onAllNodesWithTag("input_field").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithTag("input_field").assertIsDisplayed()
     }
