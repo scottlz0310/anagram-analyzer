@@ -7,8 +7,10 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.anagram.analyzer.MainActivity
 import org.junit.Assert.assertTrue
@@ -129,6 +131,7 @@ class MainScreenTest {
         composeRule.onNodeWithTag("candidate_detail_reading").assertIsDisplayed()
         composeRule.onNodeWithTag("candidate_detail_kanji").assertTextContains("漢字表記: 林檎")
         composeRule.onNodeWithTag("candidate_detail_meaning").assertTextContains("意味: apple")
+        composeRule.onNodeWithTag("candidate_detail_share_button").assertIsDisplayed()
         composeRule.onNodeWithTag("candidate_detail_back_button").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithTag("candidate_detail_screen_title").fetchSemanticsNodes().isEmpty()
@@ -152,6 +155,32 @@ class MainScreenTest {
         composeRule.onNodeWithTag("candidate_detail_kanji").assertTextContains("漢字表記: （未対応）")
         composeRule.onNodeWithTag("candidate_detail_meaning").assertTextContains("意味: （未対応）")
         composeRule.onNodeWithTag("candidate_detail_fetch_button").assertIsDisplayed()
+        assertTrue(
+            composeRule.onAllNodesWithTag("candidate_detail_share_button").fetchSemanticsNodes().isEmpty(),
+        )
+    }
+
+    @Test
+    fun 候補詳細画面で意味を長押しすると選択状態になる() {
+        composeRule.onNodeWithTag("input_field").performTextInput("りんご")
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            composeRule.onAllNodesWithText("・りんご").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithText("・りんご").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithTag("candidate_detail_screen_title").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeRule.onNodeWithTag("candidate_detail_meaning").performTouchInput { longClick() }
+        composeRule.onNodeWithTag("candidate_detail_meaning_selection_state").assertIsDisplayed()
+        composeRule.onNodeWithTag("candidate_detail_selection_clear_button").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule
+                .onAllNodesWithTag("candidate_detail_meaning_selection_state")
+                .fetchSemanticsNodes()
+                .isEmpty()
+        }
     }
 
     @Test
