@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "リリースタグ (例: v0.2.0 / 未指定時は自動生成)"
+        description: "リリースタグ (例: v1.0.0 / 未指定時は自動生成)"
         required: false
         type: string
       release_name:
@@ -41,7 +41,7 @@ jobs:
         run: |
           if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
             SANITIZED_REF="${REF_NAME//\//-}"
-            TAG="${INPUT_TAG:-v0.0.0-auto-${SANITIZED_REF}-${RUN_ID}}"
+            TAG="${INPUT_TAG:-v1.0.0-auto-${SANITIZED_REF}-${RUN_ID}}"
             NAME="${INPUT_NAME:-$TAG}"
             PRERELEASE="${INPUT_PRERELEASE}"
             CHECKOUT_REF="${REF_NAME}"

@@ -7,6 +7,16 @@
 
 ### Added
 
+- （なし）
+
+### Changed
+
+- （なし）
+
+## [1.0.0] - 2026-02-21
+
+### Added
+
 - Androidプロジェクトの初期実装を追加
   - `android/` に Gradle Kotlin DSL ベースの最小構成（root/app）を追加
   - `gradlew` / `gradlew.bat` / `gradle/wrapper/*` を追加（Gradle Wrapper導入）

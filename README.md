@@ -270,7 +270,7 @@ CI待ち時間短縮のため、Android関連ジョブは用途ごとに実行�
    - `ANDROID_SIGNING_KEY_ALIAS`
    - `ANDROID_SIGNING_KEY_PASSWORD`
 2. `v*` タグを push（または Actions の `Android Release` を手動実行）
-   - 手動実行時は `tag` 未指定でも実行可能（`v0.0.0-auto-<branch>-<run_id>` 形式で自動タグ作成）
+   - 手動実行時は `tag` 未指定でも実行可能（`v1.0.0-auto-<branch>-<run_id>` 形式で自動タグ作成）
 3. GitHub Release に添付された `app-release.apk` をダウンロードしてインストール
 
 インストール例（ADB）:
