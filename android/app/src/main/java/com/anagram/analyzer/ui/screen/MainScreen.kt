@@ -1,7 +1,9 @@
 package com.anagram.analyzer.ui.screen
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -50,6 +52,7 @@ import com.anagram.analyzer.ui.viewmodel.MainUiState
 import com.anagram.analyzer.ui.viewmodel.MainViewModel
 
 private const val MAX_VISIBLE_CANDIDATES = 50
+private const val SHARE_LOG_TAG = "CandidateDetailShare"
 
 @Composable
 fun MainScreen(
@@ -475,7 +478,7 @@ private fun CandidateDetailScreen(
                 modifier = Modifier
                     .testTag("candidate_detail_meaning")
                     .combinedClickable(
-                        onClick = {},
+                        onClick = { isMeaningSelectionMode = true },
                         onLongClick = { isMeaningSelectionMode = true },
                     ),
             )
@@ -564,5 +567,14 @@ private fun shareCandidateDetail(
         putExtra(Intent.EXTRA_SUBJECT, "Anagram Analyzer 候補詳細")
         putExtra(Intent.EXTRA_TEXT, shareText)
     }
-    context.startActivity(Intent.createChooser(sendIntent, "共有先を選択"))
+    if (sendIntent.resolveActivity(context.packageManager) == null) {
+        Log.w(SHARE_LOG_TAG, "共有先アプリが見つからないため共有をスキップしました")
+        return
+    }
+    val chooserIntent = Intent.createChooser(sendIntent, "共有先を選択").apply {
+        if (context !is Activity) {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+    }
+    context.startActivity(chooserIntent)
 }
