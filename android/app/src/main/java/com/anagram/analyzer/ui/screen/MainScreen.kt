@@ -1,8 +1,11 @@
 package com.anagram.analyzer.ui.screen
 
+import android.content.Context
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -34,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -431,6 +436,9 @@ private fun CandidateDetailScreen(
     onFetchDetail: () -> Unit,
     onBack: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val shareMeaning = meaning
+    var isMeaningSelectionMode by rememberSaveable(candidate, shareMeaning) { mutableStateOf(false) }
     BackHandler(onBack = onBack)
     Column(
         modifier = Modifier
@@ -449,10 +457,60 @@ private fun CandidateDetailScreen(
             "漢字表記: ${kanji ?: "（未対応）"}",
             modifier = Modifier.testTag("candidate_detail_kanji"),
         )
-        Text(
-            "意味: ${meaning ?: "（未対応）"}",
-            modifier = Modifier.testTag("candidate_detail_meaning"),
-        )
+        if (shareMeaning == null) {
+            Text(
+                "意味: （未対応）",
+                modifier = Modifier.testTag("candidate_detail_meaning"),
+            )
+        } else if (isMeaningSelectionMode) {
+            SelectionContainer {
+                Text(
+                    "意味: $shareMeaning",
+                    modifier = Modifier.testTag("candidate_detail_meaning"),
+                )
+            }
+        } else {
+            Text(
+                "意味: $shareMeaning",
+                modifier = Modifier
+                    .testTag("candidate_detail_meaning")
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = { isMeaningSelectionMode = true },
+                    ),
+            )
+        }
+        if (shareMeaning != null) {
+            if (isMeaningSelectionMode) {
+                Text(
+                    "意味テキストを選択中です",
+                    modifier = Modifier.testTag("candidate_detail_meaning_selection_state"),
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(
+                    onClick = {
+                        shareCandidateDetail(
+                            context = context,
+                            candidate = candidate,
+                            kanji = kanji,
+                            meaning = shareMeaning,
+                        )
+                    },
+                    modifier = Modifier.testTag("candidate_detail_share_button"),
+                ) {
+                    Text("共有")
+                }
+                if (isMeaningSelectionMode) {
+                    TextButton(
+                        onClick = { isMeaningSelectionMode = false },
+                        modifier = Modifier.testTag("candidate_detail_selection_clear_button"),
+                    ) {
+                        Text("選択解除")
+                    }
+                }
+            }
+        }
         if (kanji == null || meaning == null) {
             TextButton(
                 onClick = onFetchDetail,
@@ -488,4 +546,23 @@ private fun CandidateDetailScreen(
             Text("戻る")
         }
     }
+}
+
+private fun shareCandidateDetail(
+    context: Context,
+    candidate: String,
+    kanji: String?,
+    meaning: String,
+) {
+    val shareText = buildString {
+        appendLine("候補: $candidate")
+        appendLine("漢字表記: ${kanji ?: "（未対応）"}")
+        append("意味: $meaning")
+    }
+    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, "Anagram Analyzer 候補詳細")
+        putExtra(Intent.EXTRA_TEXT, shareText)
+    }
+    context.startActivity(Intent.createChooser(sendIntent, "共有先を選択"))
 }
