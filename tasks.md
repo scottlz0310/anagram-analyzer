@@ -93,6 +93,7 @@
 - [x] GitHub Actions CI に変更差分判定（`dorny/paths-filter` をcommit SHA固定）を追加し、PR時はAndroid関連変更のみ Android Unit Test / Build を実行
 - [x] Android CI（Unit/Build/UI）で Gradle Configuration Cache を有効化し、`android/.gradle/configuration-cache` の保存・復元を追加。ローカル連続実行の `testDebugUnitTest --dry-run --no-daemon` 計測で 6.69s → 4.10s（再利用時、約39%短縮）を確認
 - [x] `Android UI Tests` の Configuration Cacheキーに `github.sha` を含め、古いコミットのキャッシュ再利用で発生する `mergeDebugAndroidTestAssets` 失敗（AAR欠損）を回避
+- [x] `MainScreenTest` の「システム戻るキー」検証を `onBackPressedDispatcher` ベースへ調整し、CIエミュレータでのタイムアウト（`ComposeTimeoutException`）を抑制
 - [ ] Android用CI/CDパイプライン完成
 - [ ] リリースビルド設定（署名、ProGuard/R8）
 - [ ] Google Play Store 公開準備
