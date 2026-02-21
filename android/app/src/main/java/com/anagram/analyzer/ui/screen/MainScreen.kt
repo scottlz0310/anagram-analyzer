@@ -1,6 +1,7 @@
 package com.anagram.analyzer.ui.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,13 +30,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.anagram.analyzer.R
 import com.anagram.analyzer.ui.viewmodel.MainUiState
 import com.anagram.analyzer.ui.viewmodel.MainViewModel
 
@@ -109,6 +115,25 @@ fun MainScreenContent(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.charactor1),
+                contentDescription = "キャラクター1",
+                modifier = Modifier.size(92.dp),
+                contentScale = ContentScale.Fit,
+            )
+            Image(
+                painter = painterResource(id = R.drawable.charactor2),
+                contentDescription = "キャラクター2",
+                modifier = Modifier.size(92.dp),
+                contentScale = ContentScale.Fit,
+            )
+        }
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
@@ -279,6 +304,15 @@ fun MainScreenContent(
         ) {
             Text("辞書クレジット")
         }
+
+        Image(
+            painter = painterResource(id = R.drawable.spot_illustration),
+            contentDescription = "スポットイラスト",
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 160.dp),
+            contentScale = ContentScale.Fit,
+        )
     }
 
     if (showAboutDialog) {
