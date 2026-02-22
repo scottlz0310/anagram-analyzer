@@ -117,6 +117,21 @@
 - [x] CI に `:tools:seed-generator:test` を追加
 - [x] `android/settings.gradle.kts` / `android/build.gradle.kts` に tools:seed-generator を追加
 
+## フェーズ 10: Issue #81 事前リファクタ（MainViewModel / MainScreen 責務分割）
+
+- [x] `domain/usecase/PreloadSeedUseCase.kt` 新規作成（seed初期化・候補詳細ロード・計測ログをカプセル化）
+- [x] `domain/usecase/SearchAnagramUseCase.kt` 新規作成（アナグラム索引検索）
+- [x] `domain/usecase/LoadCandidateDetailUseCase.kt` 新規作成（候補詳細オンデマンド取得）
+- [x] `domain/usecase/ApplyAdditionalDictionaryUseCase.kt` 新規作成（追加辞書適用）
+- [x] `domain/model/PreloadLogger.kt` 新規作成（ui→domain の依存逆転を解消）
+- [x] `ui/viewmodel/MainUiState.kt` 新規作成（MainUiState を分離ファイルへ）
+- [x] `MainViewModel.kt` をユースケース注入版に書き換え（直接依存 anagramDao 等→UC4+store2+dispatcher1）
+- [x] `ui/screen/CandidateDetailScreen.kt` 新規作成（MainScreenから切り出し）
+- [x] `ui/screen/SettingsDialog.kt` 新規作成（AboutDialog / SettingsDialog を切り出し）
+- [x] `ui/screen/ShareUtil.kt` 新規作成（shareCandidateDetail を切り出し）
+- [x] `MainScreen.kt` をスリム化（580行→~330行）
+- [x] `MainViewModelTest.kt` の26箇所コンストラクタ呼び出しを `buildViewModel` ヘルパー経由に更新
+
 ---
 
 ## 進捗サマリ
@@ -132,3 +147,4 @@
 | 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト分離（2シャード）+ CI本体の差分判定でPR時のAndroid Unit/Build条件実行 + Android Unit/Build/UIでConfiguration Cache有効化（`android/.gradle/configuration-cache` 保存復元、ローカル連続計測で `testDebugUnitTest --dry-run` 6.69s→4.10s）に加え、UIテストのConfiguration Cacheキーへ `github.sha` を導入して古いコミットのキャッシュ再利用起因の失敗を抑制。debug APK artifact と GitHub Release向け署名済みAPK公開ワークフロー（dispatch自動タグ発行対応）も継続 |
 | 8: Pythonプロトタイプ撤去 | ✅ 完了 | Python CLI本体と関連CI/依存管理を削除し、Android単一実装に整理 |
 | 9: seed生成Kotlin/JVM移行 | ✅ 完了 | tools:seed-generator 実装（JmdictParser/Normalizer/TsvExporter/DbExporter/Main）、scripts/*.py削除、CI更新 |
+| 10: Issue #81 事前リファクタ | ✅ 完了 | MainViewModelをUC4クラス（PreloadSeed/SearchAnagram/LoadCandidateDetail/ApplyAdditionalDictionary）に分割、MainScreenからCandidateDetailScreen/SettingsDialog/ShareUtilを切り出し、PreloadLoggerをdomain.modelへ移動、MainViewModelTestをbuildViewModelヘルパー経由に更新 |

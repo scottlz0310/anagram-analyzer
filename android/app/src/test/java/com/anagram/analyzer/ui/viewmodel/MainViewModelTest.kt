@@ -24,6 +24,12 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import com.anagram.analyzer.domain.model.PreloadLogger
+import com.anagram.analyzer.domain.usecase.ApplyAdditionalDictionaryUseCase
+import com.anagram.analyzer.domain.usecase.LoadCandidateDetailUseCase
+import com.anagram.analyzer.domain.usecase.PreloadSeedUseCase
+import com.anagram.analyzer.domain.usecase.SearchAnagramUseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -33,15 +39,14 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             viewModel.onInputChanged("りんご")
@@ -60,15 +65,14 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             viewModel.onInputChanged("りんご")
@@ -85,7 +89,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
@@ -94,8 +98,7 @@ class MainViewModelTest {
                 searchSettingsStore = FakeSearchSettingsStore(
                     initialSettings = SearchSettings(minLength = 3, maxLength = 8),
                 ),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -112,7 +115,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
@@ -121,8 +124,7 @@ class MainViewModelTest {
                 searchSettingsStore = FakeSearchSettingsStore(
                     initialSettings = SearchSettings(minLength = 4, maxLength = 8),
                 ),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -142,7 +144,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
@@ -151,8 +153,7 @@ class MainViewModelTest {
                 searchSettingsStore = FakeSearchSettingsStore(
                     initialSettings = SearchSettings(minLength = 4, maxLength = 8),
                 ),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             viewModel.onInputChanged("りんご")
@@ -171,15 +172,14 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             viewModel.onInputChanged("りんご")
@@ -200,7 +200,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(
                     initialEntries = listOf(
                         AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
@@ -216,8 +216,7 @@ class MainViewModelTest {
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             viewModel.onInputChanged("りんご")
@@ -237,7 +236,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(
                     countFailure = SQLiteException("DB error"),
                 ),
@@ -246,8 +245,7 @@ class MainViewModelTest {
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -265,15 +263,14 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(loadFailure = IllegalArgumentException("bad seed")),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -291,7 +288,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(
                     entries = listOf(
@@ -303,8 +300,7 @@ class MainViewModelTest {
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -324,7 +320,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(
@@ -335,8 +331,7 @@ class MainViewModelTest {
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -353,7 +348,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(
@@ -364,8 +359,7 @@ class MainViewModelTest {
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -386,7 +380,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(
@@ -395,8 +389,7 @@ class MainViewModelTest {
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -418,15 +411,14 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -449,15 +441,14 @@ class MainViewModelTest {
             val inputHistoryStore = FakeInputHistoryStore(
                 initialHistory = listOf("りんご", "さくら"),
             )
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = inputHistoryStore,
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -475,15 +466,14 @@ class MainViewModelTest {
         try {
             val persistedHistory = (1..12).map { "りんご$it" }
             val inputHistoryStore = FakeInputHistoryStore(initialHistory = persistedHistory)
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = inputHistoryStore,
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -501,15 +491,14 @@ class MainViewModelTest {
         Dispatchers.setMain(dispatcher)
         try {
             val inputHistoryStore = FakeInputHistoryStore()
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = inputHistoryStore,
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             viewModel.onInputChanged("りんご")
@@ -527,15 +516,14 @@ class MainViewModelTest {
         Dispatchers.setMain(dispatcher)
         try {
             val searchSettingsStore = FakeSearchSettingsStore()
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = searchSettingsStore,
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -556,15 +544,14 @@ class MainViewModelTest {
         Dispatchers.setMain(dispatcher)
         try {
             val searchSettingsStore = FakeSearchSettingsStore()
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(insertDelayMs = 100),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = searchSettingsStore,
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             viewModel.onSearchLengthRangeChanged(minLength = 3, maxLength = 10)
@@ -592,15 +579,14 @@ class MainViewModelTest {
                     }
                 },
             )
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = searchSettingsStore,
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -620,15 +606,14 @@ class MainViewModelTest {
         Dispatchers.setMain(dispatcher)
         try {
             val searchSettingsStore = FakeSearchSettingsStore()
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = searchSettingsStore,
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -646,15 +631,14 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -675,7 +659,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
@@ -690,8 +674,7 @@ class MainViewModelTest {
                 ),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -739,15 +722,14 @@ class MainViewModelTest {
                     )
                 }
             }
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = seedEntryLoader,
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = additionalSeedEntryLoader,
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             viewModel.onAdditionalDictionaryDownloadRequested()
@@ -764,7 +746,7 @@ class MainViewModelTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
@@ -773,8 +755,7 @@ class MainViewModelTest {
                 ),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = FakeSearchSettingsStore(),
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             advanceUntilIdle()
@@ -797,15 +778,14 @@ class MainViewModelTest {
                 initialSettings = SearchSettings(minLength = 3, maxLength = 10),
                 initialReadDelayMs = 100,
             )
-            val viewModel = MainViewModel(
+            val viewModel = buildViewModel(
                 anagramDao = FakeAnagramDao(),
                 seedEntryLoader = FakeSeedEntryLoader(),
                 candidateDetailLoader = FakeCandidateDetailLoader(),
                 additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
                 inputHistoryStore = FakeInputHistoryStore(),
                 searchSettingsStore = searchSettingsStore,
-                ioDispatcher = dispatcher,
-                preloadLogger = PreloadLogger { _ -> },
+                dispatcher = dispatcher,
             )
 
             viewModel.onSearchLengthRangeChanged(minLength = 4, maxLength = 10)
@@ -819,6 +799,24 @@ class MainViewModelTest {
             Dispatchers.resetMain()
         }
     }
+
+    private fun buildViewModel(
+        anagramDao: AnagramDao = FakeAnagramDao(),
+        seedEntryLoader: SeedEntryLoader = FakeSeedEntryLoader(),
+        candidateDetailLoader: CandidateDetailLoader = FakeCandidateDetailLoader(),
+        additionalSeedEntryLoader: AdditionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+        inputHistoryStore: InputHistoryStore = FakeInputHistoryStore(),
+        searchSettingsStore: SearchSettingsStore = FakeSearchSettingsStore(),
+        dispatcher: CoroutineDispatcher = Dispatchers.Main,
+    ): MainViewModel = MainViewModel(
+        preloadSeedUseCase = PreloadSeedUseCase(anagramDao, seedEntryLoader, candidateDetailLoader, PreloadLogger { _ -> }),
+        searchAnagramUseCase = SearchAnagramUseCase(anagramDao),
+        loadCandidateDetailUseCase = LoadCandidateDetailUseCase(candidateDetailLoader),
+        applyAdditionalDictionaryUseCase = ApplyAdditionalDictionaryUseCase(anagramDao, additionalSeedEntryLoader),
+        inputHistoryStore = inputHistoryStore,
+        searchSettingsStore = searchSettingsStore,
+        ioDispatcher = dispatcher,
+    )
 
     private class FakeAnagramDao(
         initialEntries: List<AnagramEntry> = emptyList(),

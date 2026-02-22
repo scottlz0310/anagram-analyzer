@@ -1,13 +1,7 @@
 package com.anagram.analyzer.ui.screen
 
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
-import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,9 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,7 +43,6 @@ import com.anagram.analyzer.ui.viewmodel.MainUiState
 import com.anagram.analyzer.ui.viewmodel.MainViewModel
 
 private const val MAX_VISIBLE_CANDIDATES = 50
-private const val SHARE_LOG_TAG = "CandidateDetailShare"
 
 @Composable
 fun MainScreen(
@@ -324,257 +314,18 @@ fun MainScreenContent(
     }
 
     if (showAboutDialog) {
-        AlertDialog(
-            onDismissRequest = { showAboutDialog = false },
-            title = { Text("辞書クレジット", modifier = Modifier.testTag("about_dialog_title")) },
-            text = {
-                Text(
-                    "このアプリはElectronic Dictionary Research and Development GroupのJMdictデータを使用しています。ライセンス: CC BY-SA 4.0",
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { showAboutDialog = false }) {
-                    Text("閉じる")
-                }
-            },
-        )
+        AboutDialog(onDismiss = { showAboutDialog = false })
     }
 
     if (showSettingsDialog) {
-        AlertDialog(
-            onDismissRequest = { showSettingsDialog = false },
-            title = { Text("設定", modifier = Modifier.testTag("settings_dialog_title")) },
-            text = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        "文字数範囲: ${state.minSearchLength}〜${state.maxSearchLength}",
-                        modifier = Modifier.testTag("settings_length_range"),
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(
-                            onClick = {
-                                onSearchLengthRangeChanged(
-                                    state.minSearchLength - 1,
-                                    state.maxSearchLength,
-                                )
-                            },
-                            modifier = Modifier.testTag("settings_min_decrease_button"),
-                        ) {
-                            Text("最小-")
-                        }
-                        TextButton(
-                            onClick = {
-                                onSearchLengthRangeChanged(
-                                    state.minSearchLength + 1,
-                                    state.maxSearchLength,
-                                )
-                            },
-                            modifier = Modifier.testTag("settings_min_increase_button"),
-                        ) {
-                            Text("最小+")
-                        }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(
-                            onClick = {
-                                onSearchLengthRangeChanged(
-                                    state.minSearchLength,
-                                    state.maxSearchLength - 1,
-                                )
-                            },
-                            modifier = Modifier.testTag("settings_max_decrease_button"),
-                        ) {
-                            Text("最大-")
-                        }
-                        TextButton(
-                            onClick = {
-                                onSearchLengthRangeChanged(
-                                    state.minSearchLength,
-                                    state.maxSearchLength + 1,
-                                )
-                            },
-                            modifier = Modifier.testTag("settings_max_increase_button"),
-                        ) {
-                            Text("最大+")
-                        }
-                    }
-                    TextButton(
-                        onClick = onToggleTheme,
-                        modifier = Modifier.testTag("settings_theme_toggle_button"),
-                    ) {
-                        Text(if (isDarkTheme) "テーマ: ダーク" else "テーマ: ライト")
-                    }
-                    TextButton(
-                        onClick = onAdditionalDictionaryDownloadRequested,
-                        enabled = !state.isAdditionalDictionaryDownloading,
-                        modifier = Modifier.testTag("settings_download_button"),
-                    ) {
-                        Text(if (state.isAdditionalDictionaryDownloading) "追加辞書を適用中..." else "追加辞書をダウンロード")
-                    }
-                    Text(
-                        text = state.settingsMessage ?: "追加辞書は未適用です",
-                        modifier = Modifier.testTag("settings_download_status"),
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showSettingsDialog = false }) {
-                    Text("閉じる")
-                }
-            },
+        SettingsDialog(
+            state = state,
+            isDarkTheme = isDarkTheme,
+            onToggleTheme = onToggleTheme,
+            onSearchLengthRangeChanged = onSearchLengthRangeChanged,
+            onAdditionalDictionaryDownloadRequested = onAdditionalDictionaryDownloadRequested,
+            onDismiss = { showSettingsDialog = false },
         )
     }
 }
 
-@Composable
-private fun CandidateDetailScreen(
-    candidate: String,
-    kanji: String?,
-    meaning: String?,
-    isLoading: Boolean,
-    errorMessage: String?,
-    onFetchDetail: () -> Unit,
-    onBack: () -> Unit,
-) {
-    val context = LocalContext.current
-    val shareMeaning = meaning
-    var isMeaningSelectionMode by rememberSaveable(candidate, shareMeaning) { mutableStateOf(false) }
-    BackHandler(onBack = onBack)
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(
-            "候補詳細",
-            modifier = Modifier.testTag("candidate_detail_screen_title"),
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Text("読み: $candidate", modifier = Modifier.testTag("candidate_detail_reading"))
-        Text(
-            "漢字表記: ${kanji ?: "（未対応）"}",
-            modifier = Modifier.testTag("candidate_detail_kanji"),
-        )
-        if (shareMeaning == null) {
-            Text(
-                "意味: （未対応）",
-                modifier = Modifier.testTag("candidate_detail_meaning"),
-            )
-        } else if (isMeaningSelectionMode) {
-            SelectionContainer {
-                Text(
-                    "意味: $shareMeaning",
-                    modifier = Modifier.testTag("candidate_detail_meaning"),
-                )
-            }
-        } else {
-            Text(
-                "意味: $shareMeaning",
-                modifier = Modifier
-                    .testTag("candidate_detail_meaning")
-                    .combinedClickable(
-                        onClick = { isMeaningSelectionMode = true },
-                        onLongClick = { isMeaningSelectionMode = true },
-                    ),
-            )
-        }
-        if (shareMeaning != null) {
-            if (isMeaningSelectionMode) {
-                Text(
-                    "意味テキストを選択中です",
-                    modifier = Modifier.testTag("candidate_detail_meaning_selection_state"),
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(
-                    onClick = {
-                        shareCandidateDetail(
-                            context = context,
-                            candidate = candidate,
-                            kanji = kanji,
-                            meaning = shareMeaning,
-                        )
-                    },
-                    modifier = Modifier.testTag("candidate_detail_share_button"),
-                ) {
-                    Text("共有")
-                }
-                if (isMeaningSelectionMode) {
-                    TextButton(
-                        onClick = { isMeaningSelectionMode = false },
-                        modifier = Modifier.testTag("candidate_detail_selection_clear_button"),
-                    ) {
-                        Text("選択解除")
-                    }
-                }
-            }
-        }
-        if (kanji == null || meaning == null) {
-            TextButton(
-                onClick = onFetchDetail,
-                enabled = !isLoading,
-                modifier = Modifier.testTag("candidate_detail_fetch_button"),
-            ) {
-                Text(
-                    when {
-                        isLoading -> "詳細を取得中..."
-                        errorMessage != null -> "詳細を再取得"
-                        else -> "詳細を取得"
-                    },
-                )
-            }
-            if (isLoading) {
-                Text(
-                    "オンライン辞書から候補詳細を取得しています...",
-                    modifier = Modifier.testTag("candidate_detail_loading_text"),
-                )
-            }
-            if (errorMessage != null) {
-                Text(
-                    errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.testTag("candidate_detail_error_text"),
-                )
-            }
-        }
-        TextButton(
-            onClick = onBack,
-            modifier = Modifier.testTag("candidate_detail_back_button"),
-        ) {
-            Text("戻る")
-        }
-    }
-}
-
-private fun shareCandidateDetail(
-    context: Context,
-    candidate: String,
-    kanji: String?,
-    meaning: String,
-) {
-    val shareText = buildString {
-        appendLine("候補: $candidate")
-        appendLine("漢字表記: ${kanji ?: "（未対応）"}")
-        append("意味: $meaning")
-    }
-    val sendIntent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_SUBJECT, "Anagram Analyzer 候補詳細")
-        putExtra(Intent.EXTRA_TEXT, shareText)
-    }
-    if (sendIntent.resolveActivity(context.packageManager) == null) {
-        Log.w(SHARE_LOG_TAG, "共有先アプリが見つからないため共有をスキップしました")
-        return
-    }
-    val chooserIntent = Intent.createChooser(sendIntent, "共有先を選択").apply {
-        if (context !is Activity) {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-    }
-    context.startActivity(chooserIntent)
-}
