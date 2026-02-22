@@ -5,21 +5,43 @@ from __future__ import annotations
 
 import argparse
 import gzip
-import importlib
+import re
 import sqlite3
-import sys
+import unicodedata
 import xml.etree.ElementTree as ET
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+def katakana_to_hiragana(s: str) -> str:
+    """カタカナをひらがなへ変換する。"""
+    result: list[str] = []
+    for char in s:
+        code = ord(char)
+        if 0x30A1 <= code <= 0x30F6:
+            result.append(chr(code - 0x60))
+        else:
+            result.append(char)
+    return "".join(result)
 
-normalize_module = importlib.import_module("anagram_cli.normalize")
-anagram_key = normalize_module.anagram_key
-is_all_hiragana = normalize_module.is_all_hiragana
-katakana_to_hiragana = normalize_module.katakana_to_hiragana
+
+def is_hiragana(char: str) -> bool:
+    code = ord(char)
+    return 0x3041 <= code <= 0x3096 or char == "ー"
+
+
+def is_all_hiragana(s: str) -> bool:
+    return all(is_hiragana(c) for c in s)
+
+
+def normalize_hiragana(s: str) -> str:
+    normalized = unicodedata.normalize("NFKC", s)
+    normalized = re.sub(r"\s+", "", normalized)
+    return katakana_to_hiragana(normalized)
+
+
+def anagram_key(s: str) -> str:
+    return "".join(sorted(s))
 
 
 def parse_args() -> argparse.Namespace:
@@ -70,7 +92,7 @@ def resolve_jmdict_xml_path(path: Path | None) -> Path:
         msg = (
             "JMdict XMLパスが未指定です。\n"
             "--xml を指定するか、以下で jamdict-data を導入してください:\n"
-            "  uv pip install -e \".[dict]\""
+            "  pip install jamdict jamdict-data"
         )
         raise RuntimeError(msg) from exc
 
@@ -114,7 +136,7 @@ def iter_anagram_rows(
     count = 0
 
     for reading in iter_jmdict_readings(xml_path):
-        word = katakana_to_hiragana(reading)
+        word = normalize_hiragana(reading)
         if len(word) < min_len or len(word) > max_len:
             continue
         if not is_all_hiragana(word):
