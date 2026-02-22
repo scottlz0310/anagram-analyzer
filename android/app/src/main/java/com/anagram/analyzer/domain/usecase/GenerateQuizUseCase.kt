@@ -4,12 +4,17 @@ import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.domain.model.QuizQuestion
 import javax.inject.Inject
 
+import kotlin.random.Random
+
 class GenerateQuizUseCase @Inject constructor(
     private val anagramDao: AnagramDao,
     private val searchAnagramUseCase: SearchAnagramUseCase,
 ) {
     suspend fun execute(minLen: Int, maxLen: Int): QuizQuestion? {
-        val entry = anagramDao.getRandomEntry(minLen, maxLen) ?: return null
+        val count = anagramDao.countByLength(minLen, maxLen)
+        if (count == 0) return null
+        val offset = Random.nextInt(count)
+        val entry = anagramDao.getEntryAtOffset(minLen, maxLen, offset) ?: return null
         val correctWords = searchAnagramUseCase.execute(entry.sortedKey)
         if (correctWords.isEmpty()) return null
         return QuizQuestion(

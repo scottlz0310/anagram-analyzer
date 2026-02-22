@@ -103,6 +103,7 @@ class QuizViewModel @Inject constructor(
     }
 
     private fun loadNextQuestion() {
+        if (_uiState.value.phase == QuizPhase.LOADING) return
         val difficulty = _uiState.value.difficulty
         _uiState.update { it.copy(phase = QuizPhase.LOADING, inputAnswer = "", errorMessage = null) }
         viewModelScope.launch {

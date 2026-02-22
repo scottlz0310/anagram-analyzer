@@ -23,27 +23,28 @@ interface QuizScoreStore {
     suspend fun resetAll()
 }
 
-class DataStoreQuizScoreStore(private val context: Context) : QuizScoreStore {
-    override val score: Flow<Int> = context.quizScoreDataStore.data
+class DataStoreQuizScoreStore(context: Context) : QuizScoreStore {
+    private val appContext = context.applicationContext
+    override val score: Flow<Int> = appContext.quizScoreDataStore.data
         .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
         .map { it[KEY_SCORE] ?: 0 }
 
-    override val streak: Flow<Int> = context.quizScoreDataStore.data
+    override val streak: Flow<Int> = appContext.quizScoreDataStore.data
         .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
         .map { it[KEY_STREAK] ?: 0 }
 
-    override val bestStreak: Flow<Int> = context.quizScoreDataStore.data
+    override val bestStreak: Flow<Int> = appContext.quizScoreDataStore.data
         .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
         .map { it[KEY_BEST_STREAK] ?: 0 }
 
     override suspend fun addScore(points: Int) {
-        context.quizScoreDataStore.edit { prefs ->
+        appContext.quizScoreDataStore.edit { prefs ->
             prefs[KEY_SCORE] = (prefs[KEY_SCORE] ?: 0) + points
         }
     }
 
     override suspend fun incrementStreak() {
-        context.quizScoreDataStore.edit { prefs ->
+        appContext.quizScoreDataStore.edit { prefs ->
             val newStreak = (prefs[KEY_STREAK] ?: 0) + 1
             prefs[KEY_STREAK] = newStreak
             val best = prefs[KEY_BEST_STREAK] ?: 0
@@ -52,15 +53,16 @@ class DataStoreQuizScoreStore(private val context: Context) : QuizScoreStore {
     }
 
     override suspend fun resetStreak() {
-        context.quizScoreDataStore.edit { prefs ->
+        appContext.quizScoreDataStore.edit { prefs ->
             prefs[KEY_STREAK] = 0
         }
     }
 
     override suspend fun resetAll() {
-        context.quizScoreDataStore.edit { prefs ->
+        appContext.quizScoreDataStore.edit { prefs ->
             prefs[KEY_SCORE] = 0
             prefs[KEY_STREAK] = 0
+            prefs[KEY_BEST_STREAK] = 0
         }
     }
 

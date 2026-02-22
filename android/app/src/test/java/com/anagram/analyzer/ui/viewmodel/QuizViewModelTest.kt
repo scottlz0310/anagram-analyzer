@@ -185,7 +185,10 @@ class QuizViewModelTest {
         override suspend fun insertAll(entries: List<AnagramEntry>) = Unit
         override suspend fun lookupWords(sortedKey: String): List<String> = words
         override suspend fun count(): Long = if (randomEntry != null) 1L else 0L
-        override suspend fun getRandomEntry(minLen: Int, maxLen: Int): AnagramEntry? = randomEntry
+        override suspend fun countByLength(minLen: Int, maxLen: Int): Int =
+            if (randomEntry != null && randomEntry.length in minLen..maxLen) 1 else 0
+        override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
+            randomEntry?.takeIf { it.length in minLen..maxLen && offset == 0 }
     }
 
     private class FakeQuizScoreStore(
@@ -227,8 +230,10 @@ class QuizViewModelTest {
         override suspend fun resetAll() {
             scoreValue = 0
             streakValue = 0
+            bestStreakValue = 0
             scoreFlow.value = 0
             streakFlow.value = 0
+            bestStreakFlow.value = 0
         }
     }
 }

@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.anagram.analyzer.data.datastore.ThemePreferenceStore
 import com.anagram.analyzer.ui.screen.MainScreen
@@ -35,7 +36,7 @@ class MainActivity : ComponentActivity() {
             }
             val isDarkTheme = isDarkThemeState ?: return@setContent
             val scope = rememberCoroutineScope()
-            var showQuiz by remember { mutableStateOf(false) }
+            var showQuiz by rememberSaveable { mutableStateOf(false) }
             MaterialTheme(
                 colorScheme = if (isDarkTheme) anagramDarkColorScheme() else anagramLightColorScheme(),
             ) {
