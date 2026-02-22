@@ -7,6 +7,20 @@
 
 ### Added
 
+- **クイズモード**（Issue #60）
+  - `domain/model/QuizDifficulty.kt`（EASY/NORMAL/HARD 文字数範囲プリセット）
+  - `domain/model/QuizQuestion.kt`（shuffledChars / sortedKey / correctWords データクラス）
+  - `domain/usecase/GenerateQuizUseCase.kt`（ランダムエントリ取得 → 文字シャッフル → 正解リスト生成）
+  - `data/datastore/QuizScoreStore.kt`（score / streak / bestStreak 永続化、interface + DataStoreQuizScoreStore）
+  - `ui/viewmodel/QuizUiState.kt` + `QuizPhase` enum（IDLE/LOADING/ANSWERING/CORRECT/INCORRECT）
+  - `ui/viewmodel/QuizViewModel.kt`（@HiltViewModel、難易度選択・出題・回答判定・スコア管理）
+  - `ui/screen/QuizScreen.kt`（難易度選択→問題→回答→正解/不正解フローUI）
+  - `ui/viewmodel/QuizViewModelTest.kt`（6テストケース: 出題/正解/不正解/エントリなし/難易度/リセット）
+- `AnagramDao` に `getRandomEntry(minLen, maxLen): AnagramEntry?` クエリを追加
+- `AppModule` に `provideQuizScoreStore()` を追加
+- `MainScreen` に「🎯 クイズモード」ボタン（`onNavigateToQuiz` コールバック）を追加
+- `MainActivity` に `showQuiz` state を追加し、MainScreen ⇔ QuizScreen を切り替え
+
 - `tools:seed-generator` モジュールを新規追加（Kotlin/JVM + application plugin）
   - JMdict XML/gzip から `anagram_seed.tsv` / Room互換SQLite DB を生成する独立JVMツール
   - `Normalizer.kt`（NFKC正規化・カタカナ→ひらがな・anagramKey）

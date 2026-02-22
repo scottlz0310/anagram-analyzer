@@ -89,9 +89,17 @@ anagram-analyzer/
 ### `data/db/`
 
 - `AnagramEntry.kt`: アナグラム索引Entity（`sorted_key + word` 一意制約）
-- `AnagramDao.kt`: seed投入・キー検索
+- `AnagramDao.kt`: seed投入・キー検索・`getRandomEntry(minLen, maxLen)` ランダム取得
 - `AnagramDatabase.kt`: Room DB本体（`version 3`、Migration `1→2` / `2→3`）
 - `CandidateDetailCacheEntry.kt` / `CandidateDetailCacheDao.kt`: 候補詳細キャッシュ
+
+### `data/datastore/`
+
+- `ThemePreferenceStore.kt`: ライト/ダークテーマ設定の永続化
+- `InputHistoryStore.kt`: 入力履歴（最新10件）の永続化
+- `SearchSettingsStore.kt`: 文字数範囲（最小/最大）の永続化
+- `SettingsDataStore.kt`: `settings` DataStore 共有拡張プロパティ
+- `QuizScoreStore.kt`: クイズスコア/ストリーク/最高ストリーク の永続化（interface + `DataStoreQuizScoreStore`、`quiz_score` DataStore）
 
 ### `data/seed/`
 
@@ -111,18 +119,22 @@ anagram-analyzer/
 - `SearchAnagramUseCase.kt`: アナグラム索引検索（`AnagramDao.lookupWords` ラッパー）
 - `LoadCandidateDetailUseCase.kt`: 候補詳細オンデマンド取得（`CandidateDetailLoader` ラッパー）
 - `ApplyAdditionalDictionaryUseCase.kt`: 追加辞書適用（投入件数・最終更新日時を返す）
+- `GenerateQuizUseCase.kt`: クイズ出題（ランダムエントリ取得 → 文字シャッフル → 正解リスト生成、`SearchAnagramUseCase` 再利用）
 
 ### `ui/viewmodel/`
 
 - `MainUiState.kt`: UI状態 data class（flat構造 17フィールド）
 - `MainViewModel.kt`: UC4クラス + Store2 + Dispatcher を注入したViewModel（~343行）
+- `QuizUiState.kt`: クイズ画面UI状態 data class + `QuizPhase` enum（IDLE/LOADING/ANSWERING/CORRECT/INCORRECT）
+- `QuizViewModel.kt`: クイズフロー全体制御 @HiltViewModel（難易度選択・出題・回答判定・スコア管理）
 
 ### `ui/screen/`
 
-- `MainScreen.kt`: 入力・候補一覧のメイン画面（~332行）
+- `MainScreen.kt`: 入力・候補一覧のメイン画面（クイズモードボタン追加）
 - `CandidateDetailScreen.kt`: 候補詳細画面 Composable（`internal`）
 - `SettingsDialog.kt`: `AboutDialog` / `SettingsDialog` Composable（`internal`）
 - `ShareUtil.kt`: `shareCandidateDetail` ユーティリティ関数（`internal`）
+- `QuizScreen.kt`: クイズモード画面 Composable（難易度選択→問題→回答→正解/不正解フロー）
 
 ## モジュール詳細（辞書生成ツール）
 

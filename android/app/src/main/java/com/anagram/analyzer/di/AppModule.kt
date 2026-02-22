@@ -3,8 +3,10 @@ package com.anagram.analyzer.di
 import android.content.Context
 import android.util.Log
 import com.anagram.analyzer.data.datastore.DataStoreInputHistoryStore
+import com.anagram.analyzer.data.datastore.DataStoreQuizScoreStore
 import com.anagram.analyzer.data.datastore.DataStoreSearchSettingsStore
 import com.anagram.analyzer.data.datastore.InputHistoryStore
+import com.anagram.analyzer.data.datastore.QuizScoreStore
 import com.anagram.analyzer.data.datastore.SearchSettingsStore
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramDatabase
@@ -83,6 +85,12 @@ object AppModule {
     fun provideSearchSettingsStore(
         @ApplicationContext context: Context,
     ): SearchSettingsStore = DataStoreSearchSettingsStore(context)
+
+    @Provides
+    @Singleton
+    fun provideQuizScoreStore(
+        @ApplicationContext context: Context,
+    ): QuizScoreStore = DataStoreQuizScoreStore(context)
 
     @Provides
     fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO

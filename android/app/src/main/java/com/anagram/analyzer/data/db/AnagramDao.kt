@@ -15,4 +15,10 @@ interface AnagramDao {
 
     @Query("SELECT COUNT(*) FROM anagram_entries")
     suspend fun count(): Long
+
+    @Query("SELECT COUNT(*) FROM anagram_entries WHERE length BETWEEN :minLen AND :maxLen")
+    suspend fun countByLength(minLen: Int, maxLen: Int): Int
+
+    @Query("SELECT * FROM anagram_entries WHERE length BETWEEN :minLen AND :maxLen LIMIT 1 OFFSET :offset")
+    suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry?
 }

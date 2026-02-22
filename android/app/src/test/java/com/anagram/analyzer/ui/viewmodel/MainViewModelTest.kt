@@ -852,6 +852,12 @@ class MainViewModelTest {
             }
             return entries.size.toLong()
         }
+
+        override suspend fun countByLength(minLen: Int, maxLen: Int): Int =
+            entries.count { it.length in minLen..maxLen }
+
+        override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
+            entries.filter { it.length in minLen..maxLen }.getOrNull(offset)
     }
 
     private class FakeSeedEntryLoader(

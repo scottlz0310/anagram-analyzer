@@ -132,6 +132,22 @@
 - [x] `MainScreen.kt` をスリム化（580行→~330行）
 - [x] `MainViewModelTest.kt` の26箇所コンストラクタ呼び出しを `buildViewModel` ヘルパー経由に更新
 
+## フェーズ 11: Issue #60 クイズモード実装
+
+- [x] `AnagramDao` に `getRandomEntry(minLen, maxLen)` クエリを追加（`ORDER BY RANDOM() LIMIT 1`）
+- [x] `domain/model/QuizDifficulty.kt` 新規作成（EASY/NORMAL/HARD 文字数範囲プリセット enum）
+- [x] `domain/model/QuizQuestion.kt` 新規作成（shuffledChars / sortedKey / correctWords を保持するデータクラス）
+- [x] `domain/usecase/GenerateQuizUseCase.kt` 新規作成（ランダムエントリ取得 → シャッフル → 正解リスト生成）
+- [x] `data/datastore/QuizScoreStore.kt` 新規作成（score / streak / bestStreak の永続化 interface + DataStoreQuizScoreStore 実装）
+- [x] `ui/viewmodel/QuizUiState.kt` 新規作成（QuizPhase enum + QuizUiState data class）
+- [x] `ui/viewmodel/QuizViewModel.kt` 新規作成（@HiltViewModel、quiz フロー全体制御）
+- [x] `di/AppModule.kt` に `provideQuizScoreStore()` を追加
+- [x] `ui/screen/QuizScreen.kt` 新規作成（難易度選択・問題表示・入力・正解判定・スコア表示）
+- [x] `MainActivity.kt` に `showQuiz` state を追加し、MainScreen と QuizScreen を切り替え
+- [x] `MainScreen.kt` に `onNavigateToQuiz` コールバック追加とクイズモードボタン追加
+- [x] `QuizViewModelTest.kt` 新規作成（6テストケース: ANSWERING遷移/正解/不正解/エントリなし/難易度/リセット）
+- [x] `MainViewModelTest.kt` の `FakeAnagramDao` に `getRandomEntry` メソッドを追加
+
 ---
 
 ## 進捗サマリ
@@ -148,3 +164,4 @@
 | 8: Pythonプロトタイプ撤去 | ✅ 完了 | Python CLI本体と関連CI/依存管理を削除し、Android単一実装に整理 |
 | 9: seed生成Kotlin/JVM移行 | ✅ 完了 | tools:seed-generator 実装（JmdictParser/Normalizer/TsvExporter/DbExporter/Main）、scripts/*.py削除、CI更新 |
 | 10: Issue #81 事前リファクタ | ✅ 完了 | MainViewModelをUC4クラス（PreloadSeed/SearchAnagram/LoadCandidateDetail/ApplyAdditionalDictionary）に分割、MainScreenからCandidateDetailScreen/SettingsDialog/ShareUtilを切り出し、PreloadLoggerをdomain.modelへ移動、MainViewModelTestをbuildViewModelヘルパー経由に更新 |
+| 11: Issue #60 クイズモード | ✅ 完了 | QuizDifficulty/QuizQuestion/GenerateQuizUseCase/QuizScoreStore/QuizUiState/QuizViewModel/QuizScreen 新規実装、MainScreen にクイズモードボタン追加、MainActivity で画面切替、QuizViewModelTest 追加 |

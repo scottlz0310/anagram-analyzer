@@ -11,8 +11,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import com.anagram.analyzer.data.datastore.ThemePreferenceStore
 import com.anagram.analyzer.ui.screen.MainScreen
+import com.anagram.analyzer.ui.screen.QuizScreen
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -31,18 +36,26 @@ class MainActivity : ComponentActivity() {
             }
             val isDarkTheme = isDarkThemeState ?: return@setContent
             val scope = rememberCoroutineScope()
+            var showQuiz by rememberSaveable { mutableStateOf(false) }
             MaterialTheme(
                 colorScheme = if (isDarkTheme) anagramDarkColorScheme() else anagramLightColorScheme(),
             ) {
                 Surface {
-                    MainScreen(
-                        isDarkTheme = isDarkTheme,
-                        onToggleTheme = {
-                            scope.launch {
-                                themePreferenceStore.setDarkTheme(!isDarkTheme)
-                            }
-                        },
-                    )
+                    if (showQuiz) {
+                        QuizScreen(
+                            onNavigateBack = { showQuiz = false },
+                        )
+                    } else {
+                        MainScreen(
+                            isDarkTheme = isDarkTheme,
+                            onToggleTheme = {
+                                scope.launch {
+                                    themePreferenceStore.setDarkTheme(!isDarkTheme)
+                                }
+                            },
+                            onNavigateToQuiz = { showQuiz = true },
+                        )
+                    }
                 }
             }
         }
