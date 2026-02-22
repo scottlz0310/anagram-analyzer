@@ -1,41 +1,18 @@
 # AGENTS.md - anagram-analyzer 開発ガイド
 
-このドキュメントはAIコーディングエージェント向けに、プロジェクトの構造と開発方針をまとめたものです。
+このドキュメントはAIコーディングエージェント向けに、現在の実装方針と開発ルールをまとめたものです。
 
 ## プロジェクト概要
 
-**anagram-analyzer** は、ひらがな文字列を並べ替えて作れる日本語の単語候補を返すツールです。
-現在 **Python CLI版**（プロトタイプ）と **Android版**（計画中）の2つのプラットフォームで展開します。
+**anagram-analyzer** は、ひらがな文字列を並べ替えて作れる日本語単語候補を返す Android アプリです。
 
-### 主な特徴
-
-- **アナグラム索引方式**: n!の総当たりではなく、辞書側を索引化して高速検索
-- **辞書データ非同梱**: ライセンス配慮のため、ユーザーが別途インストール（CLI版）
-- **Termux対応**: モバイル環境でも快適に動作（CLI版）
-- **Androidネイティブ対応**: Kotlin + Jetpack Compose によるモバイルアプリ（計画中）
-
-### プラットフォーム構成
-
-| プラットフォーム | 状態 | 位置 |
-|-----------------|------|------|
-| Python CLI版 | ✅ 実装済み | `src/anagram_cli/` |
-| Android版 | 🚧 初期実装中（手動テスト可） | `android/` |
+- 本実装: **Android版（Kotlin + Jetpack Compose）**
+- 補助ツール: **Python辞書変換スクリプト（seed生成用）**
+- 旧 Python CLI プロトタイプ: **削除済み（2026-02-21）**
 
 ## 技術スタック
 
-### Python CLI版
-
-| カテゴリ | 技術 |
-|---------|------|
-| 言語 | Python 3.10+ |
-| CLI フレームワーク | Typer |
-| 表示 | Rich |
-| データストア | SQLite |
-| 辞書ソース | jamdict + jamdict-data (JMdict) |
-| パッケージ管理 | uv (推奨) |
-| テスト | pytest |
-
-### Android版（初期構築中）
+### Androidアプリ本体
 
 | カテゴリ | 技術 |
 |---------|------|
@@ -43,506 +20,241 @@
 | UI | Jetpack Compose |
 | アーキテクチャ | MVVM + Clean Architecture |
 | DI | Hilt |
-| データストア | Room (SQLite) |
-| 設定管理 | DataStore |
-| 辞書ソース | JMdict (CC BY-SA 4.0) |
+| データストア | Room (SQLite), DataStore |
+| テスト | JUnit, Espresso/Compose Testing |
 | ビルド | Gradle (Kotlin DSL) |
-| テスト | JUnit, Espresso |
-| CI | GitHub Actions（CI: Python lint/test + Android Unit Test/Build（PRはAndroid差分時のみ、Configuration Cache有効）+ debug APK artifact、Android UI Tests: クラス単位2シャード + pull_request/workflow_dispatch/schedule（Configuration Cache有効）、Android Release: 署名済みAPK公開） |
+| CI | GitHub Actions（Android Unit/Build/UI/Release） |
 
-## ディレクトリ構造
+### 辞書生成スクリプト
 
-### Python CLI版（現行）
+| カテゴリ | 技術 |
+|---------|------|
+| 言語 | Python 3 |
+| 入力 | JMdict XML (`.xml` / `.gz`) |
+| 出力 | `anagram_seed.tsv`, `anagram_seed.db` |
+
+## ディレクトリ構造（現行）
 
 ```
 anagram-analyzer/
-├── src/anagram_cli/           # メインパッケージ
-│   ├── __init__.py
-│   ├── cli.py                 # Typerエントリポイント（コマンド定義）
-│   ├── config.py              # キャッシュディレクトリ等の設定
-│   ├── index.py               # SQLiteアナグラムインデックス管理
-│   ├── normalize.py           # ひらがな正規化・キー生成
-│   └── lexicon/
-│       ├── __init__.py
-│       └── jmdict.py          # jamdict からの語彙抽出
-├── tests/                     # テストスイート
-│   ├── __init__.py
-│   ├── test_normalize.py      # 正規化モジュールのテスト
-│   ├── test_index.py          # インデックスモジュールのテスト
-│   ├── test_integration.py    # 統合テスト
-│   └── test_export_android_room_db.py  # JMdict XML→Room DB変換スクリプトのテスト
+├── android/                             # Androidアプリ本体
+│   ├── app/
+│   │   └── src/
+│   │       ├── main/
+│   │       │   ├── assets/
+│   │       │   │   ├── anagram_seed.tsv
+│   │       │   │   ├── anagram_additional_seed.tsv
+│   │       │   │   └── candidate_detail_seed.tsv
+│   │       │   └── java/com/anagram/analyzer/
+│   │       │       ├── data/
+│   │       │       ├── di/
+│   │       │       ├── domain/
+│   │       │       └── ui/
+│   │       ├── test/
+│   │       └── androidTest/
+│   ├── gradle/
+│   ├── gradlew
+│   └── settings.gradle.kts
 ├── scripts/
-│   ├── export_android_seed.py     # JMdict語彙をseed TSVへ変換
-│   └── export_android_room_db.py  # JMdict XML(.gz)をRoom互換SQLiteへ変換
-├── pyproject.toml             # プロジェクト設定
-├── prompt.md                  # 開発仕様書
-└── README.md                  # ユーザー向けドキュメント
+│   ├── export_android_seed.py           # JMdict XML→seed TSV
+│   └── export_android_room_db.py        # JMdict XML→Room互換SQLite
+├── asset/
+├── README.md
+├── tasks.md
+├── CHANGELOG.md
+└── prompt.md
 ```
 
-### Android版（現行: 初期実装）
+## モジュール詳細（Android）
 
-```
-android/
-├── app/
-│   ├── build.gradle.kts
-│   ├── proguard-rules.pro
-│   └── src/
-│       ├── main/
-│       │   ├── AndroidManifest.xml
-│       │   ├── assets/
-│       │   │   ├── anagram_seed.tsv
-│       │   │   ├── anagram_additional_seed.tsv
-│       │   │   └── candidate_detail_seed.tsv
-│       │   └── java/com/anagram/analyzer/
-│       │       ├── AnagramApplication.kt
-│       │       ├── MainActivity.kt
-│       │       ├── data/db/
-│       │       │   ├── AnagramEntry.kt
-│       │       │   ├── AnagramDao.kt
-│       │       │   ├── AnagramDatabase.kt
-│       │       │   ├── CandidateDetailCacheEntry.kt
-│       │       │   └── CandidateDetailCacheDao.kt
-│       │       ├── data/seed/
-│       │       │   ├── AssetSeedEntryLoader.kt
-│       │       │   ├── AssetAdditionalSeedEntryLoader.kt
-│       │       │   ├── AssetCandidateDetailLoader.kt
-│       │       │   └── JishoCandidateDetailRemoteDataSource.kt
-│       │       ├── data/datastore/
-│       │       │   ├── ThemePreferenceStore.kt
-│       │       │   ├── InputHistoryStore.kt
-│       │       │   ├── SearchSettingsStore.kt
-│       │       │   └── SettingsDataStore.kt
-│       │       ├── di/AppModule.kt
-│       │       ├── domain/model/HiraganaNormalizer.kt
-│       │       └── ui/
-│       │           ├── screen/MainScreen.kt
-│       │           └── viewmodel/MainViewModel.kt
-│       ├── androidTest/
-│       │   └── java/com/anagram/analyzer/
-│       │       └── ui/screen/MainScreenTest.kt
-│       └── test/
-│           └── java/com/anagram/analyzer/
-│               ├── data/seed/AssetSeedEntryLoaderTest.kt
-│               ├── domain/model/HiraganaNormalizerTest.kt
-│               └── ui/viewmodel/MainViewModelTest.kt
-├── gradle/
-│   └── wrapper/
-│       ├── gradle-wrapper.jar
-│       └── gradle-wrapper.properties
-├── build.gradle.kts
-├── gradlew
-├── gradlew.bat
-├── gradle.properties
-└── settings.gradle.kts
-```
+### `domain/model/HiraganaNormalizer.kt`
 
-### Android版（将来構成案）
+- NFKC正規化
+- 空白除去
+- カタカナ→ひらがな変換
+- ひらがな判定
+- アナグラムキー生成
 
-```
-android/
-├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/anagram/analyzer/
-│   │   │   │   ├── data/               # データ層
-│   │   │   │   │   ├── db/             # Room DB・DAO・Entity
-│   │   │   │   │   ├── repository/     # リポジトリ実装
-│   │   │   │   │   └── datastore/      # DataStore設定管理
-│   │   │   │   ├── domain/             # ドメイン層
-│   │   │   │   │   ├── model/          # ドメインモデル
-│   │   │   │   │   ├── usecase/        # ユースケース
-│   │   │   │   │   └── repository/     # リポジトリインターフェース
-│   │   │   │   ├── ui/                 # プレゼンテーション層
-│   │   │   │   │   ├── screen/         # Compose画面
-│   │   │   │   │   ├── component/      # 再利用可能なUI部品
-│   │   │   │   │   ├── theme/          # テーマ定義
-│   │   │   │   │   └── viewmodel/      # ViewModel
-│   │   │   │   └── di/                 # DI設定
-│   │   │   ├── assets/                 # JMdict辞書データ
-│   │   │   └── res/                    # リソース
-│   │   ├── test/                       # ユニットテスト
-│   │   └── androidTest/                # UIテスト (Espresso)
-│   └── build.gradle.kts
-├── build.gradle.kts                    # ルートビルド設定
-├── settings.gradle.kts
-└── gradle.properties
-```
+### `data/db/`
 
-## モジュール詳細
+- `AnagramEntry.kt`: アナグラム索引Entity（`sorted_key + word` 一意制約）
+- `AnagramDao.kt`: seed投入・キー検索
+- `AnagramDatabase.kt`: Room DB本体（`version 3`、Migration `1→2` / `2→3`）
+- `CandidateDetailCacheEntry.kt` / `CandidateDetailCacheDao.kt`: 候補詳細キャッシュ
 
-### `normalize.py` - 正規化モジュール
+### `data/seed/`
 
-**責務**: 入力文字列の正規化とアナグラムキー生成
+- `AssetSeedEntryLoader.kt`: `anagram_seed.db` 優先、未同梱時 `anagram_seed.tsv` フォールバック
+- `AssetAdditionalSeedEntryLoader.kt`: 追加seed適用
+- `AssetCandidateDetailLoader.kt`: 候補詳細seed + キャッシュ統合
+- `JishoCandidateDetailRemoteDataSource.kt`: 未収録語のオンデマンド取得
 
-| 関数 | 説明 |
-|------|------|
-| `normalize_hiragana(s)` | NFKC正規化、空白除去、カタカナ→ひらがな変換 |
-| `katakana_to_hiragana(s)` | カタカナをひらがなに変換 |
-| `is_hiragana(char)` | 文字がひらがなか判定 |
-| `is_all_hiragana(s)` | 文字列が全てひらがなか判定 |
-| `anagram_key(s)` | ソート済み文字列（検索キー）を生成 |
+### `ui/`
 
-**例外**: `NormalizationError` - ひらがな以外の文字が含まれる場合
+- `MainScreen.kt`: 入力・候補一覧・設定・候補詳細画面
+- `MainViewModel.kt`: 検索/履歴/設定/辞書適用のUI状態管理
 
-### `android/app/src/main/java/com/anagram/analyzer/domain/model/HiraganaNormalizer.kt` - Android正規化モジュール
+## モジュール詳細（辞書生成スクリプト）
 
-**責務**: Python版 `normalize.py` 相当の正規化とキー生成をKotlinで提供
+### `scripts/export_android_seed.py`
 
-| 関数 | 説明 |
-|------|------|
-| `normalizeHiragana(input)` | NFKC正規化、空白除去、カタカナ→ひらがな変換、バリデーション |
-| `katakanaToHiragana(input)` | カタカナをひらがなに変換 |
-| `isHiragana(char)` | 文字がひらがなか判定 |
-| `isAllHiragana(input)` | 文字列が全てひらがなか判定 |
-| `anagramKey(input)` | ソート済み文字列（検索キー）を生成 |
+- JMdict XMLから `anagram_seed.tsv` を生成
+- ひらがな正規化 + 文字数フィルタ + 重複除去
 
-**例外**: `NormalizationException` - ひらがな以外の文字が含まれる場合
+### `scripts/export_android_room_db.py`
 
-**テスト**: `HiraganaNormalizerTest.kt` で Python版 `tests/test_normalize.py` の主要ケースとの一致を検証
-
-**UIテスト**: `MainScreenTest.kt` で入力→候補表示→エラー表示の最小E2Eを検証
-
-**CI運用（Android Unit/Build）**: `CI`（`.github/workflows/ci.yml`）は `dorny/paths-filter`（commit SHA固定）でPR差分を判定し、`android/**`・`.github/workflows/ci.yml`・`.github/workflows/android-ui-tests.yml` 変更時のみ Android Unit Test / Build を実行（`push` to `main` は常時実行）。実行コマンドは `--configuration-cache` を付与し、`android/.gradle/configuration-cache` を `actions/cache` で保存・復元
-
-**CI運用（Android UIテスト）**: `CI` ワークフローから分離した `Android UI Tests`（`.github/workflows/android-ui-tests.yml`）で `androidTest` の `*Test.kt` をクラス単位2シャード実行。PRでは `android/**` 変更時のみ自動実行し、`workflow_dispatch` / `schedule` でも実行。`connectedDebugAndroidTest` は `--configuration-cache` を有効化し、`android/.gradle/configuration-cache` を `actions/cache` で保存・復元（キャッシュキーは `github.sha` を含め、古いコミットの再利用を避ける）
-
-**ライセンス表示**: `MainScreen` の「辞書クレジット」ダイアログで JMdict の CC BY-SA 4.0 表記を表示
-
-**候補詳細表示**: 候補タップで候補詳細画面を表示（`candidate_detail_seed.tsv` 収録語は即時表示、未収録語はオンデマンド取得してローカルキャッシュ。取得には `INTERNET` 権限を使用）
-
-**テーマ切替**: `MainActivity` / `MainScreen` の設定ダイアログで Material 3 のライト/ダークテーマを切替可能
-
-**UIカラー強化**: `MainActivity` のカスタム `ColorScheme` と `MainScreen` のグラデーション背景/カード/カラーボタンで、入力・候補・履歴セクションを視認しやすく表示
-
-**イラスト装飾**: `MainScreen` 上部左右に `charactor1.png` / `charactor2.png`、下部に `spot-illustration.png`（`drawable` では `spot_illustration.png`）を配置し、Pastel系パレットに合わせて表示
-
-**候補表示最適化**: `MainScreen` は候補ボタンのCompose負荷を抑えるため、候補一覧の表示を最大50件に制限し、超過分は残件数を表示
-
-**テーマ永続化**: `ThemePreferenceStore` が DataStore Preferences にテーマ設定を保存し、再起動後も反映
-
-**入力履歴**: `MainViewModel` が候補表示時に最新10件の履歴を保持し、`InputHistoryStore`（DataStore）で永続化しつつ `MainScreen` で折りたたみ表示と履歴タップ再入力を提供
-
-**設定画面**: `MainScreen` の設定ダイアログで文字数範囲（最小/最大）を変更し、`SearchSettingsStore`（DataStore）で永続化。追加辞書ダウンロードで `anagram_additional_seed.tsv` を適用し、適用結果（件数/最新/失敗）を表示
-
-**アプリアイコン**: `asset/AnagramAnalyzerICON.png` を基に、`android:icon`（`@mipmap/ic_launcher`） / `android:roundIcon`（`@mipmap/ic_launcher_round`）を設定
-
-**初回投入計測**: `MainViewModel` が seed preload 完了時に `source / total / inserted / elapsedMs` 形式の計測ログを生成し、UI状態に保持
-
-### `android/app/src/main/java/com/anagram/analyzer/data/db/` - Android DBモジュール
-
-**責務**: Room によるアナグラム索引データの最小永続化
-
-| ファイル | 説明 |
-|---------|------|
-| `AnagramEntry.kt` | アナグラム索引エントリのEntity（`sorted_key`/`word`/`length`、`sorted_key + word` 一意制約） |
-| `AnagramDao.kt` | 索引投入（`insertAll`）とキー検索（`lookupWords`）を提供 |
-| `AnagramDatabase.kt` | RoomDatabase本体とシングルトン取得処理（version 3、`Migration(1,2)` で重複解消 + `Migration(2,3)` で候補詳細キャッシュ追加） |
-| `CandidateDetailCacheEntry.kt` | 候補詳細のオンデマンド取得結果を保持するキャッシュEntity（`word` 主キー） |
-| `CandidateDetailCacheDao.kt` | 候補詳細キャッシュの検索/保存（upsert）を提供 |
-
-### `android/app/src/main/java/com/anagram/analyzer/data/seed/` - Android seed辞書モジュール
-
-**責務**: Asset同梱された seed DB/TSV を `AnagramEntry` として読み込み
-
-| ファイル | 説明 |
-|---------|------|
-| `AssetSeedEntryLoader.kt` | `anagram_seed.db` を優先読込し、未同梱時は `anagram_seed.tsv` を読込む `SeedEntryLoader` 提供 |
-| `AssetAdditionalSeedEntryLoader.kt` | `anagram_additional_seed.tsv` の読込/parse と `AdditionalSeedEntryLoader` 提供 |
-| `AssetCandidateDetailLoader.kt` | `candidate_detail_seed.tsv` と `candidate_detail_cache` を統合し、候補詳細の初期表示/オンデマンド取得を提供 |
-| `JishoCandidateDetailRemoteDataSource.kt` | 未収録語の候補詳細を Jisho API から取得 |
-
-**運用方針**: seed生成は件数上限より `--max-len` による文字数制限を優先し、現行の推奨値は `max-len=8`（ローカルSQLite投入比較: `8` 約584ms / `10` 約712ms）。
-
-### `android/app/src/main/java/com/anagram/analyzer/data/datastore/` - Android設定永続化モジュール
-
-**責務**: DataStore Preferences によるUI設定の永続化
-
-| ファイル | 説明 |
-|---------|------|
-| `ThemePreferenceStore.kt` | ライト/ダークテーマ設定の保存・読み込み（`Flow<Boolean>`） |
-| `InputHistoryStore.kt` | 入力履歴（最新10件）の保存・読み込み（`Flow<List<String>>`） |
-| `SearchSettingsStore.kt` | 文字数範囲（最小/最大）の保存・読み込み（`Flow<SearchSettings>`） |
-| `SettingsDataStore.kt` | `settings` DataStore インスタンスを共有する拡張プロパティ |
-
-### `android/app/src/main/java/com/anagram/analyzer/di/AppModule.kt` - Android DIモジュール
-
-**責務**: Hiltでアプリ共通依存（DB/DAO/SeedLoader/Dispatcher）を提供
-
-| 提供対象 | 説明 |
-|---------|------|
-| `AnagramDatabase` | アプリ全体で共有するRoom DBインスタンス |
-| `AnagramDao` | `MainViewModel` などから検索に使うDAO |
-| `SeedEntryLoader` | `anagram_seed.tsv` を初期投入するためのローダー |
-| `AdditionalSeedEntryLoader` | `anagram_additional_seed.tsv` を追加適用するためのローダー |
-| `CandidateDetailLoader` | `candidate_detail_seed.tsv` を詳細表示に使うためのローダー |
-| `SearchSettingsStore` | 文字数範囲設定（最小/最大）を保存・取得するStore |
-| `CoroutineDispatcher` | DBアクセス用のIOディスパッチャ |
-
-### `index.py` - インデックスモジュール
-
-**責務**: SQLiteによるアナグラムインデックスの管理
-
-**クラス**: `AnagramIndex`
-
-| メソッド | 説明 |
-|----------|------|
-| `init_db()` | データベース初期化 |
-| `add(key, word)` | キーと単語のペアを追加 |
-| `add_batch(items)` | バッチ追加（高速） |
-| `lookup(key)` | キーに対応する単語を検索 |
-| `count()` | 登録エントリ数取得 |
-| `clear()` | 全データ削除 |
-
-**スキーマ**:
-```sql
-CREATE TABLE anagram_index (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    key TEXT NOT NULL,
-    word TEXT NOT NULL,
-    UNIQUE(key, word)
-);
-CREATE INDEX idx_key ON anagram_index(key);
-```
-
-### `lexicon/jmdict.py` - 辞書抽出モジュール
-
-**責務**: jamdict から語彙を抽出・フィルタ
-
-| 関数 | 説明 |
-|------|------|
-| `check_jamdict_available()` | jamdictが利用可能か確認 |
-| `check_jamdict_data_available()` | jamdict-dataが利用可能か確認 |
-| `iter_words(min_len, max_len, ...)` | 語彙をイテレート |
-
-### `cli.py` - CLIエントリポイント
-
-**コマンド**:
-
-1. **`anagram build`** - 辞書インデックス構築
-   - `--min-len N`: 最小文字数（デフォルト: 2）
-   - `--max-len N`: 最大文字数（デフォルト: 20）
-   - `--db PATH`: データベースパス
-   - `--force`: 既存DB上書き
-
-2. **`anagram solve <letters>`** - アナグラム検索
-   - `--top N`: 上位N件表示
-   - `--spoiler [off|hint|full]`: ネタバレモード
-   - `--db PATH`: データベースパス
-
-3. **`anagram doctor`** - 環境診断
-
-### `config.py` - 設定モジュール
-
-| 関数 | 説明 |
-|------|------|
-| `get_cache_dir()` | ユーザーキャッシュディレクトリ取得 |
-| `get_default_db_path()` | デフォルトDBパス取得 |
+- JMdict XMLから Room互換 `anagram_seed.db` を生成
+- `anagram_entries` / `candidate_detail_cache` 作成
+- `PRAGMA user_version = 3` 設定
 
 ## 開発コマンド
 
-### Python CLI版
+### Android
 
 ```bash
-# 依存関係インストール（開発用）
-uv pip install -e ".[dev]"
-
-# 辞書データインストール
-uv add jamdict jamdict-data
-
-# テスト実行
-pytest
-
-# カバレッジ付きテスト
-pytest --cov=anagram_cli
-
-# Lint・型チェック
-ruff check src/
-ruff format src/
-basedpyright src/
-
-# CLIテスト
-anagram doctor
-anagram build
-anagram solve "りんご"
-```
-
-### Android版（予定）
-
-```bash
-# ビルド
+# Debugビルド
 cd android && ./gradlew :app:assembleDebug
-
-# インストール（デバイス/エミュレータ接続時）
-cd android && adb install -r app/build/outputs/apk/debug/app-debug.apk
-
-# 起動（デバイス/エミュレータ接続時）
-adb shell am start -n com.anagram.analyzer/.MainActivity
 
 # ユニットテスト
 cd android && ./gradlew :app:testDebugUnitTest
 
-# UIテスト（エミュレータ/実機必要）
+# UIテスト
 cd android && ./gradlew :app:connectedDebugAndroidTest
-
-# release APK（署名情報を環境変数で指定）
-cd android && ANDROID_SIGNING_STORE_FILE=/path/to/release.keystore ANDROID_SIGNING_STORE_PASSWORD=*** ANDROID_SIGNING_KEY_ALIAS=*** ANDROID_SIGNING_KEY_PASSWORD=*** ./gradlew :app:assembleRelease
-
-# Android seed TSV生成（jamdict / jamdict-data が必要）
-uv run python scripts/export_android_seed.py --output android/app/src/main/assets/anagram_seed.tsv --min-len 2 --max-len 8
-
-# JMdict XML(.gz) から Room互換SQLiteを生成（段階移行向け）
-uv run python scripts/export_android_room_db.py --xml ~/.jamdict/data/JMdict_e.gz --output android/app/src/main/assets/anagram_seed.db --min-len 2 --max-len 8 --force
 
 # Lint
 cd android && ./gradlew :app:lintDebug
 
-# GitHub Release向けワークフロー（タグpush or Actions手動実行。手動時はtag未指定で自動タグ発行）
-git tag v1.0.0 && git push origin v1.0.0
+# Release APK（署名情報を環境変数で指定）
+cd android && ANDROID_SIGNING_STORE_FILE=/path/to/release.keystore ANDROID_SIGNING_STORE_PASSWORD=*** ANDROID_SIGNING_KEY_ALIAS=*** ANDROID_SIGNING_KEY_PASSWORD=*** ./gradlew :app:assembleRelease
 ```
 
-## アルゴリズム解説
+### 辞書seed生成
 
-### アナグラムキー方式
+```bash
+# TSV生成
+python scripts/export_android_seed.py --xml ~/.jamdict/data/JMdict_e.gz --output android/app/src/main/assets/anagram_seed.tsv --min-len 2 --max-len 8
 
-1. 正規化した単語 `w` に対し `key = ''.join(sorted(w))` を計算
-2. `key -> [w...]` のマップ（SQLiteインデックス）を構築
-3. 検索時も入力を同じkeyに変換し、1回のDB lookupで候補取得
+# Room互換SQLite生成
+python scripts/export_android_room_db.py --xml ~/.jamdict/data/JMdict_e.gz --output android/app/src/main/assets/anagram_seed.db --min-len 2 --max-len 8 --force
+```
 
-**例**:
-- 「りんご」→ キー「ごりん」
-- 「ごりん」→ キー「ごりん」（同じ）
-- DBで「ごりん」を検索 → 「りんご」が見つかる
+## CI運用
+
+- `CI`（`.github/workflows/ci.yml`）
+  - Android Unit Test / Build を実行
+  - PRでは `dorny/paths-filter` で Android関連差分時のみ実行
+  - `--configuration-cache` + `android/.gradle/configuration-cache` を `actions/cache` で保存/復元
+- `Android UI Tests`（`.github/workflows/android-ui-tests.yml`）
+  - `androidTest` をクラス単位2シャード実行
+  - `pull_request`（path filter）/ `workflow_dispatch` / `schedule`
+- `Android Release`（`.github/workflows/android-release.yml`）
+  - 署名済み `app-release.apk` を artifact / Release asset として公開
 
 ## 開発ルール（必須）
 
 ### ブランチ運用
 
-- **mainブランチへの直接pushは禁止**。すべての変更はfeatureブランチからPull Requestを経由すること。
-- ブランチ命名例: `feature/android-init`, `fix/normalize-edge-case`, `docs/update-agents`
+- 原則として `main` に直接コミットしない。feature/fix ブランチで作業して PR でマージする
+- 大きいタスクは先に Issue を作成して整理する
+- ドキュメント更新やリリース準備は `main` で直接作業しても構わない
+
+### PR作成後の自動レビュー対応ルーティン
+
+PR を作成した後は、Copilot 自動レビューおよび CI の結果を確認し、指摘がなくなるまで自動で修正イテレーションを行う。
+
+**監視ループ**
+
+- PR 作成直後に監視ループを開始する
+- 監視頻度: 2 分間隔、最大継続時間: 10 分（6 回チェック）
+- 各チェックで以下を確認する
+  - PR のレビューコメント（Copilot 自動レビュー等）と通常コメント（Issue comments: Codecov など Bot コメントを含む）の有無
+  - CI（GitHub Actions）のステータス（pending / running / success / failure）
+  - 「Copilot code review」ワークフロー（Copilot がレビューリクエスト時に自動実行する特別なワークフロー）が実行中の場合は、レビュー未完了として待機を継続する
+
+**指摘・CI エラー検出時の修正**
+
+- レビューコメント、通常コメント（Issue comments）、または CI 失敗を検出した場合は即座に修正する
+- レビューコメントと通常コメントは内容を精査し採否を判断する。正当な指摘は修正し、的外れな指摘は理由を付けて却下する。いずれの場合もコメントに返信を残す
+- 修正後は必ず新しいコミットを作成して push する（Copilot 自動レビューは新しいコミットの push でのみ再実行されるため）
+- コード変更がない場合でも空コミットで push して再レビューを発火させる
+
+  ```bash
+  git commit --allow-empty -m "chore: Copilot 自動レビューを再実行"
+  git push
+  ```
+
+- push 完了後、監視ループを最初からリセット（再度 10 分間の監視）して再確認する
+
+**完了条件**
+
+以下がすべて満たされた場合、PR を「レビュー完了」とみなしループを終了する。
+
+- 新しいレビューコメントと通常コメント（Issue comments）が無い
+- CI がすべて成功している
+- 「Copilot code review」ワークフローが完了済みである
+
+### バージョン調査の注意
+
+- AI から見て不自然に新しいバージョンに感じても、勝手にバージョンダウンしない
+- 学習時期のタイムラグを前提に、必要に応じて Web で最新情報を確認する
 
 ### 言語
 
-- **Issue、PR、コミットメッセージ、コードコメント、ドキュメントはすべて日本語**で記述すること。
-- 変数名・関数名・クラス名など識別子は英語で構わない。
+- Issue、PR、コミットメッセージ、コードコメント、ドキュメントは日本語で記述
+- 識別子（変数/関数/クラス名）は英語可
 
 ### ドキュメント更新義務
 
-イテレーション（PR単位の作業）ごとに、以下のドキュメントを**必ず更新**すること：
+イテレーションごとに以下を必ず更新すること。
 
 | ドキュメント | 更新内容 |
 |-------------|---------|
-| `tasks.md` | 完了タスクのチェック、新規タスクの追加、進捗サマリの更新 |
-| `CHANGELOG.md` | 変更内容を [Unreleased] セクションに追記 |
-| `AGENTS.md` | 構造変更・新モジュール追加時にディレクトリ構造・モジュール詳細を更新 |
-| `README.md` | ユーザー向け機能・使い方に変更がある場合に更新 |
-| `prompt.md` | 仕様変更がある場合に更新 |
+| `tasks.md` | 完了タスクのチェック、新規タスクの追加、進捗サマリ更新 |
+| `CHANGELOG.md` | [Unreleased] へ変更を追記 |
+| `AGENTS.md` | 構造変更・モジュール変更を反映 |
+| `README.md` | ユーザー向け説明の整合性を維持 |
+| `prompt.md` | 仕様変更時に更新 |
 
 ## コーディング規約
 
-### Python CLI版
+### Android（Kotlin）
 
-- **型ヒント**: 全ての関数に型ヒントを付ける
-- **docstring**: 主要な関数・クラスにdocstringを記述
-- **例外処理**: 適切なカスタム例外を使用
-- **テスト**: 新機能には対応するテストを追加
+- Kotlin公式コーディング規約に準拠
+- 単一責任原則（SRP）を厳守
+- UI状態は StateFlow ベースの一方向データフロー
+- 非同期処理は Coroutines / Flow
+- DIは Hilt
+- テストは Unit Test + UI Test を維持
 
-### Android版（Kotlin）
+### Python（補助スクリプト）
 
-- **命名規則**: Kotlin公式コーディング規約に準拠
-- **責務分離**: ゴッドクラス禁止、単一責任原則（SRP）を厳守
-- **アーキテクチャ**: MVVM + Clean Architecture（data / domain / ui の3層）
-- **UIステート**: StateFlowベースの一方向データフロー
-- **非同期処理**: Kotlin Coroutines + Flow
-- **DI**: Hilt（推奨）
-- **テスト**: ユニットテスト（JUnit）、UIテスト（Espresso/Compose Testing）を必須化
+- 補助用途のみ（アプリ本体ロジックを実装しない）
+- 標準ライブラリ中心で依存最小化
+- 失敗時は `RuntimeError` で理由を明示
 
 ## 注意事項
 
-### 辞書データについて
+### 辞書データとライセンス
 
-- 辞書データ（jamdict-data）はPython CLI版では **同梱しない**
-- JMdictは **CC BY-SA 4.0** ライセンス（最新版準拠）
-- Python CLI版：ユーザーが自分でインストールする方式
-- Android版：JMdictフルデータをAssetにバンドル予定（XML解凍後110〜120MB、Room DB化後200〜300MB見込み）
-- Android版のクレジット表記（About画面に記載必須）：
-  > このアプリはElectronic Dictionary Research and Development GroupのJMdictデータを使用しています。ライセンス: CC BY-SA 4.0
+- JMdict は **CC BY-SA 4.0**
+- アプリ内にクレジット表記を必ず表示する
+- 生成DBファイルは成果物扱い（必要に応じて `.gitignore` 管理）
 
-### データベースについて
+### seed運用
 
-- 生成されたDBファイルは `.gitignore` に含める
-- デフォルト保存先: `platformdirs.user_cache_dir()`
-
-## 今後の拡張予定
-
-### Python CLI版
-
-1. **頻度ランキング**: `wordfreq` 導入で候補を頻度順にソート
-2. **品詞フィルタ**: 名詞のみに絞る機能
-3. **ソートオプション**: `--sort alpha|freq`
-4. **部分一致検索**: 一部の文字だけ使った候補も表示
-
-### Androidアプリ化（Issue #14）
-
-開発ステップ（段階的に実施）：
-
-1. **ロジック抽出・仕様明確化**: Python版から正規化・キー生成・検索ロジックを抽出
-2. **Kotlinロジック再実装**: 正規化・アナグラムキー生成・Room DB検索をKotlinで再実装
-3. **UIプロトタイプ**: Jetpack Composeで基本画面（入力・候補表示）
-4. **アプリ基盤設計**: MVVM + Clean Architecture によるクラス分割
-5. **辞書データ対応**: JMdictのAndroid Asset化、Room Entityへの変換
-6. **機能実装**: 入力履歴、お気に入り、オフライン辞書、設定画面
-7. **CI/CD・QA**: GitHub Actions でのAndroidビルド・テスト自動化
-8. **iOS対応**: 要望・実績に応じて別途計画
-
-#### Android版で移植するPythonロジック
-
-| Python モジュール | 移植対象 | Kotlin実装先 |
-|------------------|---------|-------------|
-| `normalize.py` | `normalize_hiragana()`, `anagram_key()`, `katakana_to_hiragana()` | `domain/model/` |
-| `index.py` | `AnagramIndex` (SQLite検索) | `data/db/` (Room DAO) |
-| `lexicon/jmdict.py` | JMdict語彙抽出ロジック | `data/repository/` |
-
-#### Android版 AnagramEntry スキーマ設計（Room Entity）
-
-```kotlin
-@Entity(indices = [Index("sorted_key"), Index("length")])
-data class AnagramEntry(
-    @PrimaryKey val sortedKey: String,          // ひらがな正規化→ソート済み
-    val readings: String,                       // 複数読みを"|"区切り
-    val kanji: String?,                         // 代表表記
-    val glossSummary: String?,                   // 短い英語訳まとめ
-    val entryId: Long,                          // JMdict元ID（詳細用）
-    val length: Int,
-    val isCommon: Boolean = false
-)
-```
-
-#### Android版 想定画面構成
-
-- **メイン画面**: テキスト入力 + 検索ボタン + 候補リスト
-- **候補詳細画面**: 漢字表記・意味・JMdict情報
-- **履歴画面**: 入力履歴一覧
-- **お気に入り画面**: ブックマーク管理
-- **設定画面**: 文字数範囲、UIテーマ切替、辞書更新
+- `--max-len=8` を推奨（サイズ/投入時間バランス）
+- `anagram_seed.db` 同梱時はDB優先読込、未同梱時はTSVフォールバック
 
 ## トラブルシューティング
 
-### jamdict関連エラー
+### JMdict XMLが見つからない
+
+- `--xml` で明示的にパスを指定する
+- 省略時の自動解決には `jamdict` / `jamdict-data` が必要
+
+### Androidビルド失敗
 
 ```bash
-# jamdict と jamdict-data を両方インストール
-uv add jamdict jamdict-data
-
-# 診断コマンドで確認
-anagram doctor
-```
-
-### テスト失敗時
-
-```bash
-# 詳細出力で実行
-pytest -v
-
-# 特定テストのみ実行
-pytest tests/test_normalize.py -v
+cd android && ./gradlew --stop
+cd android && ./gradlew :app:assembleDebug --no-daemon --configuration-cache
 ```

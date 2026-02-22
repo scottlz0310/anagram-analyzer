@@ -14,14 +14,6 @@
 - [x] ドキュメント整備（README.md, AGENTS.md, prompt.md）
 - [x] Androidアプリ化に向けたドキュメント拡充（Issue #14）
 
-## フェーズ 1: Pythonロジック抽出・仕様明確化
-
-- [ ] 正規化ロジックの仕様書作成（入出力・エッジケース一覧）
-- [ ] アナグラムキー生成の仕様書作成
-- [ ] インデックス検索の仕様書作成（スキーマ・クエリパターン）
-- [ ] JMdict語彙抽出のフィルタ条件の明文化
-- [ ] Python版とAndroid版の動作一致テストケース設計
-
 ## フェーズ 2: Androidプロジェクト初期構築
 
 - [x] Androidプロジェクト雛形作成（Gradle Kotlin DSL）
@@ -104,17 +96,25 @@
 - [ ] Cloudflare への配布導線デプロイ（安定化後）
 - [ ] iOS対応の検討・計画策定
 
+## フェーズ 8: Pythonプロトタイプ撤去
+
+- [x] `src/anagram_cli`（Python CLI本体）を削除
+- [x] Python CLI向けテスト（`tests/`）を削除
+- [x] 辞書生成スクリプトをCLI依存なしで実行できるよう更新
+- [x] Python CLI前提のCI/依存管理設定（`ci.yml` / `renovate.json` / `pyproject.toml` / `uv.lock` / `.pre-commit-config.yaml`）を整理
+- [x] Python CLI前提の記述を主要ドキュメントから削除し、Android単一実装に整合
+
 ---
 
 ## 進捗サマリ
 
 | フェーズ | 状態 | 備考 |
 |---------|------|------|
-| 0: 基盤整備 | ✅ 完了 | Python CLI版 + ドキュメント整備済み |
-| 1: ロジック抽出 | 🔲 未着手 | |
+| 0: 基盤整備 | ✅ 完了 | Android基盤に必要な初期整備とドキュメント整備を完了 |
 | 2: Android初期構築 | ✅ 完了 | Room最小DB構成 + Hilt DI基盤 + Android CIジョブ追加 + 起動クラッシュ対策まで完了 |
-| 3: ロジック移植 | ✅ 完了 | normalize移植 + Room検索接続 + Python版との一致テスト追加 |
+| 3: ロジック移植 | ✅ 完了 | normalize移植 + Room検索接続 + Kotlin側ユニットテスト整備 |
 | 4: UI実装 | 🟡 進行中 | メイン画面実装、候補詳細画面（漢字/意味のseed実データ表示 + 未収録語オンデマンド取得導線 + 共有ボタン/意味長押し選択）、ライト/ダーク切替、グラデーション背景/カード/カラーボタンによるUIカラー強化、上部左右/下部イラスト配置 + Pastel配色適用、候補一覧の50件上限制御、ランチャーアイコン適用（更新素材から再生成含む）、手動テスト可能な最小フロー、Compose UIテスト追加 |
 | 5: 辞書データ | 🟡 進行中 | seed変換/取込導線 + サイズ最適化（`max-len=8`）+ ライセンス表示 + 初回インポート計測ログ + 8/10投入時間比較 + 候補詳細オンデマンド取得/キャッシュ + JMdict XML→Room DB 変換ツール + `anagram_seed.db` 優先読込まで実施 |
 | 6: 追加機能 | 🟡 進行中 | DataStore によるテーマ設定永続化 + 入力履歴永続化 + 履歴折りたたみ表示 + 設定画面（文字数範囲/テーマ/追加辞書DL適用）まで実装 |
 | 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト分離（2シャード）+ CI本体の差分判定でPR時のAndroid Unit/Build条件実行 + Android Unit/Build/UIでConfiguration Cache有効化（`android/.gradle/configuration-cache` 保存復元、ローカル連続計測で `testDebugUnitTest --dry-run` 6.69s→4.10s）に加え、UIテストのConfiguration Cacheキーへ `github.sha` を導入して古いコミットのキャッシュ再利用起因の失敗を抑制。debug APK artifact と GitHub Release向け署名済みAPK公開ワークフロー（dispatch自動タグ発行対応）も継続 |
+| 8: Pythonプロトタイプ撤去 | ✅ 完了 | Python CLI本体と関連CI/依存管理を削除し、Android単一実装に整理 |

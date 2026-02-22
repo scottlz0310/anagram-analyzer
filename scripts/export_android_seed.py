@@ -5,18 +5,25 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import sys
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-
-from anagram_cli.lexicon.jmdict import iter_words
-from anagram_cli.normalize import anagram_key
+from export_android_room_db import (
+    anagram_key,
+    is_all_hiragana,
+    iter_jmdict_readings,
+    normalize_hiragana,
+    resolve_jmdict_xml_path,
+)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="JMdict語彙をAndroid向けanagram_seed.tsvへ変換します。",
+    )
+    parser.add_argument(
+        "--xml",
+        type=Path,
+        default=None,
+        help="JMdict XML(.xml/.gz) のパス。未指定時は jamdict-data 既定パスを使用",
     )
     parser.add_argument(
         "--output",
@@ -37,12 +44,25 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    xml_path = resolve_jmdict_xml_path(args.xml)
+    if not xml_path.exists():
+        raise RuntimeError(f"JMdict XMLが見つかりません: {xml_path}")
+
     args.output.parent.mkdir(parents=True, exist_ok=True)
 
     count = 0
+    seen_words: set[str] = set()
     with args.output.open("w", encoding="utf-8") as output:
         output.write("# sorted_key<TAB>word<TAB>length\n")
-        for word in iter_words(min_len=args.min_len, max_len=args.max_len):
+        for reading in iter_jmdict_readings(xml_path):
+            word = normalize_hiragana(reading)
+            if len(word) < args.min_len or len(word) > args.max_len:
+                continue
+            if not is_all_hiragana(word):
+                continue
+            if word in seen_words:
+                continue
+            seen_words.add(word)
             output.write(f"{anagram_key(word)}\t{word}\t{len(word)}\n")
             count += 1
             if args.limit > 0 and count >= args.limit:
