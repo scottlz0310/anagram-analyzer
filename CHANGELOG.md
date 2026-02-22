@@ -7,15 +7,23 @@
 
 ### Added
 
-- （なし）
+- `tools:seed-generator` モジュールを新規追加（Kotlin/JVM + application plugin）
+  - JMdict XML/gzip から `anagram_seed.tsv` / Room互換SQLite DB を生成する独立JVMツール
+  - `Normalizer.kt`（NFKC正規化・カタカナ→ひらがな・anagramKey）
+  - `JmdictParser.kt`（StAXベースXML/gzipパーサ）
+  - `TsvExporter.kt`（word順ソートTSV出力）
+  - `DbExporter.kt`（Room互換SQLite生成、user_version=3、完全スキーマ互換）
+  - `Main.kt`（CLI: --jmdict/--out-tsv/--out-db/--mode/--min-len/--max-len/--limit/--force）
+  - `NormalizerTest.kt` / `SeedGeneratorIntegrationTest.kt`（fixture XMLゴールデンテスト）
+  - `jmdict_sample.xml` / `expected_anagram_seed.tsv`（CI用fixture）
+- GitHub Actions `CI` の android-unit ジョブに `:tools:seed-generator:test` を追加
 
 ### Changed
 
-- Python CLIプロトタイプ（`src/anagram_cli`）と関連テスト（`tests/`）を削除し、Android単一実装へ整理
-- `scripts/export_android_seed.py` / `scripts/export_android_room_db.py` を更新し、旧CLIモジュールに依存せず seed 生成できるよう変更
-- GitHub Actions `CI` からPython lint/testジョブを削除し、Android Unit/Build の実行構成に整理
-- Python向け依存管理ファイル（`pyproject.toml` / `uv.lock` / `.pre-commit-config.yaml`）を削除し、`renovate.json` からPython/Pre-commitプリセットを除外
-- README / AGENTS / prompt / tasks の記述を Android単一実装前提に更新
+- `scripts/export_android_seed.py` / `scripts/export_android_room_db.py` を削除し、Kotlin/JVMツールへ完全移行
+- `scripts/` ディレクトリを削除（Python実行スクリプトのリポジトリ完全撤去）
+- `android/settings.gradle.kts` に `:tools:seed-generator` を追加
+- `android/build.gradle.kts` に `org.jetbrains.kotlin.jvm` プラグイン宣言を追加
 - Android `MainScreen` の候補詳細画面に共有導線を追加し、意味がある語は `共有` ボタンから `ACTION_SEND` で外部アプリへ共有できるよう更新
 - 候補詳細画面の意味テキストを長押しすると選択状態に切り替わるよう更新し、`選択解除` 操作を追加
 - `MainScreenTest` に共有ボタン表示と意味長押し時の選択状態UIテストを追加

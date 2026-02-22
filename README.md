@@ -6,7 +6,7 @@
 ## 現在の構成
 
 - **Androidアプリ本体**: `android/`
-- **辞書seed生成スクリプト**: `scripts/export_android_seed.py`, `scripts/export_android_room_db.py`
+- **辞書seed生成ツール**: `android/tools/seed-generator/`（Kotlin/JVM CLIツール）
 - **Python CLI版**: 2026-02-21時点で削除済み（プロトタイプ運用終了）
 
 ## Androidアプリ開発
@@ -37,30 +37,26 @@ cd android && ./gradlew :app:lintDebug
 
 ## 辞書seed更新（開発者向け）
 
-Pythonスクリプトで JMdict XML（`.xml` / `.gz`）から seed を生成できます。
+Kotlin/JVM CLIツール（`tools:seed-generator`）で JMdict XML（`.xml` / `.gz`）から seed を生成します。
 
 ### TSV生成
 
 ```bash
-python scripts/export_android_seed.py \
-  --xml ~/.jamdict/data/JMdict_e.gz \
-  --output android/app/src/main/assets/anagram_seed.tsv \
-  --min-len 2 \
-  --max-len 8
+cd android && ./gradlew :tools:seed-generator:run \
+  --args="--jmdict ~/.jamdict/data/JMdict_e.gz \
+          --out-tsv app/src/main/assets/anagram_seed.tsv \
+          --mode tsv --min-len 2 --max-len 8"
 ```
 
 ### Room互換SQLite生成
 
 ```bash
-python scripts/export_android_room_db.py \
-  --xml ~/.jamdict/data/JMdict_e.gz \
-  --output android/app/src/main/assets/anagram_seed.db \
-  --min-len 2 \
-  --max-len 8 \
-  --force
+cd android && ./gradlew :tools:seed-generator:run \
+  --args="--jmdict ~/.jamdict/data/JMdict_e.gz \
+          --out-db app/src/main/assets/anagram_seed.db \
+          --mode db --min-len 2 --max-len 8 --force"
 ```
 
-- `--xml` 未指定時は `jamdict` / `jamdict-data` の既定パス解決を試みます。
 - 推奨運用値は `--max-len 8` です。
 
 ## 手動確認（Android）

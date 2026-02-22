@@ -65,6 +65,10 @@ jobs:
         working-directory: android
         run: ./gradlew :app:testDebugUnitTest --no-daemon --configuration-cache
 
+      - name: Run seed-generator tests
+        working-directory: android
+        run: ./gradlew :tools:seed-generator:test --no-daemon
+
   android-build:
     name: Android Build
     needs: detect-android-changes

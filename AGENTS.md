@@ -52,12 +52,23 @@ anagram-analyzer/
 │   │       │       └── ui/
 │   │       ├── test/
 │   │       └── androidTest/
+│   ├── tools/
+│   │   └── seed-generator/              # JMdict→TSV/DB 生成ツール（Kotlin/JVM CLI）
+│   │       ├── build.gradle.kts
+│   │       └── src/
+│   │           ├── main/kotlin/com/anagram/tools/seedgenerator/
+│   │           │   ├── Main.kt
+│   │           │   ├── Normalizer.kt
+│   │           │   ├── JmdictParser.kt
+│   │           │   ├── TsvExporter.kt
+│   │           │   └── DbExporter.kt
+│   │           └── test/
+│   │               ├── kotlin/…/NormalizerTest.kt
+│   │               ├── kotlin/…/SeedGeneratorIntegrationTest.kt
+│   │               └── resources/jmdict_sample.xml / expected_anagram_seed.tsv
 │   ├── gradle/
 │   ├── gradlew
 │   └── settings.gradle.kts
-├── scripts/
-│   ├── export_android_seed.py           # JMdict XML→seed TSV
-│   └── export_android_room_db.py        # JMdict XML→Room互換SQLite
 ├── asset/
 ├── README.md
 ├── tasks.md
@@ -94,18 +105,19 @@ anagram-analyzer/
 - `MainScreen.kt`: 入力・候補一覧・設定・候補詳細画面
 - `MainViewModel.kt`: 検索/履歴/設定/辞書適用のUI状態管理
 
-## モジュール詳細（辞書生成スクリプト）
+## モジュール詳細（辞書生成ツール）
 
-### `scripts/export_android_seed.py`
+### `tools/seed-generator/`（Kotlin/JVM CLIツール）
 
-- JMdict XMLから `anagram_seed.tsv` を生成
-- ひらがな正規化 + 文字数フィルタ + 重複除去
+JMdict XML/gzip から `anagram_seed.tsv` / Room互換SQLite を生成する独立JVMツール。
 
-### `scripts/export_android_room_db.py`
-
-- JMdict XMLから Room互換 `anagram_seed.db` を生成
-- `anagram_entries` / `candidate_detail_cache` 作成
-- `PRAGMA user_version = 3` 設定
+| ファイル | 説明 |
+|---------|------|
+| `Main.kt` | CLIエントリポイント（`--jmdict/--out-tsv/--out-db/--mode/--min-len/--max-len/--limit/--force`） |
+| `Normalizer.kt` | NFKC正規化・カタカナ→ひらがな・ひらがな判定・anagramKey（Python版互換） |
+| `JmdictParser.kt` | StAXベースXML/gzipパーサ。AnagramRowデータクラスを返す |
+| `TsvExporter.kt` | word順ソートでTSV出力（`sorted_key\tword\tlength\n`） |
+| `DbExporter.kt` | Room互換SQLite生成（`PRAGMA user_version=3`、`anagram_entries` + `candidate_detail_cache`、全インデックス付） |
 
 ## 開発コマンド
 
@@ -132,10 +144,19 @@ cd android && ANDROID_SIGNING_STORE_FILE=/path/to/release.keystore ANDROID_SIGNI
 
 ```bash
 # TSV生成
-python scripts/export_android_seed.py --xml ~/.jamdict/data/JMdict_e.gz --output android/app/src/main/assets/anagram_seed.tsv --min-len 2 --max-len 8
+cd android && ./gradlew :tools:seed-generator:run \
+  --args="--jmdict ~/.jamdict/data/JMdict_e.gz --out-tsv app/src/main/assets/anagram_seed.tsv --mode tsv --min-len 2 --max-len 8"
 
 # Room互換SQLite生成
-python scripts/export_android_room_db.py --xml ~/.jamdict/data/JMdict_e.gz --output android/app/src/main/assets/anagram_seed.db --min-len 2 --max-len 8 --force
+cd android && ./gradlew :tools:seed-generator:run \
+  --args="--jmdict ~/.jamdict/data/JMdict_e.gz --out-db app/src/main/assets/anagram_seed.db --mode db --min-len 2 --max-len 8 --force"
+
+# TSV + DB 同時生成
+cd android && ./gradlew :tools:seed-generator:run \
+  --args="--jmdict ~/.jamdict/data/JMdict_e.gz --out-tsv app/src/main/assets/anagram_seed.tsv --out-db app/src/main/assets/anagram_seed.db --mode both --min-len 2 --max-len 8 --force"
+
+# seed-generatorのテスト実行
+cd android && ./gradlew :tools:seed-generator:test --no-daemon
 ```
 
 ## CI運用
