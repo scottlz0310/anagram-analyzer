@@ -100,10 +100,29 @@ anagram-analyzer/
 - `AssetCandidateDetailLoader.kt`: 候補詳細seed + キャッシュ統合
 - `JishoCandidateDetailRemoteDataSource.kt`: 未収録語のオンデマンド取得
 
-### `ui/`
+### `domain/model/`
 
-- `MainScreen.kt`: 入力・候補一覧・設定・候補詳細画面
-- `MainViewModel.kt`: 検索/履歴/設定/辞書適用のUI状態管理
+- `HiraganaNormalizer.kt`: NFKC正規化・カタカナ→ひらがな・ひらがな判定・アナグラムキー生成
+- `PreloadLogger.kt`: seed初期化ログ用 fun interface（`domain` 層に配置）
+
+### `domain/usecase/`
+
+- `PreloadSeedUseCase.kt`: seed初期化・候補詳細ロード・計測ログ
+- `SearchAnagramUseCase.kt`: アナグラム索引検索（`AnagramDao.lookupWords` ラッパー）
+- `LoadCandidateDetailUseCase.kt`: 候補詳細オンデマンド取得（`CandidateDetailLoader` ラッパー）
+- `ApplyAdditionalDictionaryUseCase.kt`: 追加辞書適用（投入件数・最終更新日時を返す）
+
+### `ui/viewmodel/`
+
+- `MainUiState.kt`: UI状態 data class（flat構造 17フィールド）
+- `MainViewModel.kt`: UC4クラス + Store2 + Dispatcher を注入したViewModel（~343行）
+
+### `ui/screen/`
+
+- `MainScreen.kt`: 入力・候補一覧のメイン画面（~332行）
+- `CandidateDetailScreen.kt`: 候補詳細画面 Composable（`internal`）
+- `SettingsDialog.kt`: `AboutDialog` / `SettingsDialog` Composable（`internal`）
+- `ShareUtil.kt`: `shareCandidateDetail` ユーティリティ関数（`internal`）
 
 ## モジュール詳細（辞書生成ツール）
 
