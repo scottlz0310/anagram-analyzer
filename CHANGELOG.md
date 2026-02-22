@@ -5,6 +5,8 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-02-22
+
 ### Added
 
 - **seed TSV/DB の isCommon 対応版再生成**
