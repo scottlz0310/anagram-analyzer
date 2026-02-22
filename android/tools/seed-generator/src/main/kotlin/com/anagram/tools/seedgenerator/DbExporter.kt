@@ -4,7 +4,7 @@ import java.nio.file.Path
 import java.sql.DriverManager
 
 object DbExporter {
-    private const val USER_VERSION = 3
+    private const val USER_VERSION = 4
 
     fun export(rows: List<AnagramRow>, outPath: Path, force: Boolean = false) {
         if (outPath.toFile().exists()) {
@@ -23,7 +23,8 @@ object DbExporter {
                         `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                         `sorted_key` TEXT NOT NULL,
                         `word` TEXT NOT NULL,
-                        `length` INTEGER NOT NULL
+                        `length` INTEGER NOT NULL,
+                        `is_common` INTEGER NOT NULL DEFAULT 0
                     )
                     """.trimIndent(),
                 )
@@ -57,12 +58,13 @@ object DbExporter {
                 st.execute("PRAGMA user_version = $USER_VERSION")
             }
             conn.prepareStatement(
-                "INSERT OR IGNORE INTO `anagram_entries` (`sorted_key`, `word`, `length`) VALUES (?, ?, ?)",
+                "INSERT OR IGNORE INTO `anagram_entries` (`sorted_key`, `word`, `length`, `is_common`) VALUES (?, ?, ?, ?)",
             ).use { ps ->
                 for (row in rows) {
                     ps.setString(1, row.sortedKey)
                     ps.setString(2, row.word)
                     ps.setInt(3, row.length)
+                    ps.setInt(4, if (row.isCommon) 1 else 0)
                     ps.addBatch()
                 }
                 ps.executeBatch()

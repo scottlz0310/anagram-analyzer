@@ -22,4 +22,6 @@ data class AnagramEntry(
     val word: String,
     @ColumnInfo(name = "length")
     val length: Int,
+    @ColumnInfo(name = "is_common", defaultValue = "0")
+    val isCommon: Boolean = false,
 )

@@ -20,6 +20,20 @@ class SeedGeneratorIntegrationTest {
     }
 
     @Test
+    fun `isCommon フラグが正しく付与されている`() {
+        val rows = JmdictParser.parse(fixtureXml, minLen = 2, maxLen = 8)
+        val commonWords = rows.filter { it.isCommon }.map { it.word }.toSet()
+        val nonCommonWords = rows.filter { !it.isCommon }.map { it.word }.toSet()
+        // りんご(news1)・ねこ(ichi1)・いぬ(nf01) は一般語
+        assertTrue("りんご が isCommon", "りんご" in commonWords)
+        assertTrue("ねこ が isCommon", "ねこ" in commonWords)
+        assertTrue("いぬ が isCommon", "いぬ" in commonWords)
+        // こね・ごりん は re_pri なし → 非一般語
+        assertTrue("こね が非isCommon", "こね" in nonCommonWords)
+        assertTrue("ごりん が非isCommon", "ごりん" in nonCommonWords)
+    }
+
+    @Test
     fun `fixture XMLから正しい行数を解析できる`() {
         val rows = JmdictParser.parse(fixtureXml, minLen = 2, maxLen = 8)
         // いぬ / こね / ごりん / ねこ / りんご の5件
@@ -43,11 +57,11 @@ class SeedGeneratorIntegrationTest {
 
         Class.forName("org.sqlite.JDBC")
         java.sql.DriverManager.getConnection("jdbc:sqlite:${outDb.toAbsolutePath()}").use { conn ->
-            // user_version = 3
+            // user_version = 4
             conn.createStatement().use { st ->
                 st.executeQuery("PRAGMA user_version").use { rs ->
                     assertTrue(rs.next())
-                    assertEquals(3, rs.getInt(1))
+                    assertEquals(4, rs.getInt(1))
                 }
             }
             // anagram_entries テーブル: 5件
@@ -71,6 +85,13 @@ class SeedGeneratorIntegrationTest {
                         " WHERE type='index' AND name='index_anagram_entries_sorted_key_word'",
                 ).use { rs ->
                     assertTrue(rs.next())
+                }
+            }
+            // is_common=1 の件数: りんご・ねこ・いぬ の3件
+            conn.createStatement().use { st ->
+                st.executeQuery("SELECT COUNT(*) FROM anagram_entries WHERE is_common = 1").use { rs ->
+                    assertTrue(rs.next())
+                    assertEquals(3, rs.getInt(1))
                 }
             }
             // 代表行: ねこ の sorted_key = こね

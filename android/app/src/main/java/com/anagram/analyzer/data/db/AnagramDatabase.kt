@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-internal const val ANAGRAM_DATABASE_VERSION = 3
+internal const val ANAGRAM_DATABASE_VERSION = 4
 
 @Database(
     entities = [AnagramEntry::class, CandidateDetailCacheEntry::class],
@@ -62,13 +62,22 @@ abstract class AnagramDatabase : RoomDatabase() {
                 }
             }
 
+        private val migration3To4 =
+            object : Migration(3, 4) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "ALTER TABLE `anagram_entries` ADD COLUMN `is_common` INTEGER NOT NULL DEFAULT 0",
+                    )
+                }
+            }
+
         fun getInstance(context: Context): AnagramDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext,
                     AnagramDatabase::class.java,
                     "anagram.db",
-                ).addMigrations(migration1To2, migration2To3)
+                ).addMigrations(migration1To2, migration2To3, migration3To4)
                     .build()
                     .also { instance = it }
             }
