@@ -67,7 +67,7 @@ jobs:
 
       - name: Run seed-generator tests
         working-directory: android
-        run: ./gradlew :tools:seed-generator:test --no-daemon
+        run: ./gradlew :tools:seed-generator:test --no-daemon --configuration-cache
 
   android-build:
     name: Android Build

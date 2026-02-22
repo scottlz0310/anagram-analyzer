@@ -46,18 +46,21 @@ class SeedGeneratorIntegrationTest {
             // user_version = 3
             conn.createStatement().use { st ->
                 st.executeQuery("PRAGMA user_version").use { rs ->
+                    assertTrue(rs.next())
                     assertEquals(3, rs.getInt(1))
                 }
             }
             // anagram_entries テーブル: 5件
             conn.createStatement().use { st ->
                 st.executeQuery("SELECT COUNT(*) FROM anagram_entries").use { rs ->
+                    assertTrue(rs.next())
                     assertEquals(5, rs.getInt(1))
                 }
             }
             // candidate_detail_cache テーブル存在（空でも可）
             conn.createStatement().use { st ->
                 st.executeQuery("SELECT COUNT(*) FROM candidate_detail_cache").use { rs ->
+                    assertTrue(rs.next())
                     assertEquals(0, rs.getInt(1))
                 }
             }
