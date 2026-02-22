@@ -18,6 +18,10 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 }
 
+tasks.named<JavaExec>("run") {
+    jvmArgs("-Djdk.xml.entityExpansionLimit=0")
+}
+
 tasks.test {
     useJUnit()
 }

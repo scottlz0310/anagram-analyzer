@@ -7,6 +7,10 @@
 
 ### Added
 
+- **seed TSV/DB の isCommon 対応版再生成**
+  - `JMdict_e.gz` から `anagram_seed.tsv`（4列・171,728件、うち一般語 23,697件）を再生成
+  - `seed-generator/build.gradle.kts` に JVM 引数 `-Djdk.xml.entityExpansionLimit=0` を追加（JMdict エンティティ展開上限回避）
+
 - **クイズモード単語重みづけ**（Issue #88）
   - `JmdictParser` に `re_pri` 解析を追加し、`news1/ichi1/spec1/gai1/nfXX` 該当語に `isCommon=true` を付与
   - `AnagramEntry` に `is_common` カラム追加（`Room Migration 3→4`）
