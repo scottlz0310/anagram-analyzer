@@ -48,6 +48,7 @@ private const val MAX_VISIBLE_CANDIDATES = 50
 fun MainScreen(
     isDarkTheme: Boolean,
     onToggleTheme: () -> Unit,
+    onNavigateToQuiz: () -> Unit,
     viewModel: MainViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -55,6 +56,7 @@ fun MainScreen(
         state = state,
         isDarkTheme = isDarkTheme,
         onToggleTheme = onToggleTheme,
+        onNavigateToQuiz = onNavigateToQuiz,
         onInputChanged = viewModel::onInputChanged,
         onSearchLengthRangeChanged = viewModel::onSearchLengthRangeChanged,
         onAdditionalDictionaryDownloadRequested = viewModel::onAdditionalDictionaryDownloadRequested,
@@ -67,6 +69,7 @@ fun MainScreenContent(
     state: MainUiState,
     isDarkTheme: Boolean,
     onToggleTheme: () -> Unit,
+    onNavigateToQuiz: () -> Unit,
     onInputChanged: (String) -> Unit,
     onSearchLengthRangeChanged: (Int, Int) -> Unit,
     onAdditionalDictionaryDownloadRequested: () -> Unit,
@@ -275,6 +278,19 @@ fun MainScreenContent(
                     }
                 }
             }
+        }
+
+        TextButton(
+            onClick = onNavigateToQuiz,
+            colors = ButtonDefaults.textButtonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("quiz_button"),
+        ) {
+            Text("🎯 クイズモード")
         }
 
         TextButton(

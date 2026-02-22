@@ -15,4 +15,7 @@ interface AnagramDao {
 
     @Query("SELECT COUNT(*) FROM anagram_entries")
     suspend fun count(): Long
+
+    @Query("SELECT * FROM anagram_entries WHERE length BETWEEN :minLen AND :maxLen ORDER BY RANDOM() LIMIT 1")
+    suspend fun getRandomEntry(minLen: Int, maxLen: Int): AnagramEntry?
 }

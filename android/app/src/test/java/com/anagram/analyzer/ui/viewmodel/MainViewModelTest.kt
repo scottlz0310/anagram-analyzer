@@ -852,6 +852,9 @@ class MainViewModelTest {
             }
             return entries.size.toLong()
         }
+
+        override suspend fun getRandomEntry(minLen: Int, maxLen: Int): AnagramEntry? =
+            entries.filter { it.length in minLen..maxLen }.randomOrNull()
     }
 
     private class FakeSeedEntryLoader(
