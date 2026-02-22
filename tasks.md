@@ -148,6 +148,22 @@
 - [x] `QuizViewModelTest.kt` 新規作成（6テストケース: ANSWERING遷移/正解/不正解/エントリなし/難易度/リセット）
 - [x] `MainViewModelTest.kt` の `FakeAnagramDao` に `getRandomEntry` メソッドを追加
 
+## フェーズ 12: Issue #88 クイズ単語重みづけ（JMdict re_pri による一般語優先）
+
+- [x] `tools/seed-generator/JmdictParser.kt` に `re_pri` 解析を追加（`isCommon` フラグ付与）
+- [x] `tools/seed-generator/AnagramRow.kt` に `isCommon: Boolean = false` フィールド追加
+- [x] `tools/seed-generator/TsvExporter.kt` で TSV 4列目 `is_common`（0/1）を出力
+- [x] `tools/seed-generator/DbExporter.kt` に `is_common` 列追加・`USER_VERSION=4` に更新
+- [x] テスト fixture（`jmdict_sample.xml`）に `re_pri` タグを追加・`expected_anagram_seed.tsv` を4列に更新
+- [x] `SeedGeneratorIntegrationTest.kt` に `isCommon` フラグ検証・`user_version=4`・`is_common=1` カウント追加
+- [x] `data/db/AnagramEntry.kt` に `is_common` カラム追加（`defaultValue = "0"`）
+- [x] `data/db/AnagramDatabase.kt` を version 4 へ更新・`Migration(3, 4)` 追加
+- [x] `data/db/AnagramDao.kt` に `countCommonByLength` / `getCommonEntryAtOffset` を追加
+- [x] `data/seed/AssetSeedEntryLoader.kt` で3列後方互換を維持しながら4列目 `is_common` をパース
+- [x] `domain/usecase/GenerateQuizUseCase.kt` を一般語優先ロジックに変更（`countCommonByLength > 0` なら優先、0件時フォールバック）
+- [x] `QuizViewModelTest.kt` と `MainViewModelTest.kt` の `FakeAnagramDao` に新DAOメソッドを追加
+- [x] `AssetSeedEntryLoaderTest.kt` に4列TSVパーステストを追加
+
 ---
 
 ## 進捗サマリ
@@ -163,5 +179,6 @@
 | 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト分離（2シャード）+ CI本体の差分判定でPR時のAndroid Unit/Build条件実行 + Android Unit/Build/UIでConfiguration Cache有効化（`android/.gradle/configuration-cache` 保存復元、ローカル連続計測で `testDebugUnitTest --dry-run` 6.69s→4.10s）に加え、UIテストのConfiguration Cacheキーへ `github.sha` を導入して古いコミットのキャッシュ再利用起因の失敗を抑制。debug APK artifact と GitHub Release向け署名済みAPK公開ワークフロー（dispatch自動タグ発行対応）も継続 |
 | 8: Pythonプロトタイプ撤去 | ✅ 完了 | Python CLI本体と関連CI/依存管理を削除し、Android単一実装に整理 |
 | 9: seed生成Kotlin/JVM移行 | ✅ 完了 | tools:seed-generator 実装（JmdictParser/Normalizer/TsvExporter/DbExporter/Main）、scripts/*.py削除、CI更新 |
+| 12: クイズ単語重みづけ | ✅ 完了 | JMdict re_pri による isCommon フラグ導入、DB version 4、一般語優先出題（フォールバック付き） |
 | 10: Issue #81 事前リファクタ | ✅ 完了 | MainViewModelをUC4クラス（PreloadSeed/SearchAnagram/LoadCandidateDetail/ApplyAdditionalDictionary）に分割、MainScreenからCandidateDetailScreen/SettingsDialog/ShareUtilを切り出し、PreloadLoggerをdomain.modelへ移動、MainViewModelTestをbuildViewModelヘルパー経由に更新 |
 | 11: Issue #60 クイズモード | ✅ 完了 | QuizDifficulty/QuizQuestion/GenerateQuizUseCase/QuizScoreStore/QuizUiState/QuizViewModel/QuizScreen 新規実装、MainScreen にクイズモードボタン追加、MainActivity で画面切替、QuizViewModelTest 追加 |

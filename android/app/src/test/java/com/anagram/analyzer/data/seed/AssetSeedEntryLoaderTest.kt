@@ -7,6 +7,22 @@ import org.junit.Test
 
 class AssetSeedEntryLoaderTest {
     @Test
+    fun `4列tsv（is_common付き）を正しくparseできる`() {
+        val entries = parseSeedEntries(
+            sequenceOf(
+                "ごりん\tりんご\t3\t1",
+                "くさら\tさくら\t3\t0",
+                "いぬ\tいぬ\t2\t1",
+            ),
+        )
+
+        assertEquals(3, entries.size)
+        assertEquals(true, entries[0].isCommon)
+        assertEquals(false, entries[1].isCommon)
+        assertEquals(true, entries[2].isCommon)
+    }
+
+    @Test
     fun tsvを正しくparseできる() {
         val entries = parseSeedEntries(
             sequenceOf(

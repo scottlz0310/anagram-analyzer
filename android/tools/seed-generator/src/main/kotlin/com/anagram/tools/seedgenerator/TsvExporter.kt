@@ -10,9 +10,9 @@ object TsvExporter {
         outPath.parent?.createDirectories()
         val sorted = rows.sortedBy { it.word }
         outPath.bufferedWriter(Charsets.UTF_8).use { w ->
-            w.write("# sorted_key\tword\tlength\n")
+            w.write("# sorted_key\tword\tlength\tis_common\n")
             for (r in sorted) {
-                w.write("${r.sortedKey}\t${r.word}\t${r.length}\n")
+                w.write("${r.sortedKey}\t${r.word}\t${r.length}\t${if (r.isCommon) "1" else "0"}\n")
             }
         }
     }

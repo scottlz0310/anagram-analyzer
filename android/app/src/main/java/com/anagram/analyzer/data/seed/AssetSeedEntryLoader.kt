@@ -71,16 +71,17 @@ internal fun loadSeedEntriesFromDatabaseFile(path: String): List<AnagramEntry>? 
             }
             database.query(
                 DB_TABLE_NAME,
-                DB_COLUMNS,
+                null,
                 null,
                 null,
                 null,
                 null,
                 null,
             ).use { cursor ->
-                val sortedKeyColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[0])
-                val wordColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[1])
-                val lengthColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[2])
+                val sortedKeyColumn = cursor.getColumnIndexOrThrow("sorted_key")
+                val wordColumn = cursor.getColumnIndexOrThrow("word")
+                val lengthColumn = cursor.getColumnIndexOrThrow("length")
+                val isCommonColumn = cursor.getColumnIndex("is_common")
                 val entries = ArrayList<AnagramEntry>(cursor.count)
                 while (cursor.moveToNext()) {
                     val sortedKey = cursor.getString(sortedKeyColumn) ?: return null
@@ -90,6 +91,7 @@ internal fun loadSeedEntriesFromDatabaseFile(path: String): List<AnagramEntry>? 
                             sortedKey = sortedKey,
                             word = word,
                             length = cursor.getInt(lengthColumn),
+                            isCommon = isCommonColumn >= 0 && cursor.getInt(isCommonColumn) != 0,
                         ),
                     )
                 }
@@ -118,14 +120,15 @@ internal fun parseSeedEntries(
             return@forEachIndexed
         }
 
-        val columns = line.split('\t', limit = 3)
-        require(columns.size == 3) {
+        val columns = line.split('\t', limit = 4)
+        require(columns.size >= 3) {
             "$fileName ${index + 1}行目の列数が不正です: '$line'"
         }
 
         val sortedKey = columns[0].trim()
         val word = columns[1].trim()
         val lengthText = columns[2].trim()
+        val isCommon = columns.getOrNull(3)?.trim() == "1"
 
         require(sortedKey.isNotEmpty() && word.isNotEmpty() && lengthText.isNotEmpty()) {
             "$fileName ${index + 1}行目に空列があります: '$line'"
@@ -139,6 +142,7 @@ internal fun parseSeedEntries(
                 sortedKey = sortedKey,
                 word = word,
                 length = length,
+                isCommon = isCommon,
             ),
         )
     }
@@ -148,4 +152,4 @@ internal fun parseSeedEntries(
 private const val ASSET_FILE_NAME = "anagram_seed.tsv"
 private const val DB_ASSET_FILE_NAME = "anagram_seed.db"
 private const val DB_TABLE_NAME = "anagram_entries"
-private val DB_COLUMNS = arrayOf("sorted_key", "word", "length")
+private val DB_COLUMNS = arrayOf("sorted_key", "word", "length", "is_common")

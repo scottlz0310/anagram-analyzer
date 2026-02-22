@@ -1,6 +1,6 @@
-# sorted_key	word	length
-いぬ	いぬ	2
-こね	こね	2
-ごりん	ごりん	3
-こね	ねこ	2
-ごりん	りんご	3
+# sorted_key	word	length	is_common
+いぬ	いぬ	2	1
+こね	こね	2	0
+ごりん	ごりん	3	0
+こね	ねこ	2	1
+ごりん	りんご	3	1

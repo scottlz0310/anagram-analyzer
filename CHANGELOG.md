@@ -7,6 +7,14 @@
 
 ### Added
 
+- **クイズモード単語重みづけ**（Issue #88）
+  - `JmdictParser` に `re_pri` 解析を追加し、`news1/ichi1/spec1/gai1/nfXX` 該当語に `isCommon=true` を付与
+  - `AnagramEntry` に `is_common` カラム追加（`Room Migration 3→4`）
+  - `AnagramDao` に `countCommonByLength` / `getCommonEntryAtOffset` を追加
+  - `GenerateQuizUseCase` を一般語優先ロジックへ変更（`isCommon` 該当なしの場合は全体フォールバック）
+  - TSV 形式を4列（`sorted_key/word/length/is_common`）に拡張（旧3列との後方互換を維持）
+  - `DbExporter` の `USER_VERSION` を 4 へ更新
+
 - **クイズモード**（Issue #60）
   - `domain/model/QuizDifficulty.kt`（EASY/NORMAL/HARD 文字数範囲プリセット）
   - `domain/model/QuizQuestion.kt`（shuffledChars / sortedKey / correctWords データクラス）

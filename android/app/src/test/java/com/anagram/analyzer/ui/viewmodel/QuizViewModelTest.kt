@@ -189,6 +189,10 @@ class QuizViewModelTest {
             if (randomEntry != null && randomEntry.length in minLen..maxLen) 1 else 0
         override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
             randomEntry?.takeIf { it.length in minLen..maxLen && offset == 0 }
+        override suspend fun countCommonByLength(minLen: Int, maxLen: Int): Int =
+            if (randomEntry != null && randomEntry.length in minLen..maxLen && randomEntry.isCommon) 1 else 0
+        override suspend fun getCommonEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
+            randomEntry?.takeIf { it.length in minLen..maxLen && it.isCommon && offset == 0 }
     }
 
     private class FakeQuizScoreStore(

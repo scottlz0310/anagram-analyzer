@@ -11,10 +11,16 @@ class GenerateQuizUseCase @Inject constructor(
     private val searchAnagramUseCase: SearchAnagramUseCase,
 ) {
     suspend fun execute(minLen: Int, maxLen: Int): QuizQuestion? {
-        val count = anagramDao.countByLength(minLen, maxLen)
+        val commonCount = anagramDao.countCommonByLength(minLen, maxLen)
+        val useCommon = commonCount > 0
+        val count = if (useCommon) commonCount else anagramDao.countByLength(minLen, maxLen)
         if (count == 0) return null
         val offset = Random.nextInt(count)
-        val entry = anagramDao.getEntryAtOffset(minLen, maxLen, offset) ?: return null
+        val entry = if (useCommon) {
+            anagramDao.getCommonEntryAtOffset(minLen, maxLen, offset)
+        } else {
+            anagramDao.getEntryAtOffset(minLen, maxLen, offset)
+        } ?: return null
         val correctWords = searchAnagramUseCase.execute(entry.sortedKey)
         if (correctWords.isEmpty()) return null
         return QuizQuestion(

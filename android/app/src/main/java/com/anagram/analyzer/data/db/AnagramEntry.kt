@@ -11,6 +11,7 @@ import androidx.room.PrimaryKey
         Index(value = ["sorted_key", "word"], unique = true),
         Index(value = ["sorted_key"]),
         Index(value = ["length"]),
+        Index(value = ["length", "is_common"]),
     ],
 )
 data class AnagramEntry(
@@ -22,4 +23,6 @@ data class AnagramEntry(
     val word: String,
     @ColumnInfo(name = "length")
     val length: Int,
+    @ColumnInfo(name = "is_common", defaultValue = "0")
+    val isCommon: Boolean = false,
 )

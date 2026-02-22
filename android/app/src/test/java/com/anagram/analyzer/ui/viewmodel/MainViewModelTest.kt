@@ -858,6 +858,12 @@ class MainViewModelTest {
 
         override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
             entries.filter { it.length in minLen..maxLen }.getOrNull(offset)
+
+        override suspend fun countCommonByLength(minLen: Int, maxLen: Int): Int =
+            entries.count { it.length in minLen..maxLen && it.isCommon }
+
+        override suspend fun getCommonEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
+            entries.filter { it.length in minLen..maxLen && it.isCommon }.getOrNull(offset)
     }
 
     private class FakeSeedEntryLoader(
