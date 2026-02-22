@@ -20,7 +20,13 @@
 
 ### Changed
 
-- `scripts/export_android_seed.py` / `scripts/export_android_room_db.py` を削除し、Kotlin/JVMツールへ完全移行
+- `MainViewModel` をユースケース注入版にリファクタリング（`PreloadSeedUseCase` / `SearchAnagramUseCase` / `LoadCandidateDetailUseCase` / `ApplyAdditionalDictionaryUseCase` の4クラスに責務分割）
+- `MainScreen.kt`（580行）から `CandidateDetailScreen.kt` / `SettingsDialog.kt`（`AboutDialog` + `SettingsDialog`）/ `ShareUtil.kt` を切り出し（~330行にスリム化）
+- `PreloadLogger` fun interface を `ui.viewmodel` から `domain.model` へ移動し、依存方向を domain→ui から正しい方向に修正
+- `MainUiState` data class を `ui/viewmodel/MainUiState.kt` に分離
+- `MainViewModelTest.kt` の26箇所 `MainViewModel(...)` 直接構築を `buildViewModel` ヘルパー経由に更新
+
+
 - `scripts/` ディレクトリを削除（Python実行スクリプトのリポジトリ完全撤去）
 - `android/settings.gradle.kts` に `:tools:seed-generator` を追加
 - `android/build.gradle.kts` に `org.jetbrains.kotlin.jvm` プラグイン宣言を追加

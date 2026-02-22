@@ -17,7 +17,7 @@ import com.anagram.analyzer.data.seed.CandidateDetailLoader
 import com.anagram.analyzer.data.seed.CandidateDetailRemoteDataSource
 import com.anagram.analyzer.data.seed.JishoCandidateDetailRemoteDataSource
 import com.anagram.analyzer.data.seed.SeedEntryLoader
-import com.anagram.analyzer.ui.viewmodel.PreloadLogger
+import com.anagram.analyzer.domain.model.PreloadLogger
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
