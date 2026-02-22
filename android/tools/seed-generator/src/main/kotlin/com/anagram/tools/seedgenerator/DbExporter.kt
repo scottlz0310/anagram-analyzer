@@ -4,7 +4,7 @@ import java.nio.file.Path
 import java.sql.DriverManager
 
 object DbExporter {
-    private const val USER_VERSION = 4
+    private const val USER_VERSION = 5
 
     fun export(rows: List<AnagramRow>, outPath: Path, force: Boolean = false) {
         if (outPath.toFile().exists()) {

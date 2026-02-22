@@ -57,11 +57,11 @@ class SeedGeneratorIntegrationTest {
 
         Class.forName("org.sqlite.JDBC")
         java.sql.DriverManager.getConnection("jdbc:sqlite:${outDb.toAbsolutePath()}").use { conn ->
-            // user_version = 4
+            // user_version = 5
             conn.createStatement().use { st ->
                 st.executeQuery("PRAGMA user_version").use { rs ->
                     assertTrue(rs.next())
-                    assertEquals(4, rs.getInt(1))
+                    assertEquals(5, rs.getInt(1))
                 }
             }
             // anagram_entries テーブル: 5件

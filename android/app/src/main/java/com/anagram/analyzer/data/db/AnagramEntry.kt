@@ -11,6 +11,7 @@ import androidx.room.PrimaryKey
         Index(value = ["sorted_key", "word"], unique = true),
         Index(value = ["sorted_key"]),
         Index(value = ["length"]),
+        Index(value = ["length", "is_common"]),
     ],
 )
 data class AnagramEntry(

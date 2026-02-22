@@ -71,17 +71,17 @@ internal fun loadSeedEntriesFromDatabaseFile(path: String): List<AnagramEntry>? 
             }
             database.query(
                 DB_TABLE_NAME,
-                DB_COLUMNS,
+                null,
                 null,
                 null,
                 null,
                 null,
                 null,
             ).use { cursor ->
-                val sortedKeyColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[0])
-                val wordColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[1])
-                val lengthColumn = cursor.getColumnIndexOrThrow(DB_COLUMNS[2])
-                val isCommonColumn = cursor.getColumnIndex(DB_COLUMNS[3])
+                val sortedKeyColumn = cursor.getColumnIndexOrThrow("sorted_key")
+                val wordColumn = cursor.getColumnIndexOrThrow("word")
+                val lengthColumn = cursor.getColumnIndexOrThrow("length")
+                val isCommonColumn = cursor.getColumnIndex("is_common")
                 val entries = ArrayList<AnagramEntry>(cursor.count)
                 while (cursor.moveToNext()) {
                     val sortedKey = cursor.getString(sortedKeyColumn) ?: return null
