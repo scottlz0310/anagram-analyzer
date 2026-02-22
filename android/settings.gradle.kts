@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "anagram-analyzer-android"
 include(":app")
+include(":tools:seed-generator")

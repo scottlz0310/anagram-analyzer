@@ -104,6 +104,19 @@
 - [x] Python CLI前提のCI/依存管理設定（`ci.yml` / `renovate.json` / `pyproject.toml` / `uv.lock` / `.pre-commit-config.yaml`）を整理
 - [x] Python CLI前提の記述を主要ドキュメントから削除し、Android単一実装に整合
 
+## フェーズ 9: seed生成Kotlin/JVM移行（Issue #82）
+
+- [x] `tools:seed-generator` モジュール新規作成（Kotlin/JVM + application plugin）
+- [x] `JmdictParser.kt`（StAXベースXML/gzipパーサ）
+- [x] `Normalizer.kt`（NFKC正規化・カタカナ→ひらがな・anagramKey、Python互換）
+- [x] `TsvExporter.kt`（word順ソートTSV出力、フォーマット互換）
+- [x] `DbExporter.kt`（Room互換SQLite生成、user_version=3完全スキーマ互換）
+- [x] `Main.kt`（CLI: --jmdict/--out-tsv/--out-db/--mode/--min-len/--max-len/--limit/--force）
+- [x] `NormalizerTest.kt` / `SeedGeneratorIntegrationTest.kt`（fixture XMLゴールデンテスト）
+- [x] `scripts/*.py` 削除・`scripts/` ディレクトリ撤去（Python完全撤去）
+- [x] CI に `:tools:seed-generator:test` を追加
+- [x] `android/settings.gradle.kts` / `android/build.gradle.kts` に tools:seed-generator を追加
+
 ---
 
 ## 進捗サマリ
@@ -118,3 +131,4 @@
 | 6: 追加機能 | 🟡 進行中 | DataStore によるテーマ設定永続化 + 入力履歴永続化 + 履歴折りたたみ表示 + 設定画面（文字数範囲/テーマ/追加辞書DL適用）まで実装 |
 | 7: CI/CD・リリース | 🟡 進行中 | Android UIテスト分離（2シャード）+ CI本体の差分判定でPR時のAndroid Unit/Build条件実行 + Android Unit/Build/UIでConfiguration Cache有効化（`android/.gradle/configuration-cache` 保存復元、ローカル連続計測で `testDebugUnitTest --dry-run` 6.69s→4.10s）に加え、UIテストのConfiguration Cacheキーへ `github.sha` を導入して古いコミットのキャッシュ再利用起因の失敗を抑制。debug APK artifact と GitHub Release向け署名済みAPK公開ワークフロー（dispatch自動タグ発行対応）も継続 |
 | 8: Pythonプロトタイプ撤去 | ✅ 完了 | Python CLI本体と関連CI/依存管理を削除し、Android単一実装に整理 |
+| 9: seed生成Kotlin/JVM移行 | ✅ 完了 | tools:seed-generator 実装（JmdictParser/Normalizer/TsvExporter/DbExporter/Main）、scripts/*.py削除、CI更新 |
