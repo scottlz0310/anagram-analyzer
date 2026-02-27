@@ -105,7 +105,7 @@ jobs:
 
       - name: Upload Android UI test report
         if: always() && steps.shard.outputs.run_tests == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: android-ui-test-report-shard-${{ matrix.shard_index }}
           path: |
