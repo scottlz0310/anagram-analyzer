@@ -199,6 +199,7 @@ cd android && ./gradlew :tools:seed-generator:test --no-daemon
 - `Android UI Tests`（`.github/workflows/android-ui-tests.yml`）
   - `androidTest` をクラス単位2シャード実行
   - `pull_request`（path filter）/ `workflow_dispatch` / `schedule`
+  - `schedule` の同一SHA再実行で Configuration Cache が壊れる事例があるため、UIテストでは `--configuration-cache` を使わない
 - `Android Release`（`.github/workflows/android-release.yml`）
   - 署名済み `app-release.apk` を artifact / Release asset として公開
 
