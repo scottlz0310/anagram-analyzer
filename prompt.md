@@ -81,6 +81,9 @@ cd android && ./gradlew :app:testDebugUnitTest
 # Android UI Test
 cd android && ./gradlew :app:connectedDebugAndroidTest
 
+# CIメモ
+# Android UI Tests（schedule含む）は安定性のため --configuration-cache を付けない
+
 # seed TSV生成
 python scripts/export_android_seed.py --xml ~/.jamdict/data/JMdict_e.gz --output android/app/src/main/assets/anagram_seed.tsv --min-len 2 --max-len 8
 

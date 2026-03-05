@@ -77,6 +77,7 @@ adb shell am start -n com.anagram.analyzer/.MainActivity
 
 - `CI` ワークフロー: Android Unit Test / Build（PRはAndroid差分時のみ）
 - `Android UI Tests` ワークフロー: `androidTest` をクラス単位2シャードで実行
+  - 安定性優先のため UI テストでは `--configuration-cache` を利用しない（Unit/Build では利用）
 - `Android Release` ワークフロー: 署名済み `app-release.apk` を配布
 
 ## ライセンス

@@ -5,6 +5,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- GitHub Actions `Android UI Tests`（`.github/workflows/android-ui-tests.yml`）の実行から `--configuration-cache` と `android/.gradle/configuration-cache` 復元を除外
+- `schedule` 実行で再発していた `:app:mergeDebugAndroidTestAssets` の AAR 欠損（`~/.gradle/caches/modules-2/.../*.aar (No such file or directory)`）を、壊れた Configuration Cache 再利用を断つことで根本解消
+
 ## [1.0.1] - 2026-02-22
 
 ### Added
