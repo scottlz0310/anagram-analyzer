@@ -93,7 +93,7 @@ jobs:
           profile: pixel_6
           working-directory: android
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -memory 2048
           script: ./gradlew :app:connectedDebugAndroidTest --no-daemon -Pandroid.testInstrumentationRunnerArguments.class=${{ steps.shard.outputs.class_argument }}
 
       - name: Upload Android UI test report
