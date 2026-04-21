@@ -115,6 +115,41 @@ class QuizViewModelTest {
     }
 
     @Test
+    fun 埋まったスロットに選択中カードを置くと元のカードが選択状態になる() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                dao = FakeQuizAnagramDao(
+                    randomEntry = AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
+                    words = listOf("りんご"),
+                ),
+            )
+
+            viewModel.onStartQuiz()
+            advanceUntilIdle()
+
+            val firstCardId = viewModel.uiState.value.shuffledCards[0].id
+            val secondCardId = viewModel.uiState.value.shuffledCards[1].id
+
+            viewModel.onCardTapped(firstCardId)
+            viewModel.onCardTapped(secondCardId)
+            viewModel.onSlotTapped(0)
+            viewModel.onSlotTapped(1)
+
+            val state = viewModel.uiState.value
+            assertNull(state.answerSlots[0])
+            assertEquals(firstCardId, state.answerSlots[1])
+            assertEquals(secondCardId, state.selectedCardId)
+            assertTrue(state.shuffledCards.first { it.id == firstCardId }.isPlaced)
+            assertTrue(state.shuffledCards.first { it.id == secondCardId }.isPlaced.not())
+            assertTrue(secondCardId !in state.answerSlots.filterNotNull())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
     fun 正解時にスコアが加算されCORRECT状態になる() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
