@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,6 +40,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -356,19 +358,22 @@ private fun CharCardGrid(
     selectedCardId: Int?,
     onCardTapped: (Int) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        cards.chunked(CARDS_PER_ROW).forEach { rowCards ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                rowCards.forEach { card ->
-                    QuizCharCard(
-                        char = card.char.toString(),
-                        isSelected = selectedCardId == card.id,
-                        isPlaced = card.isPlaced,
-                        onClick = { onCardTapped(card.id) },
-                    )
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val cardsPerRow = calculateCardsPerRow(maxWidth)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            cards.chunked(cardsPerRow).forEach { rowCards ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    rowCards.forEach { card ->
+                        QuizCharCard(
+                            char = card.char.toString(),
+                            isSelected = selectedCardId == card.id,
+                            isPlaced = card.isPlaced,
+                            onClick = { onCardTapped(card.id) },
+                        )
+                    }
                 }
             }
         }
@@ -383,20 +388,25 @@ private fun AnswerSlotGrid(
     onSlotTapped: (Int) -> Unit,
 ) {
     val cardsById = cards.associateBy { it.id }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        answerSlots.chunked(CARDS_PER_ROW).forEachIndexed { rowIndex, rowSlots ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                rowSlots.forEachIndexed { columnIndex, cardId ->
-                    val slotIndex = rowIndex * CARDS_PER_ROW + columnIndex
-                    AnswerSlot(
-                        value = cardId?.let { cardsById[it]?.char?.toString() }.orEmpty(),
-                        isFilled = cardId != null,
-                        isHighlighted = selectedCardId != null,
-                        onClick = { onSlotTapped(slotIndex) },
-                    )
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val cardsPerRow = calculateCardsPerRow(maxWidth)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            answerSlots.chunked(cardsPerRow).forEachIndexed { rowIndex, rowSlots ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    rowSlots.forEachIndexed { columnIndex, cardId ->
+                        val slotIndex = rowIndex * cardsPerRow + columnIndex
+                        val isActionable = selectedCardId != null || cardId != null
+                        AnswerSlot(
+                            value = cardId?.let { cardsById[it]?.char?.toString() }.orEmpty(),
+                            isFilled = cardId != null,
+                            isHighlighted = selectedCardId != null,
+                            enabled = isActionable,
+                            onClick = { onSlotTapped(slotIndex) },
+                        )
+                    }
                 }
             }
         }
@@ -437,8 +447,8 @@ private fun QuizCharCard(
 
     Card(
         modifier = Modifier
-            .padding(horizontal = 6.dp)
-            .size(56.dp)
+            .padding(horizontal = QUIZ_CARD_HORIZONTAL_PADDING)
+            .size(QUIZ_CARD_SIZE)
             .graphicsLayer {
                 alpha = if (isPlaced) 0.4f else 1f
             }
@@ -467,6 +477,7 @@ private fun AnswerSlot(
     value: String,
     isFilled: Boolean,
     isHighlighted: Boolean,
+    enabled: Boolean,
     onClick: () -> Unit,
 ) {
     val containerColor by animateColorAsState(
@@ -504,14 +515,14 @@ private fun AnswerSlot(
 
     Card(
         modifier = Modifier
-            .padding(horizontal = 6.dp)
-            .size(56.dp)
+            .padding(horizontal = QUIZ_CARD_HORIZONTAL_PADDING)
+            .size(QUIZ_CARD_SIZE)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
             .clip(RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         border = BorderStroke(width = borderWidth, color = borderColor),
         shape = RoundedCornerShape(16.dp),
@@ -594,4 +605,9 @@ private fun ResultSection(
     }
 }
 
-private const val CARDS_PER_ROW = 6
+private fun calculateCardsPerRow(maxWidth: Dp): Int =
+    (maxWidth / QUIZ_CARD_FOOTPRINT).toInt().coerceAtLeast(1)
+
+private val QUIZ_CARD_SIZE = 56.dp
+private val QUIZ_CARD_HORIZONTAL_PADDING = 6.dp
+private val QUIZ_CARD_FOOTPRINT = QUIZ_CARD_SIZE + (QUIZ_CARD_HORIZONTAL_PADDING * 2)
