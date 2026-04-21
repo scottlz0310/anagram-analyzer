@@ -1,10 +1,13 @@
 package com.anagram.analyzer.ui.viewmodel
 
+import com.anagram.analyzer.data.datastore.QuizScoreStore
 import com.anagram.analyzer.data.db.AnagramDao
 import com.anagram.analyzer.data.db.AnagramEntry
+import com.anagram.analyzer.domain.model.CharCard
 import com.anagram.analyzer.domain.model.QuizDifficulty
 import com.anagram.analyzer.domain.usecase.GenerateQuizUseCase
 import com.anagram.analyzer.domain.usecase.SearchAnagramUseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -18,12 +21,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import com.anagram.analyzer.data.datastore.QuizScoreStore
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class QuizViewModelTest {
     @Test
-    fun スタート時にANSWERING状態になる() = runTest {
+    fun スタート時にANSWERING状態になりカードとスロットが初期化される() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         try {
@@ -38,9 +40,110 @@ class QuizViewModelTest {
             advanceUntilIdle()
 
             assertEquals(QuizPhase.ANSWERING, viewModel.uiState.value.phase)
-            assertNull(viewModel.uiState.value.question?.shuffledChars?.let {
-                if (it.isEmpty()) "empty" else null
-            })
+            assertTrue(viewModel.uiState.value.shuffledCards.isNotEmpty())
+            assertEquals(
+                viewModel.uiState.value.shuffledCards.size,
+                viewModel.uiState.value.answerSlots.size,
+            )
+            assertTrue(viewModel.uiState.value.answerSlots.all { it == null })
+            assertNull(viewModel.uiState.value.selectedCardId)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun カードタップで先頭の空きスロットに配置される() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                dao = FakeQuizAnagramDao(
+                    randomEntry = AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
+                    words = listOf("りんご"),
+                ),
+            )
+
+            viewModel.onStartQuiz()
+            advanceUntilIdle()
+
+            val cardId = viewModel.uiState.value.shuffledCards.first().id
+            viewModel.onCardTapped(cardId)
+
+            val state = viewModel.uiState.value
+            assertEquals(cardId, state.answerSlots.first())
+            assertTrue(state.shuffledCards.first { it.id == cardId }.isPlaced)
+            assertNull(state.selectedCardId)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun スロットタップでカードを取り外して任意の位置に移動できる() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                dao = FakeQuizAnagramDao(
+                    randomEntry = AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
+                    words = listOf("りんご"),
+                ),
+            )
+
+            viewModel.onStartQuiz()
+            advanceUntilIdle()
+
+            val firstCardId = viewModel.uiState.value.shuffledCards.first().id
+            viewModel.onCardTapped(firstCardId)
+            viewModel.onSlotTapped(0)
+
+            var state = viewModel.uiState.value
+            assertEquals(firstCardId, state.selectedCardId)
+            assertEquals(null, state.answerSlots[0])
+            assertTrue(state.shuffledCards.first { it.id == firstCardId }.isPlaced.not())
+
+            viewModel.onSlotTapped(2)
+
+            state = viewModel.uiState.value
+            assertEquals(firstCardId, state.answerSlots[2])
+            assertNull(state.selectedCardId)
+            assertTrue(state.shuffledCards.first { it.id == firstCardId }.isPlaced)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 埋まったスロットに選択中カードを置くと元のカードが選択状態になる() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                dao = FakeQuizAnagramDao(
+                    randomEntry = AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
+                    words = listOf("りんご"),
+                ),
+            )
+
+            viewModel.onStartQuiz()
+            advanceUntilIdle()
+
+            val firstCardId = viewModel.uiState.value.shuffledCards[0].id
+            val secondCardId = viewModel.uiState.value.shuffledCards[1].id
+
+            viewModel.onCardTapped(firstCardId)
+            viewModel.onCardTapped(secondCardId)
+            viewModel.onSlotTapped(0)
+            viewModel.onSlotTapped(1)
+
+            val state = viewModel.uiState.value
+            assertNull(state.answerSlots[0])
+            assertEquals(firstCardId, state.answerSlots[1])
+            assertEquals(secondCardId, state.selectedCardId)
+            assertTrue(state.shuffledCards.first { it.id == firstCardId }.isPlaced)
+            assertTrue(state.shuffledCards.first { it.id == secondCardId }.isPlaced.not())
+            assertTrue(secondCardId !in state.answerSlots.filterNotNull())
         } finally {
             Dispatchers.resetMain()
         }
@@ -63,7 +166,7 @@ class QuizViewModelTest {
             viewModel.onStartQuiz()
             advanceUntilIdle()
 
-            viewModel.onInputAnswerChanged("りんご")
+            placeAnswer(viewModel, "りんご")
             viewModel.onSubmitAnswer()
             advanceUntilIdle()
 
@@ -92,7 +195,7 @@ class QuizViewModelTest {
             viewModel.onStartQuiz()
             advanceUntilIdle()
 
-            viewModel.onInputAnswerChanged("まちがい")
+            placeAnswer(viewModel, "ごんり")
             viewModel.onSubmitAnswer()
             advanceUntilIdle()
 
@@ -166,7 +269,7 @@ class QuizViewModelTest {
     private fun buildViewModel(
         dao: AnagramDao = FakeQuizAnagramDao(),
         quizScoreStore: QuizScoreStore = FakeQuizScoreStore(),
-        dispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Main,
+        dispatcher: CoroutineDispatcher = Dispatchers.Main,
     ): QuizViewModel = QuizViewModel(
         generateQuizUseCase = GenerateQuizUseCase(
             anagramDao = dao,
@@ -176,7 +279,17 @@ class QuizViewModelTest {
         ioDispatcher = dispatcher,
     )
 
-    // ---- fakes ----
+    private fun placeAnswer(viewModel: QuizViewModel, answer: String) {
+        val availableCardIds = viewModel.uiState.value.shuffledCards
+            .groupBy(CharCard::char)
+            .mapValues { (_, cards) -> cards.map(CharCard::id).toMutableList() }
+
+        answer.forEach { char ->
+            val ids = availableCardIds[char] ?: error("テスト用カードが不足しています: $char")
+            val cardId = ids.removeAt(0)
+            viewModel.onCardTapped(cardId)
+        }
+    }
 
     private class FakeQuizAnagramDao(
         private val randomEntry: AnagramEntry? = null,
@@ -185,14 +298,23 @@ class QuizViewModelTest {
         override suspend fun insertAll(entries: List<AnagramEntry>) = Unit
         override suspend fun lookupWords(sortedKey: String): List<String> = words
         override suspend fun count(): Long = if (randomEntry != null) 1L else 0L
+
         override suspend fun countByLength(minLen: Int, maxLen: Int): Int =
             if (randomEntry != null && randomEntry.length in minLen..maxLen) 1 else 0
+
         override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
             randomEntry?.takeIf { it.length in minLen..maxLen && offset == 0 }
+
         override suspend fun countCommonByLength(minLen: Int, maxLen: Int): Int =
             if (randomEntry != null && randomEntry.length in minLen..maxLen && randomEntry.isCommon) 1 else 0
-        override suspend fun getCommonEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
-            randomEntry?.takeIf { it.length in minLen..maxLen && it.isCommon && offset == 0 }
+
+        override suspend fun getCommonEntryAtOffset(
+            minLen: Int,
+            maxLen: Int,
+            offset: Int,
+        ): AnagramEntry? = randomEntry?.takeIf {
+            it.length in minLen..maxLen && it.isCommon && offset == 0
+        }
     }
 
     private class FakeQuizScoreStore(

@@ -10,7 +10,7 @@
 
 - 本番実装は Android（Kotlin + Compose + Room + DataStore）。
 - 旧 Python CLI プロトタイプは削除済み。
-- Pythonは辞書seed生成スクリプト用途に限定する。
+- 辞書seed生成は `android/tools/seed-generator` の Kotlin/JVM CLI を使う。
 
 ---
 
@@ -33,6 +33,7 @@
   - `sorted_key`
   - `word`
   - `length`
+  - `is_common`
 - 候補詳細キャッシュ: `candidate_detail_cache`
   - `word`
   - `kanji`
@@ -49,23 +50,20 @@
 
 - メイン画面: 入力、検索、候補一覧、設定導線
 - 候補詳細画面: 読み・漢字・意味、必要時オンデマンド取得
+- クイズ画面: 難易度選択、カードタップ式入力、スコア/ストリーク表示、正解/不正解表示
 - 設定: テーマ切替、文字数範囲、追加seed適用
 - 履歴: 最新10件を保存・再利用
 
 ---
 
-## 補助スクリプト仕様（Python）
+## 補助ツール仕様（Kotlin/JVM）
 
-### `scripts/export_android_seed.py`
+### `android/tools/seed-generator`
 
-- JMdict XML（`.xml` / `.gz`）→ `anagram_seed.tsv`
-- 正規化・ひらがな判定・重複除去・長さフィルタを実施
-
-### `scripts/export_android_room_db.py`
-
-- JMdict XML（`.xml` / `.gz`）→ Room互換SQLite
-- `anagram_entries` / `candidate_detail_cache` を生成
-- `PRAGMA user_version=3` を設定
+- JMdict XML/gzip（`.xml` / `.gz`）→ `anagram_seed.tsv` / `anagram_seed.db`
+- 正規化・ひらがな判定・重複除去・長さフィルタ・一般語フラグ付与を実施
+- `anagram_entries` / `candidate_detail_cache` を含む Room互換SQLite を生成
+- `PRAGMA user_version=5` を設定
 
 ---
 
@@ -85,10 +83,10 @@ cd android && ./gradlew :app:connectedDebugAndroidTest
 # Android UI Tests（schedule含む）は安定性のため --configuration-cache を付けない
 
 # seed TSV生成
-python scripts/export_android_seed.py --xml ~/.jamdict/data/JMdict_e.gz --output android/app/src/main/assets/anagram_seed.tsv --min-len 2 --max-len 8
+cd android && ./gradlew :tools:seed-generator:run --args="--jmdict ~/.jamdict/data/JMdict_e.gz --out-tsv app/src/main/assets/anagram_seed.tsv --mode tsv --min-len 2 --max-len 8"
 
 # Room DB生成
-python scripts/export_android_room_db.py --xml ~/.jamdict/data/JMdict_e.gz --output android/app/src/main/assets/anagram_seed.db --min-len 2 --max-len 8 --force
+cd android && ./gradlew :tools:seed-generator:run --args="--jmdict ~/.jamdict/data/JMdict_e.gz --out-db app/src/main/assets/anagram_seed.db --mode db --min-len 2 --max-len 8 --force"
 ```
 
 ---

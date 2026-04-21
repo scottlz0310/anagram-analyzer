@@ -19,6 +19,7 @@
 | 10: Issue #81 事前リファクタ | ✅ 完了 | MainViewModel UseCase分割・画面コンポーネント切り出し |
 | 11: Issue #60 クイズモード | ✅ 完了 | QuizDifficulty/QuizQuestion/GenerateQuizUseCase/QuizScoreStore/QuizViewModel/QuizScreen |
 | 12: Issue #88 クイズ単語重みづけ | ✅ 完了 | JMdict re_pri → isCommon フラグ・DB version 4・一般語優先出題 |
+| 13: Issue #40 クイズカードタップ式入力UI | ✅ 完了 | CharCard / カード配置UI / 回答スロット / 出題回避ロジック / Unit Test |
 
 ---
 
@@ -56,20 +57,21 @@
 
 ---
 
-## 未着手フェーズ
+## 直近フェーズ
 
 ### フェーズ 13: Issue #40 クイズカードタップ式入力UI
 
-- [ ] `CharCard` データクラスを定義（`id: Int`, `char: Char`, `isPlaced: Boolean`）
-- [ ] `QuizUiState` を新フィールド構成に更新（`shuffledCards` / `answerSlots` / `selectedCardId` 追加、`inputAnswer` 削除）
-- [ ] `QuizViewModel` に `onCardTapped` / `onSlotTapped` を追加し `onInputAnswerChanged` を削除
-- [ ] `onSubmitAnswer` を `answerSlots` から文字列組み立て→判定する方式に変更
-- [ ] `GenerateQuizUseCase` が `shuffledCards: List<CharCard>` を返すよう更新
-- [ ] `QuizScreen.kt` の `AnsweringSection` をカード選択UI + 解答グリッドに刷新
-- [ ] 選択ハイライト（`animateColorAsState`）・グリッドハイライト（`animateDpAsState`）を実装
-- [ ] 配置時バウンスアニメーション（`spring`, DampingRatioMediumBouncy）+ 触覚フィードバックを実装
-- [ ] `QuizViewModelTest.kt` に新操作イベントのユニットテストを追加
-- [ ] 既存の正誤判定テスト・スコアテストが通過する
+- [x] `CharCard` データクラスを定義（`id: Int`, `char: Char`, `isPlaced: Boolean`）
+- [x] `QuizUiState` を新フィールド構成に更新（`shuffledCards` / `answerSlots` / `selectedCardId` 追加、`inputAnswer` 削除）
+- [x] `QuizViewModel` に `onCardTapped` / `onSlotTapped` を追加し `onInputAnswerChanged` を削除
+- [x] `onSubmitAnswer` を `answerSlots` から文字列組み立て→判定する方式に変更
+- [x] `GenerateQuizUseCase` が `shuffledCards: List<CharCard>` を返すよう更新
+- [x] `QuizScreen.kt` の `AnsweringSection` をカード選択UI + 解答グリッドに刷新
+- [x] 選択ハイライト（`animateColorAsState`）・グリッドハイライト（`animateDpAsState`）を実装
+- [x] 配置時バウンスアニメーション（`spring`, DampingRatioMediumBouncy）+ 触覚フィードバックを実装
+- [x] 正解の並びそのままの出題を回避し、回避不能時は別問題へ切り替えるロジックを追加
+- [x] `QuizViewModelTest.kt` に新操作イベントのユニットテストを追加
+- [x] Android SDK がある環境で `:app:testDebugUnitTest` を再実行し、Issue #40 / 出題回避テストの通過を確認する
 
 ### フェーズ 14: Issue #14 クイズモード拡張（タイマー・ヒント・ランキング・デコレーション）
 
@@ -113,11 +115,11 @@
 
 | フェーズ | 状態 | 備考 |
 |---------|------|------|
-| 0〜3, 8〜12 | ✅ 完了 | `tasks_archive_20260421.md` 参照 |
+| 0〜3, 8〜13 | ✅ 完了 | `tasks_archive_20260421.md` 参照 |
 | 4: UI実装 | 🟡 進行中 | お気に入り機能のみ未着手 |
 | 5: 辞書データ | 🟡 進行中 | オフライン検証のみ未着手 |
 | 6: 追加機能 | 🟡 進行中 | お気に入り機能のみ未着手 |
 | 7: CI/CD・リリース | 🟡 進行中 | ProGuard・ストア公開準備が未着手 |
-| 13: Issue #40 カードUI | ⬜ 未着手 | 次イテレーション最優先 |
+| 13: Issue #40 カードUI | ✅ 完了 | カードUI、出題回避ロジック、ユニットテスト追加、ローカル `:app:testDebugUnitTest` 通過まで完了 |
 | 14: Issue #14 クイズ拡張 | ⬜ 未着手 | #40 完了後に着手 |
 | 15: Issue #12 主役化 | ⬜ 未着手 | クイズ品質確立後に着手 |

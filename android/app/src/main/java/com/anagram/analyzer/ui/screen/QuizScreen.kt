@@ -1,8 +1,16 @@
 package com.anagram.analyzer.ui.screen
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,20 +27,25 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.anagram.analyzer.domain.model.CharCard
 import com.anagram.analyzer.domain.model.QuizDifficulty
 import com.anagram.analyzer.ui.viewmodel.QuizPhase
 import com.anagram.analyzer.ui.viewmodel.QuizUiState
@@ -49,7 +62,8 @@ fun QuizScreen(
         onNavigateBack = onNavigateBack,
         onDifficultySelected = viewModel::onDifficultySelected,
         onStartQuiz = viewModel::onStartQuiz,
-        onInputAnswerChanged = viewModel::onInputAnswerChanged,
+        onCardTapped = viewModel::onCardTapped,
+        onSlotTapped = viewModel::onSlotTapped,
         onSubmitAnswer = viewModel::onSubmitAnswer,
         onNextQuestion = viewModel::onNextQuestion,
         onReset = viewModel::onReset,
@@ -62,7 +76,8 @@ fun QuizScreenContent(
     onNavigateBack: () -> Unit,
     onDifficultySelected: (QuizDifficulty) -> Unit,
     onStartQuiz: () -> Unit,
-    onInputAnswerChanged: (String) -> Unit,
+    onCardTapped: (Int) -> Unit,
+    onSlotTapped: (Int) -> Unit,
     onSubmitAnswer: () -> Unit,
     onNextQuestion: () -> Unit,
     onReset: () -> Unit,
@@ -80,7 +95,6 @@ fun QuizScreenContent(
             .background(gradient)
             .padding(16.dp),
     ) {
-        // ヘッダー
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -99,7 +113,6 @@ fun QuizScreenContent(
             }
         }
 
-        // スコアバー
         ScoreBar(
             score = state.score,
             streak = state.streak,
@@ -122,10 +135,12 @@ fun QuizScreenContent(
                 CircularProgressIndicator(modifier = Modifier.size(48.dp))
             }
             QuizPhase.ANSWERING -> AnsweringSection(
-                shuffledChars = state.question?.shuffledChars ?: "",
-                inputAnswer = state.inputAnswer,
+                shuffledCards = state.shuffledCards,
+                answerSlots = state.answerSlots,
+                selectedCardId = state.selectedCardId,
                 errorMessage = state.errorMessage,
-                onInputAnswerChanged = onInputAnswerChanged,
+                onCardTapped = onCardTapped,
+                onSlotTapped = onSlotTapped,
                 onSubmitAnswer = onSubmitAnswer,
             )
             QuizPhase.CORRECT -> ResultSection(
@@ -239,57 +254,293 @@ private fun IdleSection(
 
 @Composable
 private fun AnsweringSection(
-    shuffledChars: String,
-    inputAnswer: String,
+    shuffledCards: List<CharCard>,
+    answerSlots: List<Int?>,
+    selectedCardId: Int?,
     errorMessage: String?,
-    onInputAnswerChanged: (String) -> Unit,
+    onCardTapped: (Int) -> Unit,
+    onSlotTapped: (Int) -> Unit,
     onSubmitAnswer: () -> Unit,
 ) {
+    val haptic = LocalHapticFeedback.current
+    val selectedChar = shuffledCards.firstOrNull { it.id == selectedCardId }?.char
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = "この文字を並べ替えてできる単語は？",
+            text = "カードをタップして単語を完成させてください",
             style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
         )
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-            ),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Text(
-                text = shuffledChars,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                letterSpacing = 8.sp,
+        Text(
+            text = selectedChar?.let { "選択中: 「$it」を置くマスをタップ" }
+                ?: "カードをタップで追加、マスをタップで取り消しや入れ替えができます",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+
+        QuizSectionCard(title = "もじカード") {
+            CharCardGrid(
+                cards = shuffledCards,
+                selectedCardId = selectedCardId,
+                onCardTapped = { cardId ->
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onCardTapped(cardId)
+                },
             )
         }
 
-        OutlinedTextField(
-            value = inputAnswer,
-            onValueChange = onInputAnswerChanged,
-            label = { Text("答えをひらがなで入力") },
-            isError = errorMessage != null,
-            supportingText = errorMessage?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-        )
+        QuizSectionCard(title = "こたえ") {
+            AnswerSlotGrid(
+                cards = shuffledCards,
+                answerSlots = answerSlots,
+                selectedCardId = selectedCardId,
+                onSlotTapped = { slotIndex ->
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onSlotTapped(slotIndex)
+                },
+            )
+        }
+
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+        }
 
         Button(
             onClick = onSubmitAnswer,
-            enabled = inputAnswer.isNotBlank(),
+            enabled = answerSlots.isNotEmpty() && answerSlots.all { it != null },
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("こたえる", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun QuizSectionCard(
+    title: String,
+    content: @Composable () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.82f),
+        ),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            content()
+        }
+    }
+}
+
+@Composable
+private fun CharCardGrid(
+    cards: List<CharCard>,
+    selectedCardId: Int?,
+    onCardTapped: (Int) -> Unit,
+) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val cardsPerRow = calculateCardsPerRow(maxWidth)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            cards.chunked(cardsPerRow).forEach { rowCards ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    rowCards.forEach { card ->
+                        QuizCharCard(
+                            char = card.char.toString(),
+                            isSelected = selectedCardId == card.id,
+                            isPlaced = card.isPlaced,
+                            onClick = { onCardTapped(card.id) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnswerSlotGrid(
+    cards: List<CharCard>,
+    answerSlots: List<Int?>,
+    selectedCardId: Int?,
+    onSlotTapped: (Int) -> Unit,
+) {
+    val cardsById = cards.associateBy { it.id }
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val cardsPerRow = calculateCardsPerRow(maxWidth)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            answerSlots.chunked(cardsPerRow).forEachIndexed { rowIndex, rowSlots ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    rowSlots.forEachIndexed { columnIndex, cardId ->
+                        val slotIndex = rowIndex * cardsPerRow + columnIndex
+                        val isActionable = selectedCardId != null || cardId != null
+                        AnswerSlot(
+                            value = cardId?.let { cardsById[it]?.char?.toString() }.orEmpty(),
+                            isFilled = cardId != null,
+                            isHighlighted = selectedCardId != null,
+                            enabled = isActionable,
+                            onClick = { onSlotTapped(slotIndex) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuizCharCard(
+    char: String,
+    isSelected: Boolean,
+    isPlaced: Boolean,
+    onClick: () -> Unit,
+) {
+    val containerColor by animateColorAsState(
+        targetValue = when {
+            isSelected -> MaterialTheme.colorScheme.primary
+            isPlaced -> MaterialTheme.colorScheme.surfaceVariant
+            else -> MaterialTheme.colorScheme.secondaryContainer
+        },
+        label = "charCardColor",
+    )
+    val contentColor by animateColorAsState(
+        targetValue = when {
+            isSelected -> MaterialTheme.colorScheme.onPrimary
+            isPlaced -> MaterialTheme.colorScheme.onSurfaceVariant
+            else -> MaterialTheme.colorScheme.onSecondaryContainer
+        },
+        label = "charCardContentColor",
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (isSelected) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
+        } else {
+            MaterialTheme.colorScheme.outline.copy(alpha = if (isPlaced) 0.45f else 0.8f)
+        },
+        label = "charCardBorderColor",
+    )
+
+    Card(
+        modifier = Modifier
+            .padding(horizontal = QUIZ_CARD_HORIZONTAL_PADDING)
+            .size(QUIZ_CARD_SIZE)
+            .graphicsLayer {
+                alpha = if (isPlaced) 0.4f else 1f
+            }
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = BorderStroke(width = 2.dp, color = borderColor),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = char,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = contentColor,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnswerSlot(
+    value: String,
+    isFilled: Boolean,
+    isHighlighted: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val containerColor by animateColorAsState(
+        targetValue = when {
+            isFilled -> MaterialTheme.colorScheme.tertiaryContainer
+            isHighlighted -> MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            else -> MaterialTheme.colorScheme.surface
+        },
+        label = "answerSlotColor",
+    )
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            isHighlighted -> MaterialTheme.colorScheme.primary
+            isFilled -> MaterialTheme.colorScheme.tertiary
+            else -> MaterialTheme.colorScheme.outline
+        },
+        label = "answerSlotBorderColor",
+    )
+    val borderWidth by animateDpAsState(
+        targetValue = when {
+            isHighlighted -> 3.dp
+            isFilled -> 2.dp
+            else -> 1.dp
+        },
+        label = "answerSlotBorderWidth",
+    )
+    val scale by animateFloatAsState(
+        targetValue = if (isFilled) 1f else 0.88f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "answerSlotScale",
+    )
+
+    Card(
+        modifier = Modifier
+            .padding(horizontal = QUIZ_CARD_HORIZONTAL_PADDING)
+            .size(QUIZ_CARD_SIZE)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(enabled = enabled, onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = BorderStroke(width = borderWidth, color = borderColor),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = value.ifEmpty { "・" },
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (isFilled) {
+                    MaterialTheme.colorScheme.onTertiaryContainer
+                } else {
+                    MaterialTheme.colorScheme.outline
+                },
+            )
         }
     }
 }
@@ -353,3 +604,10 @@ private fun ResultSection(
         }
     }
 }
+
+private fun calculateCardsPerRow(maxWidth: Dp): Int =
+    (maxWidth / QUIZ_CARD_FOOTPRINT).toInt().coerceAtLeast(1)
+
+private val QUIZ_CARD_SIZE = 56.dp
+private val QUIZ_CARD_HORIZONTAL_PADDING = 6.dp
+private val QUIZ_CARD_FOOTPRINT = QUIZ_CARD_SIZE + (QUIZ_CARD_HORIZONTAL_PADDING * 2)

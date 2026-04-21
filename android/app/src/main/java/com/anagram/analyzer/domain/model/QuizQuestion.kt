@@ -1,7 +1,7 @@
 package com.anagram.analyzer.domain.model
 
 data class QuizQuestion(
-    val shuffledChars: String,
+    val shuffledCards: List<CharCard>,
     val sortedKey: String,
     val correctWords: List<String>,
 )
