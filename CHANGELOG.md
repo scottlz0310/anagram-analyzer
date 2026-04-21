@@ -5,8 +5,19 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Issue #40 クイズカードタップ式入力UI**
+  - `domain/model/CharCard.kt` を追加し、カード単位の配置状態を表現可能に更新
+  - `ui/viewmodel/QuizViewModelTest.kt` にカード配置/移動イベントのテストを追加
+  - `domain/usecase/GenerateQuizUseCaseTest.kt` を追加し、正解そのまま出題の回避と別問題への切り替えを検証
+
 ### Changed
 
+- `QuizQuestion` を `shuffledCards` ベースへ更新し、`QuizUiState` を `shuffledCards` / `answerSlots` / `selectedCardId` 構成へ変更
+- `QuizViewModel` をカードタップ入力方式へ更新し、スロット配置・取り消し・入れ替えから回答判定できるよう変更
+- `QuizScreen` の回答UIをテキスト入力からカード選択グリッドへ刷新し、選択ハイライト・スロットハイライト・バウンスアニメーション・触覚フィードバックを追加
+- `GenerateQuizUseCase` を更新し、正解候補や `sortedKey` と同一の並びを出題しないようにし、回避不能時は別エントリへ切り替えるよう変更
 - GitHub Actions `Android UI Tests`（`.github/workflows/android-ui-tests.yml`）の実行から `--configuration-cache` と `android/.gradle/configuration-cache` 復元を除外
 - `schedule` 実行で再発していた `:app:mergeDebugAndroidTestAssets` の AAR 欠損（`~/.gradle/caches/modules-2/.../*.aar (No such file or directory)`）を、壊れた Configuration Cache 再利用を断つことで根本解消
 

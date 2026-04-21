@@ -35,6 +35,12 @@ cd android && ./gradlew :app:connectedDebugAndroidTest
 cd android && ./gradlew :app:lintDebug
 ```
 
+## クイズモード
+
+- 文字カードをタップして解答スロットへ並べるカード入力UIを実装しています。
+- 正解候補の並びそのものが問題文として出ないようにし、回避不能な問題は別の単語へ切り替えます。
+- スコア、連続正解数、最高連続正解数はアプリ内で保持されます。
+
 ## 辞書seed更新（開発者向け）
 
 Kotlin/JVM CLIツール（`tools:seed-generator`）で JMdict XML（`.xml` / `.gz`）から seed を生成します。
@@ -72,6 +78,8 @@ adb shell am start -n com.anagram.analyzer/.MainActivity
 - `りんご` → 候補に `りんご`
 - `リンゴ` → ひらがな正規化後に候補表示
 - `abc` → エラー表示
+- クイズモード → カードをタップして答えを完成できる
+- クイズモード → 正解候補そのままの並びが出題されない
 
 ## CI運用（要点）
 

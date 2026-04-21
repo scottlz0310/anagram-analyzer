@@ -7,7 +7,7 @@
 **anagram-analyzer** は、ひらがな文字列を並べ替えて作れる日本語単語候補を返す Android アプリです。
 
 - 本実装: **Android版（Kotlin + Jetpack Compose）**
-- 補助ツール: **Python辞書変換スクリプト（seed生成用）**
+- 補助ツール: **Kotlin/JVM seed-generator（JMdict→TSV/DB生成）**
 - 旧 Python CLI プロトタイプ: **削除済み（2026-02-21）**
 
 ## 技術スタック
@@ -25,11 +25,11 @@
 | ビルド | Gradle (Kotlin DSL) |
 | CI | GitHub Actions（Android Unit/Build/UI/Release） |
 
-### 辞書生成スクリプト
+### 辞書生成ツール
 
 | カテゴリ | 技術 |
 |---------|------|
-| 言語 | Python 3 |
+| 言語 | Kotlin/JVM |
 | 入力 | JMdict XML (`.xml` / `.gz`) |
 | 出力 | `anagram_seed.tsv`, `anagram_seed.db` |
 
@@ -89,8 +89,8 @@ anagram-analyzer/
 ### `data/db/`
 
 - `AnagramEntry.kt`: アナグラム索引Entity（`sorted_key + word` 一意制約）
-- `AnagramDao.kt`: seed投入・キー検索・`getRandomEntry(minLen, maxLen)` ランダム取得
-- `AnagramDatabase.kt`: Room DB本体（`version 3`、Migration `1→2` / `2→3`）
+- `AnagramDao.kt`: seed投入・キー検索・文字数範囲件数/offset取得・一般語優先クイズ取得
+- `AnagramDatabase.kt`: Room DB本体（`version 5`、Migration `1→2` / `2→3` / `3→4` / `4→5`）
 - `CandidateDetailCacheEntry.kt` / `CandidateDetailCacheDao.kt`: 候補詳細キャッシュ
 
 ### `data/datastore/`
@@ -110,6 +110,7 @@ anagram-analyzer/
 
 ### `domain/model/`
 
+- `CharCard.kt`: クイズカードUI用データクラス（`id` / `char` / `isPlaced`）
 - `HiraganaNormalizer.kt`: NFKC正規化・カタカナ→ひらがな・ひらがな判定・アナグラムキー生成
 - `PreloadLogger.kt`: seed初期化ログ用 fun interface（`domain` 層に配置）
 
@@ -119,14 +120,14 @@ anagram-analyzer/
 - `SearchAnagramUseCase.kt`: アナグラム索引検索（`AnagramDao.lookupWords` ラッパー）
 - `LoadCandidateDetailUseCase.kt`: 候補詳細オンデマンド取得（`CandidateDetailLoader` ラッパー）
 - `ApplyAdditionalDictionaryUseCase.kt`: 追加辞書適用（投入件数・最終更新日時を返す）
-- `GenerateQuizUseCase.kt`: クイズ出題（ランダムエントリ取得 → 文字シャッフル → 正解リスト生成、`SearchAnagramUseCase` 再利用）
+- `GenerateQuizUseCase.kt`: クイズ出題（一般語優先ランダム取得 → 正解並びを避けたカード列生成 → 回避不能時は別問題へ切替）
 
 ### `ui/viewmodel/`
 
 - `MainUiState.kt`: UI状態 data class（flat構造 17フィールド）
 - `MainViewModel.kt`: UC4クラス + Store2 + Dispatcher を注入したViewModel（~343行）
-- `QuizUiState.kt`: クイズ画面UI状態 data class + `QuizPhase` enum（IDLE/LOADING/ANSWERING/CORRECT/INCORRECT）
-- `QuizViewModel.kt`: クイズフロー全体制御 @HiltViewModel（難易度選択・出題・回答判定・スコア管理）
+- `QuizUiState.kt`: クイズ画面UI状態 data class（`shuffledCards` / `answerSlots` / `selectedCardId` を含む）+ `QuizPhase` enum
+- `QuizViewModel.kt`: クイズフロー全体制御 @HiltViewModel（難易度選択・カード配置/移動・回答判定・スコア管理）
 
 ### `ui/screen/`
 
@@ -134,7 +135,7 @@ anagram-analyzer/
 - `CandidateDetailScreen.kt`: 候補詳細画面 Composable（`internal`）
 - `SettingsDialog.kt`: `AboutDialog` / `SettingsDialog` Composable（`internal`）
 - `ShareUtil.kt`: `shareCandidateDetail` ユーティリティ関数（`internal`）
-- `QuizScreen.kt`: クイズモード画面 Composable（難易度選択→問題→回答→正解/不正解フロー）
+- `QuizScreen.kt`: クイズモード画面 Composable（難易度選択→カードタップ回答→正解/不正解フロー、アニメーション/触覚付き）
 
 ## モジュール詳細（辞書生成ツール）
 
