@@ -14,7 +14,7 @@ java {
 }
 
 dependencies {
-    implementation("org.xerial:sqlite-jdbc:3.53.0.0")
+    implementation("org.xerial:sqlite-jdbc:3.53.1.0")
     testImplementation("junit:junit:4.13.2")
 }
 
