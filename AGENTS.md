@@ -149,7 +149,7 @@ JMdict XML/gzip から `anagram_seed.tsv` / Room互換SQLite を生成する独�
 | `HiraganaNormalizer.kt` | NFKC正規化・カタカナ→ひらがな・ひらがな判定・anagramKey（Python版互換） |
 | `JmdictParser.kt` | StAXベースXML/gzipパーサ。AnagramRowデータクラスを返す |
 | `TsvExporter.kt` | word順ソートでTSV出力（`sorted_key\tword\tlength\n`） |
-| `DbExporter.kt` | Room互換SQLite生成（`PRAGMA user_version=3`、`anagram_entries` + `candidate_detail_cache`、全インデックス付） |
+| `DbExporter.kt` | Room互換SQLite生成（`PRAGMA user_version=5`、`anagram_entries` + `candidate_detail_cache`、全インデックス付） |
 
 ## 開発コマンド
 

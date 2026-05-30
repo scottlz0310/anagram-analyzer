@@ -23,6 +23,7 @@ lefthook install
 - `pre-commit`: staged な `*.kt` を ktlint CLI 1.8.0 で自動整形し、修正分を再 stage する
 - `pre-push`: `:app:testDebugUnitTest` と `:tools:seed-generator:test` を実行する
 - ktlint CLI は初回実行時に `.cache/ktlint/` へ取得され、SHA-256 検証後に `java -jar` で実行される
+- ktlint の pre-commit には `powershell` コマンドと Java が必要。Windows 標準環境を前提にしているため、macOS / Linux では PowerShell を別途導入する
 
 ### ビルド
 
