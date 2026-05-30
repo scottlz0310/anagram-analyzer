@@ -16,7 +16,9 @@ class SeedGeneratorIntegrationTest {
     }
 
     private val expectedTsv by lazy {
-        javaClass.classLoader.getResource("expected_anagram_seed.tsv")!!.readText(Charsets.UTF_8)
+        javaClass.classLoader.getResource("expected_anagram_seed.tsv")!!
+            .readText(Charsets.UTF_8)
+            .normalizeLineEndings()
     }
 
     @Test
@@ -45,7 +47,7 @@ class SeedGeneratorIntegrationTest {
         val outTsv = tmp.newFile("out.tsv").toPath()
         val rows = JmdictParser.parse(fixtureXml, minLen = 2, maxLen = 8)
         TsvExporter.export(rows, outTsv)
-        val actual = outTsv.toFile().readText(Charsets.UTF_8)
+        val actual = outTsv.toFile().readText(Charsets.UTF_8).normalizeLineEndings()
         assertEquals(expectedTsv, actual)
     }
 
@@ -106,4 +108,6 @@ class SeedGeneratorIntegrationTest {
             }
         }
     }
+
+    private fun String.normalizeLineEndings(): String = replace("\r\n", "\n")
 }
