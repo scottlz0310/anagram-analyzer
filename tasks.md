@@ -20,6 +20,7 @@
 | 11: Issue #60 クイズモード | ✅ 完了 | QuizDifficulty/QuizQuestion/GenerateQuizUseCase/QuizScoreStore/QuizViewModel/QuizScreen |
 | 12: Issue #88 クイズ単語重みづけ | ✅ 完了 | JMdict re_pri → isCommon フラグ・DB version 4・一般語優先出題 |
 | 13: Issue #40 クイズカードタップ式入力UI | ✅ 完了 | CharCard / カード配置UI / 回答スロット / 出題回避ロジック / Unit Test |
+| 16: Issue #63 seed-generator テスト復帰 | ✅ 完了 | TSV比較の改行依存解消 / pre-push への seed-generator test 復帰 |
 
 ---
 
@@ -88,6 +89,12 @@
 - [ ] 解析モードをオプショナル（プレミアム機能）に移行
 - [ ] フリーミアム設計・課金導線の設計・実装
 
+### フェーズ 16: Issue #63 seed-generator テスト復帰
+
+- [x] `SeedGeneratorIntegrationTest` の TSV ゴールデン比較を改行コード非依存に修正
+- [x] ローカル Windows で `:tools:seed-generator:test` が通ることを確認
+- [x] lefthook `pre-push` に `:tools:seed-generator:test` を復帰し、NOTE コメントを削除
+
 ---
 
 ## 実装推奨順序
@@ -115,7 +122,7 @@
 
 | フェーズ | 状態 | 備考 |
 |---------|------|------|
-| 0〜3, 8〜13 | ✅ 完了 | `tasks_archive_20260421.md` 参照 |
+| 0〜3, 8〜13, 16 | ✅ 完了 | `tasks_archive_20260421.md` 参照 |
 | 4: UI実装 | 🟡 進行中 | お気に入り機能のみ未着手 |
 | 5: 辞書データ | 🟡 進行中 | オフライン検証のみ未着手 |
 | 6: 追加機能 | 🟡 進行中 | お気に入り機能のみ未着手 |
@@ -123,3 +130,4 @@
 | 13: Issue #40 カードUI | ✅ 完了 | カードUI、出題回避ロジック、ユニットテスト追加、ローカル `:app:testDebugUnitTest` 通過まで完了 |
 | 14: Issue #14 クイズ拡張 | ⬜ 未着手 | #40 完了後に着手 |
 | 15: Issue #12 主役化 | ⬜ 未着手 | クイズ品質確立後に着手 |
+| 16: Issue #63 seed-generator テスト復帰 | ✅ 完了 | Windows の TSV 比較失敗を修正し、pre-push に `:tools:seed-generator:test` を復帰 |
