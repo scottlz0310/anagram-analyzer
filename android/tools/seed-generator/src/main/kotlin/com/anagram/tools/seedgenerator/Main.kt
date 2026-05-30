@@ -24,11 +24,13 @@ fun main(args: Array<String>) {
             TsvExporter.export(rows, outTsv)
             println("TSV出力完了: $outTsv")
         }
+
         "db" -> {
             val outDb = Paths.get(parsed["--out-db"] ?: "anagram_seed.db")
             DbExporter.export(rows, outDb, force)
             println("DB出力完了: $outDb")
         }
+
         "both" -> {
             val outTsv = Paths.get(parsed["--out-tsv"] ?: "anagram_seed.tsv")
             val outDb = Paths.get(parsed["--out-db"] ?: "anagram_seed.db")
@@ -37,6 +39,7 @@ fun main(args: Array<String>) {
             DbExporter.export(rows, outDb, force)
             println("DB出力完了: $outDb")
         }
+
         else -> error("--mode は tsv|db|both を指定してください")
     }
 }

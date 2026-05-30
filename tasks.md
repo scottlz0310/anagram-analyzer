@@ -21,6 +21,7 @@
 | 12: Issue #88 クイズ単語重みづけ | ✅ 完了 | JMdict re_pri → isCommon フラグ・DB version 4・一般語優先出題 |
 | 13: Issue #40 クイズカードタップ式入力UI | ✅ 完了 | CharCard / カード配置UI / 回答スロット / 出題回避ロジック / Unit Test |
 | 16: Issue #63 seed-generator テスト復帰 | ✅ 完了 | TSV比較の改行依存解消 / pre-push への seed-generator test 復帰 |
+| 17: Issue #62 ktlint CLI pre-commit 導入 | ✅ 完了 | ktlint CLI 1.8.0 固定 / pre-commit 自動整形 / 初回整形 |
 
 ---
 
@@ -95,6 +96,13 @@
 - [x] ローカル Windows で `:tools:seed-generator:test` が通ることを確認
 - [x] lefthook `pre-push` に `:tools:seed-generator:test` を復帰し、NOTE コメントを削除
 
+### フェーズ 17: Issue #62 ktlint CLI pre-commit 導入
+
+- [x] ktlint CLI 1.8.0 を `.lefthook/ktlint.ps1` 経由でバージョン固定導入
+- [x] lefthook `pre-commit` で staged な `*.kt` を ktlint format し、修正分を再 stage する設定を追加
+- [x] `.editorconfig` / `.gitattributes` を追加し、Compose / JUnit テスト命名と LF 改行を明示
+- [x] 既存 Kotlin コードへ ktlint 初回整形を適用
+
 ---
 
 ## 実装推奨順序
@@ -122,7 +130,7 @@
 
 | フェーズ | 状態 | 備考 |
 |---------|------|------|
-| 0〜3, 8〜13, 16 | ✅ 完了 | `tasks_archive_20260421.md` 参照 |
+| 0〜3, 8〜13, 16〜17 | ✅ 完了 | `tasks_archive_20260421.md` 参照 |
 | 4: UI実装 | 🟡 進行中 | お気に入り機能のみ未着手 |
 | 5: 辞書データ | 🟡 進行中 | オフライン検証のみ未着手 |
 | 6: 追加機能 | 🟡 進行中 | お気に入り機能のみ未着手 |
@@ -131,3 +139,4 @@
 | 14: Issue #14 クイズ拡張 | ⬜ 未着手 | #40 完了後に着手 |
 | 15: Issue #12 主役化 | ⬜ 未着手 | クイズ品質確立後に着手 |
 | 16: Issue #63 seed-generator テスト復帰 | ✅ 完了 | Windows の TSV 比較失敗を修正し、pre-push に `:tools:seed-generator:test` を復帰 |
+| 17: Issue #62 ktlint CLI pre-commit | ✅ 完了 | ktlint CLI 1.8.0 pre-commit、初回整形まで完了 |

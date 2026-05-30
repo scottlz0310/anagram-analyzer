@@ -32,18 +32,37 @@ object JmdictParser {
             while (reader.hasNext()) {
                 when (reader.next()) {
                     XMLStreamConstants.START_ELEMENT -> when (reader.localName) {
-                        "r_ele" -> { inREle = true; rebBuf.clear(); rePris.clear() }
-                        "reb"   -> if (inREle) { inReb = true; rebBuf.clear() }
-                        "re_pri" -> if (inREle) { inRePri = true; rePriBuf.clear() }
+                        "r_ele" -> {
+                            inREle = true
+                            rebBuf.clear()
+                            rePris.clear()
+                        }
+
+                        "reb" -> if (inREle) {
+                            inReb = true
+                            rebBuf.clear()
+                        }
+
+                        "re_pri" -> if (inREle) {
+                            inRePri = true
+                            rePriBuf.clear()
+                        }
                     }
+
                     XMLStreamConstants.CHARACTERS, XMLStreamConstants.CDATA -> {
                         if (inReb) rebBuf.append(reader.text)
                         if (inRePri) rePriBuf.append(reader.text)
                     }
+
                     XMLStreamConstants.END_ELEMENT -> when (reader.localName) {
-                        "reb"    -> inReb = false
-                        "re_pri" -> if (inREle) { rePris.add(rePriBuf.toString().trim()); inRePri = false }
-                        "r_ele"  -> {
+                        "reb" -> inReb = false
+
+                        "re_pri" -> if (inREle) {
+                            rePris.add(rePriBuf.toString().trim())
+                            inRePri = false
+                        }
+
+                        "r_ele" -> {
                             inREle = false
                             val word = HiraganaNormalizer.normalize(rebBuf.toString().trim())
                             val isCommon = rePris.any { COMMON_PRI_REGEX.matches(it) }

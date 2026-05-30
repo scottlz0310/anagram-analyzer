@@ -299,14 +299,11 @@ class QuizViewModelTest {
         override suspend fun lookupWords(sortedKey: String): List<String> = words
         override suspend fun count(): Long = if (randomEntry != null) 1L else 0L
 
-        override suspend fun countByLength(minLen: Int, maxLen: Int): Int =
-            if (randomEntry != null && randomEntry.length in minLen..maxLen) 1 else 0
+        override suspend fun countByLength(minLen: Int, maxLen: Int): Int = if (randomEntry != null && randomEntry.length in minLen..maxLen) 1 else 0
 
-        override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
-            randomEntry?.takeIf { it.length in minLen..maxLen && offset == 0 }
+        override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? = randomEntry?.takeIf { it.length in minLen..maxLen && offset == 0 }
 
-        override suspend fun countCommonByLength(minLen: Int, maxLen: Int): Int =
-            if (randomEntry != null && randomEntry.length in minLen..maxLen && randomEntry.isCommon) 1 else 0
+        override suspend fun countCommonByLength(minLen: Int, maxLen: Int): Int = if (randomEntry != null && randomEntry.length in minLen..maxLen && randomEntry.isCommon) 1 else 0
 
         override suspend fun getCommonEntryAtOffset(
             minLen: Int,

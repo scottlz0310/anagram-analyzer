@@ -11,11 +11,10 @@ object HiraganaNormalizer {
         return katakanaToHiragana(noWs)
     }
 
-    fun katakanaToHiragana(input: String): String =
-        input.map { c ->
-            val cp = c.code
-            if (cp in 0x30A1..0x30F6) (cp - 0x60).toChar() else c
-        }.joinToString("")
+    fun katakanaToHiragana(input: String): String = input.map { c ->
+        val cp = c.code
+        if (cp in 0x30A1..0x30F6) (cp - 0x60).toChar() else c
+    }.joinToString("")
 
     fun isHiragana(c: Char): Boolean {
         val cp = c.code

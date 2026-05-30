@@ -64,12 +64,15 @@ class QuizViewModel @Inject constructor(
                         errorMessage = null,
                     )
                 }
+
                 state.selectedCardId == cardId -> {
                     state.copy(selectedCardId = null, errorMessage = null)
                 }
+
                 state.selectedCardId != null -> {
                     state.copy(selectedCardId = cardId, errorMessage = null)
                 }
+
                 else -> {
                     val firstEmptySlot = state.answerSlots.indexOfFirst { it == null }
                     if (firstEmptySlot == -1) {
@@ -116,6 +119,7 @@ class QuizViewModel @Inject constructor(
                         )
                     }
                 }
+
                 cardIdInSlot != null -> {
                     val nextSlots = state.answerSlots.toMutableList()
                     nextSlots[slotIndex] = null
@@ -126,6 +130,7 @@ class QuizViewModel @Inject constructor(
                         errorMessage = null,
                     )
                 }
+
                 else -> state
             }
         }
@@ -279,14 +284,13 @@ class QuizViewModel @Inject constructor(
         }
     }
 
-    private fun clearCardFromSlots(answerSlots: List<Int?>, cardId: Int): List<Int?> =
-        answerSlots.map { slotCardId ->
-            if (slotCardId == cardId) {
-                null
-            } else {
-                slotCardId
-            }
+    private fun clearCardFromSlots(answerSlots: List<Int?>, cardId: Int): List<Int?> = answerSlots.map { slotCardId ->
+        if (slotCardId == cardId) {
+            null
+        } else {
+            slotCardId
         }
+    }
 
     private companion object {
         private const val POINTS_PER_CORRECT = 10

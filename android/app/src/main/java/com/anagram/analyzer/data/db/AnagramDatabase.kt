@@ -80,16 +80,14 @@ abstract class AnagramDatabase : RoomDatabase() {
                 }
             }
 
-        fun getInstance(context: Context): AnagramDatabase {
-            return instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    AnagramDatabase::class.java,
-                    "anagram.db",
-                ).addMigrations(migration1To2, migration2To3, migration3To4, migration4To5)
-                    .build()
-                    .also { instance = it }
-            }
+        fun getInstance(context: Context): AnagramDatabase = instance ?: synchronized(this) {
+            instance ?: Room.databaseBuilder(
+                context.applicationContext,
+                AnagramDatabase::class.java,
+                "anagram.db",
+            ).addMigrations(migration1To2, migration2To3, migration3To4, migration4To5)
+                .build()
+                .also { instance = it }
         }
     }
 }

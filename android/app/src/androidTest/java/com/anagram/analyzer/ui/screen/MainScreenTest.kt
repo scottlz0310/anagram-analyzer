@@ -3,11 +3,11 @@ package com.anagram.analyzer.ui.screen
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
@@ -228,6 +228,5 @@ class MainScreenTest {
             composeRule.onAllNodesWithText(expectedAfterToggle).fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText(expectedAfterToggle).assertIsDisplayed()
-
     }
 }
