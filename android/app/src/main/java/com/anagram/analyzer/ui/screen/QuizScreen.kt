@@ -128,12 +128,14 @@ fun QuizScreenContent(
                 onDifficultySelected = onDifficultySelected,
                 onStartQuiz = onStartQuiz,
             )
+
             QuizPhase.LOADING -> Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(48.dp))
             }
+
             QuizPhase.ANSWERING -> AnsweringSection(
                 shuffledCards = state.shuffledCards,
                 answerSlots = state.answerSlots,
@@ -143,11 +145,13 @@ fun QuizScreenContent(
                 onSlotTapped = onSlotTapped,
                 onSubmitAnswer = onSubmitAnswer,
             )
+
             QuizPhase.CORRECT -> ResultSection(
                 isCorrect = true,
                 correctWords = state.question?.correctWords ?: emptyList(),
                 onNextQuestion = onNextQuestion,
             )
+
             QuizPhase.INCORRECT -> ResultSection(
                 isCorrect = false,
                 correctWords = state.question?.correctWords ?: emptyList(),
@@ -605,8 +609,7 @@ private fun ResultSection(
     }
 }
 
-private fun calculateCardsPerRow(maxWidth: Dp): Int =
-    (maxWidth / QUIZ_CARD_FOOTPRINT).toInt().coerceAtLeast(1)
+private fun calculateCardsPerRow(maxWidth: Dp): Int = (maxWidth / QUIZ_CARD_FOOTPRINT).toInt().coerceAtLeast(1)
 
 private val QUIZ_CARD_SIZE = 56.dp
 private val QUIZ_CARD_HORIZONTAL_PADDING = 6.dp

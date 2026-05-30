@@ -6,12 +6,12 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.anagram.analyzer.data.db.ANAGRAM_DATABASE_VERSION
 import com.anagram.analyzer.data.db.AnagramEntry
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlinx.coroutines.runBlocking
 import java.io.File
 
 @RunWith(AndroidJUnit4::class)

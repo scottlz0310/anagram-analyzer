@@ -82,19 +82,15 @@ class GenerateQuizUseCaseTest {
     ) : AnagramDao {
         override suspend fun insertAll(entries: List<AnagramEntry>) = Unit
 
-        override suspend fun lookupWords(sortedKey: String): List<String> =
-            wordsBySortedKey[sortedKey].orEmpty()
+        override suspend fun lookupWords(sortedKey: String): List<String> = wordsBySortedKey[sortedKey].orEmpty()
 
         override suspend fun count(): Long = entries.size.toLong()
 
-        override suspend fun countByLength(minLen: Int, maxLen: Int): Int =
-            filterEntries(minLen, maxLen, commonOnly = false).size
+        override suspend fun countByLength(minLen: Int, maxLen: Int): Int = filterEntries(minLen, maxLen, commonOnly = false).size
 
-        override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
-            filterEntries(minLen, maxLen, commonOnly = false).getOrNull(offset)
+        override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? = filterEntries(minLen, maxLen, commonOnly = false).getOrNull(offset)
 
-        override suspend fun countCommonByLength(minLen: Int, maxLen: Int): Int =
-            filterEntries(minLen, maxLen, commonOnly = true).size
+        override suspend fun countCommonByLength(minLen: Int, maxLen: Int): Int = filterEntries(minLen, maxLen, commonOnly = true).size
 
         override suspend fun getCommonEntryAtOffset(
             minLen: Int,

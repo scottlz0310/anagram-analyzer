@@ -10,26 +10,26 @@ import com.anagram.analyzer.data.seed.AdditionalSeedEntryLoader
 import com.anagram.analyzer.data.seed.CandidateDetail
 import com.anagram.analyzer.data.seed.CandidateDetailLoader
 import com.anagram.analyzer.data.seed.SeedEntryLoader
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import com.anagram.analyzer.domain.model.PreloadLogger
 import com.anagram.analyzer.domain.usecase.ApplyAdditionalDictionaryUseCase
 import com.anagram.analyzer.domain.usecase.LoadCandidateDetailUseCase
 import com.anagram.analyzer.domain.usecase.PreloadSeedUseCase
 import com.anagram.analyzer.domain.usecase.SearchAnagramUseCase
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -853,17 +853,13 @@ class MainViewModelTest {
             return entries.size.toLong()
         }
 
-        override suspend fun countByLength(minLen: Int, maxLen: Int): Int =
-            entries.count { it.length in minLen..maxLen }
+        override suspend fun countByLength(minLen: Int, maxLen: Int): Int = entries.count { it.length in minLen..maxLen }
 
-        override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
-            entries.filter { it.length in minLen..maxLen }.getOrNull(offset)
+        override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? = entries.filter { it.length in minLen..maxLen }.getOrNull(offset)
 
-        override suspend fun countCommonByLength(minLen: Int, maxLen: Int): Int =
-            entries.count { it.length in minLen..maxLen && it.isCommon }
+        override suspend fun countCommonByLength(minLen: Int, maxLen: Int): Int = entries.count { it.length in minLen..maxLen && it.isCommon }
 
-        override suspend fun getCommonEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? =
-            entries.filter { it.length in minLen..maxLen && it.isCommon }.getOrNull(offset)
+        override suspend fun getCommonEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? = entries.filter { it.length in minLen..maxLen && it.isCommon }.getOrNull(offset)
     }
 
     private class FakeSeedEntryLoader(
@@ -883,9 +879,7 @@ class MainViewModelTest {
         private val fetchedDetails: Map<String, CandidateDetail> = emptyMap(),
         private val fetchFailure: IllegalStateException? = null,
     ) : CandidateDetailLoader {
-        override suspend fun loadDetails(): Map<String, CandidateDetail> {
-            return details
-        }
+        override suspend fun loadDetails(): Map<String, CandidateDetail> = details
 
         override suspend fun fetchDetail(word: String): CandidateDetail? {
             if (fetchFailure != null) {

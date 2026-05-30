@@ -41,9 +41,7 @@ class AssetSeedEntryLoader @Inject constructor(
 internal fun resolveSeedEntries(
     dbEntries: List<AnagramEntry>?,
     tsvEntries: List<AnagramEntry>,
-): List<AnagramEntry> {
-    return dbEntries?.takeIf { it.isNotEmpty() } ?: tsvEntries
-}
+): List<AnagramEntry> = dbEntries?.takeIf { it.isNotEmpty() } ?: tsvEntries
 
 internal fun loadSeedEntriesFromDatabaseAsset(context: Context): List<AnagramEntry>? {
     var tempFile: File? = null
@@ -105,9 +103,7 @@ internal fun loadSeedEntriesFromDatabaseFile(path: String): List<AnagramEntry>? 
     }
 }
 
-internal fun parseSeedEntries(lines: Sequence<String>): List<AnagramEntry> {
-    return parseSeedEntries(lines, ASSET_FILE_NAME)
-}
+internal fun parseSeedEntries(lines: Sequence<String>): List<AnagramEntry> = parseSeedEntries(lines, ASSET_FILE_NAME)
 
 internal fun parseSeedEntries(
     lines: Sequence<String>,

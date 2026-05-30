@@ -58,7 +58,7 @@ anagram-analyzer/
 │   │       └── src/
 │   │           ├── main/kotlin/com/anagram/tools/seedgenerator/
 │   │           │   ├── Main.kt
-│   │           │   ├── Normalizer.kt
+│   │           │   ├── HiraganaNormalizer.kt
 │   │           │   ├── JmdictParser.kt
 │   │           │   ├── TsvExporter.kt
 │   │           │   └── DbExporter.kt
@@ -146,12 +146,26 @@ JMdict XML/gzip から `anagram_seed.tsv` / Room互換SQLite を生成する独�
 | ファイル | 説明 |
 |---------|------|
 | `Main.kt` | CLIエントリポイント（`--jmdict/--out-tsv/--out-db/--mode/--min-len/--max-len/--limit/--force`） |
-| `Normalizer.kt` | NFKC正規化・カタカナ→ひらがな・ひらがな判定・anagramKey（Python版互換） |
+| `HiraganaNormalizer.kt` | NFKC正規化・カタカナ→ひらがな・ひらがな判定・anagramKey（Python版互換） |
 | `JmdictParser.kt` | StAXベースXML/gzipパーサ。AnagramRowデータクラスを返す |
 | `TsvExporter.kt` | word順ソートでTSV出力（`sorted_key\tword\tlength\n`） |
-| `DbExporter.kt` | Room互換SQLite生成（`PRAGMA user_version=3`、`anagram_entries` + `candidate_detail_cache`、全インデックス付） |
+| `DbExporter.kt` | Room互換SQLite生成（`PRAGMA user_version=5`、`anagram_entries` + `candidate_detail_cache`、全インデックス付） |
 
 ## 開発コマンド
+
+### Git hooks / ktlint
+
+```bash
+# clone後に一度だけ実行
+lefthook install
+
+# hook設定の検証
+lefthook validate
+```
+
+- `pre-commit`: `.lefthook/ktlint.ps1` 経由で ktlint CLI 1.8.0 を実行し、staged な `*.kt` を整形する
+- `pre-push`: `:app:testDebugUnitTest` と `:tools:seed-generator:test` を実行する
+- ktlint CLI は `.cache/ktlint/` に取得し、SHA-256 を検証してから `java -jar` で実行する
 
 ### Android
 

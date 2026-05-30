@@ -78,24 +78,18 @@ class AssetCandidateDetailLoader @Inject constructor(
 internal fun mergeCandidateDetails(
     seedDetails: Map<String, CandidateDetail>,
     cachedDetails: Map<String, CandidateDetail>,
-): Map<String, CandidateDetail> {
-    return seedDetails + cachedDetails.filterKeys { key -> key !in seedDetails }
-}
+): Map<String, CandidateDetail> = seedDetails + cachedDetails.filterKeys { key -> key !in seedDetails }
 
 internal fun resolveLocalCandidateDetail(
     word: String,
     seedDetails: Map<String, CandidateDetail>,
     cachedDetail: CandidateDetail?,
-): CandidateDetail? {
-    return seedDetails[word] ?: cachedDetail
-}
+): CandidateDetail? = seedDetails[word] ?: cachedDetail
 
-private fun CandidateDetailCacheEntry.toCandidateDetail(): CandidateDetail {
-    return CandidateDetail(
-        kanji = kanji,
-        meaning = meaning,
-    )
-}
+private fun CandidateDetailCacheEntry.toCandidateDetail(): CandidateDetail = CandidateDetail(
+    kanji = kanji,
+    meaning = meaning,
+)
 
 internal fun parseCandidateDetails(lines: Sequence<String>): Map<String, CandidateDetail> {
     val details = mutableMapOf<String, CandidateDetail>()

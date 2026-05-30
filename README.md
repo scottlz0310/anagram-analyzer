@@ -13,12 +13,17 @@
 
 ### Git フック（lefthook）
 
-本リポジトリは [lefthook](https://github.com/evilmartians/lefthook) で pre-push に Android / seed-generator のユニットテストを設定している。**clone 後に一度だけ**フックを登録すること（登録しないとフックは動作しない）。
+本リポジトリは [lefthook](https://github.com/evilmartians/lefthook) で Git hook を管理している。**clone 後に一度だけ**フックを登録すること（登録しないとフックは動作しない）。
 
 ```bash
 # lefthook 未導入なら先にインストール（例: go install / Homebrew / scoop 等）
 lefthook install
 ```
+
+- `pre-commit`: staged な `*.kt` を ktlint CLI 1.8.0 で自動整形し、修正分を再 stage する
+- `pre-push`: `:app:testDebugUnitTest` と `:tools:seed-generator:test` を実行する
+- ktlint CLI は初回実行時に `.cache/ktlint/` へ取得され、SHA-256 検証後に `java -jar` で実行される
+- ktlint の pre-commit には `powershell` コマンドと Java が必要。Windows 標準環境を前提にしているため、macOS / Linux では PowerShell を別途導入する
 
 ### ビルド
 

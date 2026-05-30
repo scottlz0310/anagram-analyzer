@@ -8,6 +8,10 @@
 ### Added
 
 - lefthook 導入（`lefthook.yml`）: pre-push で `:app:testDebugUnitTest` と `:tools:seed-generator:test` を実行。Kotlin リンタ（ktlint）は #62 で対応予定。
+- **Issue #62 ktlint CLI pre-commit 導入**
+  - ktlint CLI 1.8.0 をバージョン固定し、lefthook `pre-commit` で staged な `*.kt` を自動整形する設定を追加
+  - `.lefthook/ktlint.ps1` を追加し、ktlint CLI を `.cache/ktlint/` へ取得して SHA-256 検証後に `java -jar` で実行するようにした
+  - `.editorconfig` / `.gitattributes` を追加し、Kotlin の ktlint 設定と LF 改行を明示
 - **Issue #40 クイズカードタップ式入力UI**
   - `domain/model/CharCard.kt` を追加し、カード単位の配置状態を表現可能に更新
   - `ui/viewmodel/QuizViewModelTest.kt` にカード配置/移動イベントのテストを追加
@@ -17,6 +21,7 @@
 
 - `SeedGeneratorIntegrationTest` の TSV ゴールデン比較で改行コードを正規化し、Windows / cp932 環境の CRLF 差分で失敗しないよう変更
 - lefthook `pre-push` に `:tools:seed-generator:test` を復帰し、CI と同等の seed-generator テストを push 前に実行するよう変更
+- ktlint 初回整形を適用し、seed-generator の `Normalizer.kt` を `HiraganaNormalizer.kt` にリネーム
 - `QuizQuestion` を `shuffledCards` ベースへ更新し、`QuizUiState` を `shuffledCards` / `answerSlots` / `selectedCardId` 構成へ変更
 - `QuizViewModel` をカードタップ入力方式へ更新し、スロット配置・取り消し・入れ替えから回答判定できるよう変更
 - `QuizScreen` の回答UIをテキスト入力からカード選択グリッドへ刷新し、選択ハイライト・スロットハイライト・バウンスアニメーション・触覚フィードバックを追加

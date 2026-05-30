@@ -69,8 +69,7 @@ class PreloadSeedUseCase @Inject constructor(
         val elapsedMillis: Long,
     )
 
-    private fun PreloadMetrics.toLogLine(): String =
-        "preload source=$source total=$totalEntries inserted=$insertedEntries elapsedMs=$elapsedMillis"
+    private fun PreloadMetrics.toLogLine(): String = "preload source=$source total=$totalEntries inserted=$insertedEntries elapsedMs=$elapsedMillis"
 
     private companion object {
         private val DEMO_ENTRIES = listOf(

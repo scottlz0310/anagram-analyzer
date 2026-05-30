@@ -13,17 +13,15 @@ interface AdditionalSeedEntryLoader {
 class AssetAdditionalSeedEntryLoader @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : AdditionalSeedEntryLoader {
-    override suspend fun loadEntries(): List<AnagramEntry> {
-        return try {
-            context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
-                parseSeedEntries(
-                    lines = reader.lineSequence(),
-                    fileName = ASSET_FILE_NAME,
-                )
-            }
-        } catch (error: IOException) {
-            throw IllegalStateException("追加辞書データの読み込みに失敗しました", error)
+    override suspend fun loadEntries(): List<AnagramEntry> = try {
+        context.assets.open(ASSET_FILE_NAME).bufferedReader().use { reader ->
+            parseSeedEntries(
+                lines = reader.lineSequence(),
+                fileName = ASSET_FILE_NAME,
+            )
         }
+    } catch (error: IOException) {
+        throw IllegalStateException("追加辞書データの読み込みに失敗しました", error)
     }
 
     private companion object {

@@ -330,12 +330,10 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun appendInputHistory(history: List<String>, value: String): List<String> {
-        return buildList {
-            add(value)
-            addAll(history.filterNot { it == value })
-        }.take(MAX_INPUT_HISTORY)
-    }
+    private fun appendInputHistory(history: List<String>, value: String): List<String> = buildList {
+        add(value)
+        addAll(history.filterNot { it == value })
+    }.take(MAX_INPUT_HISTORY)
 
     private companion object {
         private const val MAX_INPUT_HISTORY = 10
