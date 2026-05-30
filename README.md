@@ -11,6 +11,15 @@
 
 ## Androidアプリ開発
 
+### Git フック（lefthook）
+
+本リポジトリは [lefthook](https://github.com/evilmartians/lefthook) で pre-push に Android ユニットテストを設定している。**clone 後に一度だけ**フックを登録すること（登録しないとフックは動作しない）。
+
+```bash
+# lefthook 未導入なら先にインストール（例: go install / Homebrew / scoop 等）
+lefthook install
+```
+
 ### ビルド
 
 ```bash

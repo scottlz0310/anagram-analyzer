@@ -7,6 +7,7 @@
 
 ### Added
 
+- lefthook 導入（`lefthook.yml`）: pre-push で `:app:testDebugUnitTest` を実行。Kotlin リンタ（ktlint）は #62、`:tools:seed-generator:test` の pre-push 復帰は #63 で対応予定。
 - **Issue #40 クイズカードタップ式入力UI**
   - `domain/model/CharCard.kt` を追加し、カード単位の配置状態を表現可能に更新
   - `ui/viewmodel/QuizViewModelTest.kt` にカード配置/移動イベントのテストを追加
