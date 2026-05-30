@@ -41,6 +41,9 @@ htmlcov/
 *.sqlite
 *.sqlite3
 
+# Local tool cache
+.cache/
+
 # OS
 .DS_Store
 Thumbs.db

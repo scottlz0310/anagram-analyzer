@@ -1,5 +1,12 @@
 # lefthook: anagram-analyzer (Kotlin/Android)
-# Kotlin リンタは現状未導入（後続 ISSUE で ktlint CLI 導入を検討）。
+# ktlint CLI は .lefthook/ktlint.ps1 でバージョン固定して実行する。
+pre-commit:
+  commands:
+    ktlint:
+      glob: "*.kt"
+      run: powershell -NoProfile -ExecutionPolicy Bypass -File .lefthook/ktlint.ps1 -Format {staged_files}
+      stage_fixed: true
+
 # pre-push で Android / seed-generator のユニットテストを実行し、push 前の最終ゲートとする。
 pre-push:
   commands:
