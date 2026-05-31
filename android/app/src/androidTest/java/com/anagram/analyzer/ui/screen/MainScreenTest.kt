@@ -14,6 +14,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.anagram.analyzer.MainActivity
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,6 +23,11 @@ import org.junit.runner.RunWith
 class MainScreenTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
+
+    @Before
+    fun navigateToAnalysisMode() {
+        composeRule.onNodeWithTag("quiz_to_analysis_button").performClick()
+    }
 
     @Test
     fun ひらがな入力で候補を表示できる() {
