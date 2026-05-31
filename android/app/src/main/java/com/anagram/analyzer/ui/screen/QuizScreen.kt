@@ -101,7 +101,7 @@ fun QuizScreenContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TextButton(onClick = onNavigateBack) {
-                Text("← もどる")
+                Text("🔍 解析モード")
             }
             Text(
                 text = "クイズモード",
