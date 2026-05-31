@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,8 +39,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -46,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.anagram.analyzer.R
 import com.anagram.analyzer.domain.model.CharCard
 import com.anagram.analyzer.domain.model.QuizDifficulty
 import com.anagram.analyzer.ui.viewmodel.QuizPhase
@@ -207,6 +212,22 @@ private fun IdleSection(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.quiz_title),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 120.dp),
+            contentScale = ContentScale.Fit,
+        )
+
+        Image(
+            painter = painterResource(id = R.drawable.quiz_chr_owl),
+            contentDescription = null,
+            modifier = Modifier.size(120.dp),
+            contentScale = ContentScale.Fit,
+        )
+
         Text(
             text = "難易度を選んでください",
             style = MaterialTheme.typography.titleMedium,
@@ -278,6 +299,13 @@ private fun AnsweringSection(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.quiz_chr_blue),
+            contentDescription = null,
+            modifier = Modifier.size(88.dp),
+            contentScale = ContentScale.Fit,
+        )
+
         Text(
             text = "カードをタップして単語を完成させてください",
             style = MaterialTheme.typography.titleMedium,
@@ -564,11 +592,15 @@ private fun ResultSection(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = if (isCorrect) "⭕ 正解！" else "❌ 不正解",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = if (isCorrect) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+        Image(
+            painter = painterResource(
+                id = if (isCorrect) R.drawable.quiz_correct else R.drawable.quiz_incorrect,
+            ),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 200.dp),
+            contentScale = ContentScale.Fit,
         )
 
         Card(
