@@ -290,7 +290,7 @@ fun MainScreenContent(
                 .fillMaxWidth()
                 .testTag("quiz_button"),
         ) {
-            Text("🎯 クイズモード")
+            Text("← クイズにもどる")
         }
 
         TextButton(

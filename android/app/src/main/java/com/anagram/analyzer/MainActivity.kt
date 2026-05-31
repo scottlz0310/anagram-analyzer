@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
             }
             val isDarkTheme = isDarkThemeState ?: return@setContent
             val scope = rememberCoroutineScope()
-            var showQuiz by rememberSaveable { mutableStateOf(false) }
+            var showQuiz by rememberSaveable { mutableStateOf(true) }
             MaterialTheme(
                 colorScheme = if (isDarkTheme) anagramDarkColorScheme() else anagramLightColorScheme(),
             ) {
