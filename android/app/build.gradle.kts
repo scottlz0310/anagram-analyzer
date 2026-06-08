@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.anagram.analyzer"
-    compileSdk = 36
+    compileSdk = 37
     val releaseStoreFilePath =
         providers.gradleProperty("ANDROID_SIGNING_STORE_FILE").orNull
             ?: providers.environmentVariable("ANDROID_SIGNING_STORE_FILE").orNull
