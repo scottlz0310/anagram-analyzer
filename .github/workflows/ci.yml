@@ -13,7 +13,7 @@ jobs:
     outputs:
       android: ${{ steps.decide.outputs.android }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Detect changed paths (PR)
         if: github.event_name == 'pull_request'
@@ -44,7 +44,7 @@ jobs:
     if: needs.detect-android-changes.outputs.android == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -75,7 +75,7 @@ jobs:
     if: needs.detect-android-changes.outputs.android == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
