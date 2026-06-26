@@ -19,6 +19,7 @@
 
 ### Changed
 
+- Dagger/Hilt 2.60 の生成 Java ソースが参照する `error_prone_annotations` を `compileOnly` 依存として明示し、Hilt 生成コードの Java コンパイル失敗を解消
 - `SeedGeneratorIntegrationTest` の TSV ゴールデン比較で改行コードを正規化し、Windows / cp932 環境の CRLF 差分で失敗しないよう変更
 - lefthook `pre-push` に `:tools:seed-generator:test` を復帰し、CI と同等の seed-generator テストを push 前に実行するよう変更
 - ktlint 初回整形を適用し、seed-generator の `Normalizer.kt` を `HiraganaNormalizer.kt` にリネーム
