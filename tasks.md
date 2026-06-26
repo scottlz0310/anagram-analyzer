@@ -51,6 +51,7 @@
 
 - [x] Android UIテスト分離（2シャード）・差分判定・Configuration Cache
 - [x] debug APK artifact・署名済みリリースAPKワークフロー
+- [x] Dagger/Hilt 2.60 の Hilt 生成コードが参照する `error_prone_annotations` を明示し、依存更新PRのCI失敗を解消
 - [ ] Android用CI/CDパイプライン完成
 - [ ] リリースビルド設定（署名、ProGuard/R8）
 - [ ] Google Play Store 公開準備
