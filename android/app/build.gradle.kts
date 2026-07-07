@@ -117,10 +117,10 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
-    implementation("com.google.dagger:hilt-android:2.60")
+    implementation("com.google.dagger:hilt-android:2.60.1")
     // Hilt 2.60 の生成 Java ソースが参照するコンパイル時専用 annotation。
     compileOnly("com.google.errorprone:error_prone_annotations:2.50.0")
-    ksp("com.google.dagger:hilt-compiler:2.60")
+    ksp("com.google.dagger:hilt-compiler:2.60.1")
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
