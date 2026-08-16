@@ -104,7 +104,7 @@ kotlin {
 }
 
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2026.06.01")
+    val composeBom = platform("androidx.compose:compose-bom:2026.08.00")
     val roomVersion = "2.8.4"
 
     implementation("androidx.core:core-ktx:1.19.0")
