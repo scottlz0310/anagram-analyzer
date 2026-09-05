@@ -111,7 +111,8 @@
 - [x] `tools:seed-generator` の package と `mainClass` を統一名前空間へ追随
 - [x] `README.md` の手動確認手順のパッケージ名を更新
 - [x] release keystore を新規作成し、リポジトリ外へオフライン保管（costcalc とは別鍵）。GitHub Actions secrets 4件を差し替え済み
-- [ ] Play Console でのパッケージ名 + 署名鍵の登録時期を決定（2027年の全世界展開に向けて。現時点では着手不要）
+- [x] Play Console でパッケージ名を登録 → **完了。Play アプリ署名が有効で、アプリ署名鍵は Google 保有の量子対応ハイブリッド署名。デベロッパー確認要件は充足済み**
+- [x] `README.md`「リリース署名」を Play アプリ署名の実態に合わせて訂正
 
 ---
 
@@ -150,4 +151,4 @@
 | 15: Issue #12 主役化 | ⬜ 未着手 | クイズ品質確立後に着手 |
 | 16: Issue #63 seed-generator テスト復帰 | ✅ 完了 | Windows の TSV 比較失敗を修正し、pre-push に `:tools:seed-generator:test` を復帰 |
 | 17: Issue #62 ktlint CLI pre-commit | ✅ 完了 | ktlint CLI 1.8.0 pre-commit、初回整形まで完了 |
-| 18: Issue #98 パッケージ名移行・署名鍵再作成 | 🟡 進行中 | 名前空間を `io.github.scottlz0310.anagramanalyzer` へ統一。署名鍵を再作成しリポジトリ外保管へ移行。Play Console 登録時期の決定のみ残 |
+| 18: Issue #98 パッケージ名移行・署名鍵再作成 | ✅ 完了 | 名前空間統一・署名鍵の再作成とオフライン保管・Play Console でのパッケージ名登録まで完了。Play アプリ署名が有効 |

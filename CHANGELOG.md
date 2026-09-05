@@ -26,6 +26,13 @@
 
 ### Changed
 
+- **Issue #98 リリース署名の記述を Play アプリ署名の実態に合わせて訂正**
+  - Play Console を確認した結果、アプリ `io.github.scottlz0310.anagramanalyzer` は登録済み（未公開）で **Play アプリ署名が有効**、アプリ署名鍵は Google が保有する量子対応ハイブリッド署名（従来の鍵 + ポスト量子暗号鍵）であることが判明
+  - Android デベロッパーの確認要件は既に充足済みで、自前証明書の登録は不要
+  - `README.md`「リリース署名」を、GitHub Releases 用の自前署名と Play 配信用の Google 署名を区別する記述へ全面改訂
+  - 「署名鍵を失うと登録済みパッケージ名の更新権を失う」という記述を削除。**アップロード鍵は Play Console から再発行できる**ため誤りだった
+  - アップロード鍵の証明書は初回 App Bundle アップロード時に確定する旨を追記
+
 - **Issue #98 `applicationId` / `namespace` を `io.github.scottlz0310.anagramanalyzer` へ移行（破壊的変更）**
   - `applicationId` を `com.anagram.analyzer` から `io.github.scottlz0310.anagramanalyzer` へ変更。Android は別アプリとして扱うため、**既存インストールは自動更新されず手動アンインストールが必要**
   - `namespace` と Kotlin の `package` も同名へ統一し、ソースツリーを `io/github/scottlz0310/anagramanalyzer/` へ移動（45ファイル）

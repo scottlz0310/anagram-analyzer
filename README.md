@@ -105,10 +105,26 @@ adb shell am start -n io.github.scottlz0310.anagramanalyzer/.MainActivity
 
 ## リリース署名
 
-release APK の署名鍵（`.jks`）とパスワードは**リポジトリ外**で管理しています。鍵本体・パスワード・フィンガープリント・復旧手順は保管先の `README.md` を参照してください。
+このリポジトリには**2つの署名経路**があります。混同しないよう注意してください。
+
+| 配布経路 | 署名鍵 | 保有者 | 現状 |
+|---|---|---|---|
+| GitHub Releases の `app-release.apk` | 自前の keystore | 開発者 | 現行の配布経路 |
+| Google Play（AAB） | **アプリ署名鍵** | **Google**（Play アプリ署名） | アプリ登録済み・未公開 |
+
+Play アプリ署名が有効なため、**Play 経由で利用者の端末に届く APK は Google が保有する鍵で署名されます**。開発者側が用意するのは AAB をアップロードする際の**アップロード鍵**のみです。
+
+Play Console 上のアプリ署名鍵は**量子対応ハイブリッド署名**（従来の鍵 + ポスト量子暗号鍵）で構成されており、Android デベロッパーの確認にはこの鍵群の証明書が登録済みです。自前の証明書を登録する必要はありません。
+
+### 自前 keystore の位置づけ
+
+鍵本体・パスワード・フィンガープリント・復旧手順は**リポジトリ外**の保管先 `README.md` を参照してください。
 
 - `applicationId`: `io.github.scottlz0310.anagramanalyzer`
-- 署名鍵 alias: `anagram-analyzer-release`（PKCS12 / RSA 4096bit）
+- alias: `anagram-analyzer-release`（PKCS12 / RSA 4096bit）
+- 用途: GitHub Releases 用 APK の署名、および将来 Play へ AAB をアップロードする際のアップロード鍵
+
+アップロード鍵の証明書は Play Console 上でまだ確定していません。**最初の App Bundle をアップロードした時点で、その署名鍵がアップロード鍵として登録されます。**
 
 `Android Release` ワークフローは以下の secrets から署名情報を取得します。
 
@@ -138,11 +154,15 @@ export ANDROID_SIGNING_KEY_PASSWORD="<key パスワード>"
 apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
 ```
 
-出力される証明書 SHA-256 が保管先 `fingerprints.txt` の値と一致することを確認してください。
+出力される証明書 SHA-256 が保管先 `fingerprints.txt` の値と一致することを確認してください。これは**自前鍵で署名した APK の検証**であり、Play 配信版の署名とは別物です。
+
+### 鍵を失った場合
+
+**アップロード鍵は再発行できます。** Play Console から新しいアップロード鍵へのリセットをリクエストでき、アプリが利用できなくなることはありません。アプリ署名鍵は Google が保護しているため、開発者側の鍵の紛失が配信を止めることはありません。
+
+ただし GitHub Releases の APK は自前鍵で署名されているため、鍵を失うと**その経路で配布済みの APK を更新できなくなります**（Android は署名の異なる APK への更新を拒否します）。#76 で公式配布を Play のみへ移行するまでは、自前鍵のバックアップを維持してください。
 
 > **キーストアをリポジトリ内へ配置しないこと。** 誤コミット防止として `.gitignore` に `*.jks` / `*.keystore` / `*.p12` を登録していますが、鍵はリポジトリ外に置くのが原則です。
->
-> 署名鍵を失うと、Google Play の Developer Verification に登録済みのパッケージ名の更新権を失います（新しい鍵で同じパッケージ名を再登録することはできません）。また Android は署名の異なる APK への更新を拒否するため、利用者は手動アンインストールが必要になります。
 ## ライセンス
 
 ### 本ソフトウェア
