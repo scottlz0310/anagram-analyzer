@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.anagram.analyzer"
+    namespace = "io.github.scottlz0310.anagramanalyzer"
     compileSdk = 37
     val releaseStoreFilePath =
         providers.gradleProperty("ANDROID_SIGNING_STORE_FILE").orNull
@@ -53,7 +53,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.anagram.analyzer"
+        applicationId = "io.github.scottlz0310.anagramanalyzer"
         minSdk = 24
         targetSdk = 34
         versionCode = 3

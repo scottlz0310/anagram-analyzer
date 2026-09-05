@@ -85,7 +85,7 @@ cd android && ./gradlew :tools:seed-generator:run \
 cd android
 ./gradlew :app:assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell am start -n com.anagram.analyzer/.MainActivity
+adb shell am start -n io.github.scottlz0310.anagramanalyzer/.MainActivity
 ```
 
 確認例:

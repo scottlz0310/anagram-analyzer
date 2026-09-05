@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClass.set("com.anagram.tools.seedgenerator.MainKt")
+    mainClass.set("io.github.scottlz0310.anagramanalyzer.tools.seedgenerator.MainKt")
 }
 
 java {
