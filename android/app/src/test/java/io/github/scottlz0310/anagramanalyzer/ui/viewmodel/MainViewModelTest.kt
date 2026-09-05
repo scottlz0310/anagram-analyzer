@@ -1,0 +1,946 @@
+package io.github.scottlz0310.anagramanalyzer.ui.viewmodel
+
+import android.database.sqlite.SQLiteException
+import io.github.scottlz0310.anagramanalyzer.data.datastore.InputHistoryStore
+import io.github.scottlz0310.anagramanalyzer.data.datastore.SearchSettings
+import io.github.scottlz0310.anagramanalyzer.data.datastore.SearchSettingsStore
+import io.github.scottlz0310.anagramanalyzer.data.db.AnagramDao
+import io.github.scottlz0310.anagramanalyzer.data.db.AnagramEntry
+import io.github.scottlz0310.anagramanalyzer.data.seed.AdditionalSeedEntryLoader
+import io.github.scottlz0310.anagramanalyzer.data.seed.CandidateDetail
+import io.github.scottlz0310.anagramanalyzer.data.seed.CandidateDetailLoader
+import io.github.scottlz0310.anagramanalyzer.data.seed.SeedEntryLoader
+import io.github.scottlz0310.anagramanalyzer.domain.model.PreloadLogger
+import io.github.scottlz0310.anagramanalyzer.domain.usecase.ApplyAdditionalDictionaryUseCase
+import io.github.scottlz0310.anagramanalyzer.domain.usecase.LoadCandidateDetailUseCase
+import io.github.scottlz0310.anagramanalyzer.domain.usecase.PreloadSeedUseCase
+import io.github.scottlz0310.anagramanalyzer.domain.usecase.SearchAnagramUseCase
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class MainViewModelTest {
+    @Test
+    fun preload完了前でも候補を取得できる() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(insertDelayMs = 100),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals("りんご", state.input)
+            assertEquals(listOf("りんご"), state.candidates)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 候補表示時に入力履歴へ追加する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            assertEquals(listOf("りんご"), viewModel.uiState.value.inputHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 保存済み文字数範囲を起動時に復元する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(
+                    initialSettings = SearchSettings(minLength = 3, maxLength = 8),
+                ),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+
+            assertEquals(3, viewModel.uiState.value.minSearchLength)
+            assertEquals(8, viewModel.uiState.value.maxSearchLength)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 文字数範囲外の入力はエラーを表示する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(
+                    initialSettings = SearchSettings(minLength = 4, maxLength = 8),
+                ),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertTrue(state.errorMessage?.contains("文字数は4〜8文字で入力してください") == true)
+            assertTrue(state.candidates.isEmpty())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun preload中の入力でも保存済み文字数範囲で再検証する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(insertDelayMs = 100),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(
+                    initialSettings = SearchSettings(minLength = 4, maxLength = 8),
+                ),
+                dispatcher = dispatcher,
+            )
+
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertTrue(state.errorMessage?.contains("文字数は4〜8文字で入力してください") == true)
+            assertTrue(state.candidates.isEmpty())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 入力履歴は重複を先頭へ寄せる() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+            viewModel.onInputChanged("さくら")
+            advanceUntilIdle()
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            assertEquals(listOf("りんご", "さくら"), viewModel.uiState.value.inputHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 連続入力時は最新入力の結果のみ反映する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(
+                    initialEntries = listOf(
+                        AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
+                        AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3),
+                    ),
+                    lookupDelayByKey = mapOf(
+                        "ごりん" to 200,
+                        "くさら" to 10,
+                    ),
+                ),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            viewModel.onInputChanged("りんご")
+            viewModel.onInputChanged("さくら")
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals("さくら", state.input)
+            assertEquals(listOf("さくら"), state.candidates)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun preload失敗時はエラーメッセージを反映する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(
+                    countFailure = SQLiteException("DB error"),
+                ),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+
+            assertTrue(
+                viewModel.uiState.value.errorMessage?.contains("データベース初期化に失敗しました") == true,
+            )
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun seed読み込み失敗時はエラーメッセージを反映する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(loadFailure = IllegalArgumentException("bad seed")),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+
+            assertTrue(
+                viewModel.uiState.value.errorMessage?.contains("辞書データの読み込みに失敗しました") == true,
+            )
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun preload完了時に計測ログを保持する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(
+                    entries = listOf(
+                        AnagramEntry(sortedKey = "ごりん", word = "りんご", length = 3),
+                        AnagramEntry(sortedKey = "くさら", word = "さくら", length = 3),
+                    ),
+                ),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+
+            val preloadLog = viewModel.uiState.value.preloadLog.orEmpty()
+            assertTrue(preloadLog.contains("source=seed_asset"))
+            assertTrue(preloadLog.contains("total=2"))
+            assertTrue(preloadLog.contains("inserted=2"))
+            assertTrue(preloadLog.contains("elapsedMs="))
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 候補詳細データをstateに保持する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(
+                    details = mapOf(
+                        "りんご" to CandidateDetail(kanji = "林檎", meaning = "apple"),
+                    ),
+                ),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+
+            assertEquals("林檎", viewModel.uiState.value.candidateDetails["りんご"]?.kanji)
+            assertEquals("apple", viewModel.uiState.value.candidateDetails["りんご"]?.meaning)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 候補詳細が未収録でも取得要求でstateへ反映する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(
+                    fetchedDetails = mapOf(
+                        "おなじ" to CandidateDetail(kanji = "同じ", meaning = "same"),
+                    ),
+                ),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+            viewModel.onCandidateDetailFetchRequested("おなじ")
+            advanceUntilIdle()
+
+            assertEquals("同じ", viewModel.uiState.value.candidateDetails["おなじ"]?.kanji)
+            assertEquals("same", viewModel.uiState.value.candidateDetails["おなじ"]?.meaning)
+            assertEquals(null, viewModel.uiState.value.loadingCandidateDetailWord)
+            assertEquals(null, viewModel.uiState.value.candidateDetailErrorMessage)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 候補詳細取得失敗時はエラー状態を保持する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(
+                    fetchFailure = IllegalStateException("network error"),
+                ),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+            viewModel.onCandidateDetailFetchRequested("おなじ")
+            advanceUntilIdle()
+
+            assertEquals("おなじ", viewModel.uiState.value.candidateDetailErrorWord)
+            assertTrue(
+                viewModel.uiState.value.candidateDetailErrorMessage?.contains("候補詳細の取得に失敗しました") == true,
+            )
+            assertEquals(null, viewModel.uiState.value.loadingCandidateDetailWord)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 候補詳細取得結果がnullのときは取得不可エラーを保持する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+            viewModel.onCandidateDetailFetchRequested("おなじ")
+            advanceUntilIdle()
+
+            assertEquals("おなじ", viewModel.uiState.value.candidateDetailErrorWord)
+            assertEquals("候補詳細を取得できませんでした", viewModel.uiState.value.candidateDetailErrorMessage)
+            assertEquals(null, viewModel.uiState.value.loadingCandidateDetailWord)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 保存済み入力履歴を起動時に復元する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val inputHistoryStore = FakeInputHistoryStore(
+                initialHistory = listOf("りんご", "さくら"),
+            )
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = inputHistoryStore,
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+
+            assertEquals(listOf("りんご", "さくら"), viewModel.uiState.value.inputHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 保存済み入力履歴は10件まで復元する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val persistedHistory = (1..12).map { "りんご$it" }
+            val inputHistoryStore = FakeInputHistoryStore(initialHistory = persistedHistory)
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = inputHistoryStore,
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+
+            assertEquals(10, viewModel.uiState.value.inputHistory.size)
+            assertEquals(persistedHistory.take(10), viewModel.uiState.value.inputHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 入力履歴更新時に永続化する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val inputHistoryStore = FakeInputHistoryStore()
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = inputHistoryStore,
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            viewModel.onInputChanged("りんご")
+            advanceUntilIdle()
+
+            assertEquals(listOf("りんご"), inputHistoryStore.persistedHistory)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 文字数範囲変更時に永続化する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val searchSettingsStore = FakeSearchSettingsStore()
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = searchSettingsStore,
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+            viewModel.onSearchLengthRangeChanged(minLength = 3, maxLength = 10)
+            advanceUntilIdle()
+
+            assertEquals(3, viewModel.uiState.value.minSearchLength)
+            assertEquals(10, viewModel.uiState.value.maxSearchLength)
+            assertEquals(SearchSettings(minLength = 3, maxLength = 10), searchSettingsStore.persistedSettings)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun preload中に変更した文字数範囲を上書きしない() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val searchSettingsStore = FakeSearchSettingsStore()
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(insertDelayMs = 100),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = searchSettingsStore,
+                dispatcher = dispatcher,
+            )
+
+            viewModel.onSearchLengthRangeChanged(minLength = 3, maxLength = 10)
+            advanceUntilIdle()
+
+            assertEquals(3, viewModel.uiState.value.minSearchLength)
+            assertEquals(10, viewModel.uiState.value.maxSearchLength)
+            assertEquals(SearchSettings(minLength = 3, maxLength = 10), searchSettingsStore.persistedSettings)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 連続変更時は最新の文字数範囲のみ永続化する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val searchSettingsStore = FakeSearchSettingsStore(
+                persistDelayMs = { settings ->
+                    if (settings.minLength == 3) {
+                        100
+                    } else {
+                        0
+                    }
+                },
+            )
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = searchSettingsStore,
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+            viewModel.onSearchLengthRangeChanged(minLength = 3, maxLength = 10)
+            viewModel.onSearchLengthRangeChanged(minLength = 4, maxLength = 10)
+            advanceUntilIdle()
+
+            assertEquals(SearchSettings(minLength = 4, maxLength = 10), searchSettingsStore.persistedSettings)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 同一文字数範囲では再永続化しない() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val searchSettingsStore = FakeSearchSettingsStore()
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = searchSettingsStore,
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+            viewModel.onSearchLengthRangeChanged(minLength = 2, maxLength = 20)
+            advanceUntilIdle()
+
+            assertEquals(0, searchSettingsStore.persistCallCount)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 同一文字数範囲の操作では設定メッセージを変更しない() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+            viewModel.onAdditionalDictionaryDownloadRequested()
+            advanceUntilIdle()
+            val beforeNoOp = viewModel.uiState.value.settingsMessage
+            viewModel.onSearchLengthRangeChanged(minLength = 2, maxLength = 20)
+            advanceUntilIdle()
+
+            assertEquals(beforeNoOp, viewModel.uiState.value.settingsMessage)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 追加辞書を適用して成功メッセージを表示する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(
+                    entries = listOf(
+                        AnagramEntry(
+                            sortedKey = "あいうえおかきくけこ",
+                            word = "あいうえおかきくけこ",
+                            length = 10,
+                        ),
+                    ),
+                ),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+            viewModel.onAdditionalDictionaryDownloadRequested()
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.settingsMessage?.contains("追加辞書を適用しました") == true)
+            assertTrue(viewModel.uiState.value.isAdditionalDictionaryDownloading.not())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 追加辞書適用はpreload完了を待ってから開始する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            var isSeedLoaded = false
+            var startedBeforePreload = false
+            val seedEntryLoader = object : SeedEntryLoader {
+                override suspend fun loadEntries(): List<AnagramEntry> {
+                    delay(100)
+                    isSeedLoaded = true
+                    return listOf(
+                        AnagramEntry(
+                            sortedKey = "ごりん",
+                            word = "りんご",
+                            length = 3,
+                        ),
+                    )
+                }
+            }
+            val additionalSeedEntryLoader = object : AdditionalSeedEntryLoader {
+                override suspend fun loadEntries(): List<AnagramEntry> {
+                    if (!isSeedLoaded) {
+                        startedBeforePreload = true
+                    }
+                    return listOf(
+                        AnagramEntry(
+                            sortedKey = "あいうえおかきくけこ",
+                            word = "あいうえおかきくけこ",
+                            length = 10,
+                        ),
+                    )
+                }
+            }
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = seedEntryLoader,
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = additionalSeedEntryLoader,
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            viewModel.onAdditionalDictionaryDownloadRequested()
+            advanceUntilIdle()
+
+            assertTrue(startedBeforePreload.not())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun 追加辞書の読み込み失敗時にエラーメッセージを表示する() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(
+                    loadFailure = IllegalStateException("network error"),
+                ),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = FakeSearchSettingsStore(),
+                dispatcher = dispatcher,
+            )
+
+            advanceUntilIdle()
+            viewModel.onAdditionalDictionaryDownloadRequested()
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.settingsMessage?.contains("追加辞書の適用に失敗しました") == true)
+            assertTrue(viewModel.uiState.value.isAdditionalDictionaryDownloading.not())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun preload前に変更してデフォルトへ戻しても保存済み範囲で上書きしない() = runTest {
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        try {
+            val searchSettingsStore = FakeSearchSettingsStore(
+                initialSettings = SearchSettings(minLength = 3, maxLength = 10),
+                initialReadDelayMs = 100,
+            )
+            val viewModel = buildViewModel(
+                anagramDao = FakeAnagramDao(),
+                seedEntryLoader = FakeSeedEntryLoader(),
+                candidateDetailLoader = FakeCandidateDetailLoader(),
+                additionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+                inputHistoryStore = FakeInputHistoryStore(),
+                searchSettingsStore = searchSettingsStore,
+                dispatcher = dispatcher,
+            )
+
+            viewModel.onSearchLengthRangeChanged(minLength = 4, maxLength = 10)
+            viewModel.onSearchLengthRangeChanged(minLength = 2, maxLength = 20)
+            advanceUntilIdle()
+
+            assertEquals(2, viewModel.uiState.value.minSearchLength)
+            assertEquals(20, viewModel.uiState.value.maxSearchLength)
+            assertEquals(SearchSettings(minLength = 2, maxLength = 20), searchSettingsStore.persistedSettings)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    private fun buildViewModel(
+        anagramDao: AnagramDao = FakeAnagramDao(),
+        seedEntryLoader: SeedEntryLoader = FakeSeedEntryLoader(),
+        candidateDetailLoader: CandidateDetailLoader = FakeCandidateDetailLoader(),
+        additionalSeedEntryLoader: AdditionalSeedEntryLoader = FakeAdditionalSeedEntryLoader(),
+        inputHistoryStore: InputHistoryStore = FakeInputHistoryStore(),
+        searchSettingsStore: SearchSettingsStore = FakeSearchSettingsStore(),
+        dispatcher: CoroutineDispatcher = Dispatchers.Main,
+    ): MainViewModel = MainViewModel(
+        preloadSeedUseCase = PreloadSeedUseCase(anagramDao, seedEntryLoader, candidateDetailLoader, PreloadLogger { _ -> }),
+        searchAnagramUseCase = SearchAnagramUseCase(anagramDao),
+        loadCandidateDetailUseCase = LoadCandidateDetailUseCase(candidateDetailLoader),
+        applyAdditionalDictionaryUseCase = ApplyAdditionalDictionaryUseCase(anagramDao, additionalSeedEntryLoader),
+        inputHistoryStore = inputHistoryStore,
+        searchSettingsStore = searchSettingsStore,
+        ioDispatcher = dispatcher,
+    )
+
+    private class FakeAnagramDao(
+        initialEntries: List<AnagramEntry> = emptyList(),
+        private val insertDelayMs: Long = 0,
+        private val lookupDelayByKey: Map<String, Long> = emptyMap(),
+        private val countFailure: SQLiteException? = null,
+    ) : AnagramDao {
+        private val entries = initialEntries.toMutableList()
+
+        override suspend fun insertAll(entries: List<AnagramEntry>) {
+            delay(insertDelayMs)
+            entries.forEach { candidate ->
+                val duplicated = this.entries.any {
+                    it.sortedKey == candidate.sortedKey && it.word == candidate.word
+                }
+                if (!duplicated) {
+                    this.entries.add(candidate)
+                }
+            }
+        }
+
+        override suspend fun lookupWords(sortedKey: String): List<String> {
+            delay(lookupDelayByKey[sortedKey] ?: 0)
+            return entries
+                .filter { it.sortedKey == sortedKey }
+                .map { it.word }
+                .sorted()
+        }
+
+        override suspend fun count(): Long {
+            if (countFailure != null) {
+                throw countFailure
+            }
+            return entries.size.toLong()
+        }
+
+        override suspend fun countByLength(minLen: Int, maxLen: Int): Int = entries.count { it.length in minLen..maxLen }
+
+        override suspend fun getEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? = entries.filter { it.length in minLen..maxLen }.getOrNull(offset)
+
+        override suspend fun countCommonByLength(minLen: Int, maxLen: Int): Int = entries.count { it.length in minLen..maxLen && it.isCommon }
+
+        override suspend fun getCommonEntryAtOffset(minLen: Int, maxLen: Int, offset: Int): AnagramEntry? = entries.filter { it.length in minLen..maxLen && it.isCommon }.getOrNull(offset)
+    }
+
+    private class FakeSeedEntryLoader(
+        private val entries: List<AnagramEntry> = emptyList(),
+        private val loadFailure: IllegalArgumentException? = null,
+    ) : SeedEntryLoader {
+        override suspend fun loadEntries(): List<AnagramEntry> {
+            if (loadFailure != null) {
+                throw loadFailure
+            }
+            return entries
+        }
+    }
+
+    private class FakeCandidateDetailLoader(
+        private val details: Map<String, CandidateDetail> = emptyMap(),
+        private val fetchedDetails: Map<String, CandidateDetail> = emptyMap(),
+        private val fetchFailure: IllegalStateException? = null,
+    ) : CandidateDetailLoader {
+        override suspend fun loadDetails(): Map<String, CandidateDetail> = details
+
+        override suspend fun fetchDetail(word: String): CandidateDetail? {
+            if (fetchFailure != null) {
+                throw fetchFailure
+            }
+            return details[word] ?: fetchedDetails[word]
+        }
+    }
+
+    private class FakeAdditionalSeedEntryLoader(
+        private val entries: List<AnagramEntry> = listOf(
+            AnagramEntry(
+                sortedKey = "あいうえおかきくけこ",
+                word = "あいうえおかきくけこ",
+                length = 10,
+            ),
+        ),
+        private val loadFailure: IllegalStateException? = null,
+    ) : AdditionalSeedEntryLoader {
+        override suspend fun loadEntries(): List<AnagramEntry> {
+            if (loadFailure != null) {
+                throw loadFailure
+            }
+            return entries
+        }
+    }
+
+    private class FakeInputHistoryStore(
+        initialHistory: List<String> = emptyList(),
+    ) : InputHistoryStore {
+        private val historyFlow = MutableStateFlow(initialHistory)
+        var persistedHistory: List<String> = initialHistory
+
+        override val inputHistory = historyFlow
+
+        override suspend fun setInputHistory(history: List<String>) {
+            persistedHistory = history
+            historyFlow.value = history
+        }
+    }
+
+    private class FakeSearchSettingsStore(
+        initialSettings: SearchSettings = SearchSettings(),
+        private val persistDelayMs: (SearchSettings) -> Long = { 0L },
+        private val initialReadDelayMs: Long = 0L,
+    ) : SearchSettingsStore {
+        private val settingsFlow = MutableStateFlow(initialSettings)
+        var persistedSettings: SearchSettings = initialSettings
+        var persistCallCount: Int = 0
+
+        override val searchSettings: Flow<SearchSettings> = flow {
+            delay(initialReadDelayMs)
+            emitAll(settingsFlow)
+        }
+
+        override suspend fun setSearchLengthRange(minLength: Int, maxLength: Int) {
+            val updatedSettings = SearchSettings(minLength = minLength, maxLength = maxLength)
+            delay(persistDelayMs(updatedSettings))
+            persistCallCount += 1
+            persistedSettings = updatedSettings
+            settingsFlow.value = persistedSettings
+        }
+    }
+}
