@@ -45,7 +45,7 @@ anagram-analyzer/
 │   │       │   │   ├── anagram_seed.tsv
 │   │       │   │   ├── anagram_additional_seed.tsv
 │   │       │   │   └── candidate_detail_seed.tsv
-│   │       │   └── java/com/anagram/analyzer/
+│   │       │   └── java/io/github/scottlz0310/anagramanalyzer/
 │   │       │       ├── data/
 │   │       │       ├── di/
 │   │       │       ├── domain/
@@ -56,7 +56,7 @@ anagram-analyzer/
 │   │   └── seed-generator/              # JMdict→TSV/DB 生成ツール（Kotlin/JVM CLI）
 │   │       ├── build.gradle.kts
 │   │       └── src/
-│   │           ├── main/kotlin/com/anagram/tools/seedgenerator/
+│   │           ├── main/kotlin/io/github/scottlz0310/anagramanalyzer/tools/seedgenerator/
 │   │           │   ├── Main.kt
 │   │           │   ├── HiraganaNormalizer.kt
 │   │           │   ├── JmdictParser.kt

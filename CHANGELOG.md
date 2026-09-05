@@ -23,7 +23,7 @@
   - `applicationId` を `com.anagram.analyzer` から `io.github.scottlz0310.anagramanalyzer` へ変更。Android は別アプリとして扱うため、**既存インストールは自動更新されず手動アンインストールが必要**
   - `namespace` と Kotlin の `package` も同名へ統一し、ソースツリーを `io/github/scottlz0310/anagramanalyzer/` へ移動（45ファイル）
   - `tools:seed-generator` を `io.github.scottlz0310.anagramanalyzer.tools.seedgenerator` へ変更し、`mainClass` を追随
-  - `README.md` の `adb shell am start` のパッケージ名を更新
+  - `README.md` の `adb shell am start` のパッケージ名と `AGENTS.md` のディレクトリ構成図を更新
   - Android デベロッパー確認（Developer Verification）のパッケージ名登録に備え、管理権のある名前空間（`scottlz0310.github.io`）へ寄せる措置
 - Dagger/Hilt 2.60 の生成 Java ソースが参照する `error_prone_annotations` を `compileOnly` 依存として明示し、Hilt 生成コードの Java コンパイル失敗を解消
 - `SeedGeneratorIntegrationTest` の TSV ゴールデン比較で改行コードを正規化し、Windows / cp932 環境の CRLF 差分で失敗しないよう変更
