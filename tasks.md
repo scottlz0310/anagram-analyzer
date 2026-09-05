@@ -104,13 +104,13 @@
 - [x] `.editorconfig` / `.gitattributes` を追加し、Compose / JUnit テスト命名と LF 改行を明示
 - [x] 既存 Kotlin コードへ ktlint 初回整形を適用
 
-### フェーズ 18: Issue #98 Android デベロッパー確認対応（パッケージ名移行）
+### フェーズ 18: Issue #98 Android デベロッパー確認対応（パッケージ名移行・署名鍵再作成）
 
 - [x] `applicationId` を `io.github.scottlz0310.anagramanalyzer` へ変更
 - [x] `namespace` と Kotlin `package` を `applicationId` に統一（app 45ファイル移動）
 - [x] `tools:seed-generator` の package と `mainClass` を統一名前空間へ追随
 - [x] `README.md` の手動確認手順のパッケージ名を更新
-- [ ] release keystore のバックアップ状況を確認（オフライン保管の有無 / costcalc との鍵共用の有無）
+- [x] release keystore を新規作成し、リポジトリ外へオフライン保管（costcalc とは別鍵）。GitHub Actions secrets 4件を差し替え済み
 - [ ] Play Console でのパッケージ名 + 署名鍵の登録時期を決定（2027年の全世界展開に向けて。現時点では着手不要）
 
 ---
@@ -150,4 +150,4 @@
 | 15: Issue #12 主役化 | ⬜ 未着手 | クイズ品質確立後に着手 |
 | 16: Issue #63 seed-generator テスト復帰 | ✅ 完了 | Windows の TSV 比較失敗を修正し、pre-push に `:tools:seed-generator:test` を復帰 |
 | 17: Issue #62 ktlint CLI pre-commit | ✅ 完了 | ktlint CLI 1.8.0 pre-commit、初回整形まで完了 |
-| 18: Issue #98 パッケージ名移行 | 🟡 進行中 | `io.github.scottlz0310.anagramanalyzer` へ統一済み。keystore バックアップ確認と Play Console 登録時期の決定が残 |
+| 18: Issue #98 パッケージ名移行・署名鍵再作成 | 🟡 進行中 | 名前空間を `io.github.scottlz0310.anagramanalyzer` へ統一。署名鍵を再作成しリポジトリ外保管へ移行。Play Console 登録時期の決定のみ残 |
