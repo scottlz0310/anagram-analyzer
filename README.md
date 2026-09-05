@@ -102,6 +102,47 @@ adb shell am start -n io.github.scottlz0310.anagramanalyzer/.MainActivity
   - 安定性優先のため UI テストでは `--configuration-cache` を利用しない（Unit/Build では利用）
 - `Android Release` ワークフロー: 署名済み `app-release.apk` を配布
 
+
+## リリース署名
+
+release APK の署名鍵（`.jks`）とパスワードは**リポジトリ外**で管理しています。鍵本体・パスワード・フィンガープリント・復旧手順は保管先の `README.md` を参照してください。
+
+- `applicationId`: `io.github.scottlz0310.anagramanalyzer`
+- 署名鍵 alias: `anagram-analyzer-release`（PKCS12 / RSA 4096bit）
+
+`Android Release` ワークフローは以下の secrets から署名情報を取得します。
+
+| Secret | 内容 |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | keystore を base64 エンコードしたもの |
+| `ANDROID_SIGNING_STORE_PASSWORD` | keystore のパスワード |
+| `ANDROID_SIGNING_KEY_ALIAS` | 鍵の alias |
+| `ANDROID_SIGNING_KEY_PASSWORD` | 鍵のパスワード |
+
+### ローカルで署名付き release ビルドを行う
+
+`android/app/build.gradle.kts` は gradle property と環境変数のどちらからでも署名情報を読みます。4つすべてを与えないとビルドは明示的に失敗します（部分指定の検出）。
+
+```bash
+cd android
+export ANDROID_SIGNING_STORE_FILE="<keystore への絶対パス>"
+export ANDROID_SIGNING_STORE_PASSWORD="<store パスワード>"
+export ANDROID_SIGNING_KEY_ALIAS="anagram-analyzer-release"
+export ANDROID_SIGNING_KEY_PASSWORD="<key パスワード>"
+./gradlew :app:assembleRelease
+```
+
+署名の検証:
+
+```bash
+apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
+```
+
+出力される証明書 SHA-256 が保管先 `fingerprints.txt` の値と一致することを確認してください。
+
+> **キーストアをリポジトリ内へ配置しないこと。** 誤コミット防止として `.gitignore` に `*.jks` / `*.keystore` / `*.p12` を登録していますが、鍵はリポジトリ外に置くのが原則です。
+>
+> 署名鍵を失うと、Google Play の Developer Verification に登録済みのパッケージ名の更新権を失います（新しい鍵で同じパッケージ名を再登録することはできません）。また Android は署名の異なる APK への更新を拒否するため、利用者は手動アンインストールが必要になります。
 ## ライセンス
 
 ### 本ソフトウェア

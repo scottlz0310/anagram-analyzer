@@ -7,6 +7,13 @@
 
 ### Added
 
+- **Issue #98 リリース署名鍵の再作成とリポジトリ外管理**
+  - release 署名鍵を新規作成（PKCS12 / RSA 4096bit / 有効期限 2054-01-22 / `CN=Anagram Analyzer, O=SUGAWARA KENSETSU Y.K., C=JP`）し、リポジトリ外のオフライン保管へ移行
+  - 旧鍵は GitHub Actions secrets にしか存在せず実質失われていたが、公開リリースが 0 件で配布実績がなかったため再作成の実害はなし
+  - GitHub Actions secrets 4件（`ANDROID_KEYSTORE_BASE64` / `ANDROID_SIGNING_STORE_PASSWORD` / `ANDROID_SIGNING_KEY_ALIAS` / `ANDROID_SIGNING_KEY_PASSWORD`）を新しい鍵で差し替え
+  - `README.md` に「リリース署名」セクションを追加し、secrets の対応・ローカル署名ビルド手順・署名検証手順を記載
+  - `.gitignore` に `*.jks` / `*.keystore` / `*.p12` / `keystore.properties` / `signing.properties` / `.env` を追加し、鍵の誤コミットを防止
+
 - lefthook 導入（`lefthook.yml`）: pre-push で `:app:testDebugUnitTest` と `:tools:seed-generator:test` を実行。Kotlin リンタ（ktlint）は #62 で対応予定。
 - **Issue #62 ktlint CLI pre-commit 導入**
   - ktlint CLI 1.8.0 をバージョン固定し、lefthook `pre-commit` で staged な `*.kt` を自動整形する設定を追加

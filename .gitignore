@@ -60,3 +60,11 @@ android/app/*.iml
 *.apk
 *.aab
 *.hprof
+
+# 署名鍵・秘密情報（リポジトリ外の Dropbox で管理する。詳細は README「リリース署名」参照）
+*.jks
+*.keystore
+*.p12
+keystore.properties
+signing.properties
+.env
