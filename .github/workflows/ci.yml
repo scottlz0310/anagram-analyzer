@@ -50,7 +50,7 @@ jobs:
         uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "25"
           cache: gradle
 
       - name: Cache Gradle configuration cache (unit)
@@ -81,7 +81,7 @@ jobs:
         uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "25"
           cache: gradle
 
       - name: Cache Gradle configuration cache (build)
